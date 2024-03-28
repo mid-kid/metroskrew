@@ -235,36 +235,55 @@ GetModuleFileNameA:
 .global LoadLibraryA
 LoadLibraryA:
     push [esp + 4]
-    push offset 9f
+    push offset 1f
     call printf
     add esp, 4 * 2
 
-    xor eax, eax
+    mov eax, -1
     ret 4
 
-9:
-    .asciz "stub: LoadLibraryA: %s\n"
+1:
+    .asciz "HACK: LoadLibraryA: %s\n"
 
 .global FreeLibrary
 FreeLibrary:
-    die FreeLibrary
+    push [esp + 4]
+    push offset 1f
+    call printf
+    add esp, 4 * 2
+
+    mov eax, 1
+    ret 4
+
+1:
+    .asciz "HACK: FreeLibrary: %d\n"
 
 .global GlobalAlloc
 GlobalAlloc:
     push ebp
     mov ebp, esp
+    push ebx
 
-    push [ebp + 4 + 4 * 2]
+    # Always allocate 4 more bytes, for size
+    mov eax, [ebp + 4 + 4 * 2]
+    add eax, 4
+    push eax
     call malloc
     add esp, 4
+
+    # Store original size
+    mov ebx, [ebp + 4 + 4 * 2]
+    mov [eax], ebx
+    add eax, 4
     push eax
 
     # Handle 0x20, initializing the memory to zero
     test dword ptr [ebp + 4 + 4 * 1], 0x40
     jz 1f
+
     push [ebp + 4 + 4 * 2]
     push 0
-    push [ebp - 4]
+    push eax
     call memset
     add esp, 4 * 3
 
@@ -274,6 +293,7 @@ GlobalAlloc:
     jnz 8f
 
     pop eax
+    pop ebx
     leave
     ret 4 * 2
 
@@ -289,10 +309,12 @@ GlobalAlloc:
 
 .global GlobalFree
 GlobalFree:
-    push [esp + 4 * 1]
+    mov eax, [esp + 4]
+    sub eax, 4
+    push eax
     call free
     pop eax
-    mov eax, 0
+    xor eax, eax
     ret 4
 
 .global GetFullPathNameA
@@ -459,11 +481,67 @@ CompareFileTime:
 
 .global GlobalReAlloc
 GlobalReAlloc:
-    die GlobalReAlloc
+    push ebp
+    mov ebp, esp
+    push ebx
+    push ecx
+
+    # Account for the extra bytes
+    mov eax, [ebp + 4 + 4 * 2]
+    add eax, 4
+    push eax
+    mov eax, [ebp + 4 + 4 * 1]
+    sub eax, 4
+    push eax
+    call realloc
+    add esp, 4 * 2
+
+    # Store old size in ecx
+    mov ecx, [eax]
+    mov ebx, [ebp + 4 + 4 * 2]
+    mov [eax], ebx
+    add eax, 4
+    push eax
+
+    # Handle 0x20, initializing the memory to zero
+    test dword ptr [ebp + 4 + 4 * 3], 0x40
+    jz 1f
+
+    mov ebx, [ebp + 4 + 4 * 2]
+    sub ebx, ecx
+    jc 1f
+    push ebx
+    push 0
+    push eax
+    call memset
+    add esp, 4 * 3
+
+1:
+    # Handle the rest
+    test dword ptr [ebp + 4 + 4 * 3], ~0x42
+    jnz 8f
+
+    pop eax
+    pop ecx
+    pop ebx
+    leave
+    ret 4 * 2
+
+8:
+    push [ebp + 4 + 4 * 3]
+    push offset 9f
+    call printf
+    push 1
+    jmp exit
+
+9:
+    .asciz "die: GlobalReAlloc %04x\n"
 
 .global GlobalFlags
 GlobalFlags:
-    die GlobalFlags
+    stub GlobalFlags
+    xor eax, eax
+    ret 4
 
 .global FileTimeToSystemTime
 FileTimeToSystemTime:
@@ -471,19 +549,71 @@ FileTimeToSystemTime:
 
 .global FindResourceA
 FindResourceA:
-    die FindResourceA
+    push ebp
+    mov ebp, esp
+
+    push [ebp + 4 + 4 * 3]
+    push [ebp + 4 + 4 * 2]
+    push [ebp + 4 + 4 * 1]
+    push offset 1f
+    call printf
+
+    xor eax, eax
+    leave
+    ret 4 * 3
+
+1:
+    .asciz "stub: FindResourceA: %d '%s' '%s'\n"
 
 .global LoadResource
 LoadResource:
-    die LoadResource
+    push ebp
+    mov ebp, esp
+
+    push [ebp + 4 + 4 * 2]
+    push [ebp + 4 + 4 * 1]
+    push offset 1f
+    call printf
+
+    xor eax, eax
+    leave
+    ret 4 * 2
+
+1:
+    .asciz "stub: LoadResource: %d %d\n"
 
 .global LockResource
 LockResource:
-    die LockResource
+    push ebp
+    mov ebp, esp
+
+    push [ebp + 4 + 4]
+    push offset 1f
+    call printf
+
+    xor eax, eax
+    leave
+    ret 4
+
+1:
+    .asciz "stub: LockResource: %d\n"
 
 .global SizeofResource
 SizeofResource:
-    die SizeofResource
+    push ebp
+    mov ebp, esp
+
+    push [ebp + 4 + 4 * 2]
+    push [ebp + 4 + 4 * 1]
+    push offset 1f
+    call printf
+
+    xor eax, eax
+    leave
+    ret 4 * 2
+
+1:
+    .asciz "stub: SizeofResource: %d %d\n"
 
 .global CreateFileMappingA
 CreateFileMappingA:
