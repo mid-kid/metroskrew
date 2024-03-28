@@ -120,7 +120,7 @@ GetCurrentDirectoryA:
 
 # TODO: Return necessary amount of bytes if buffer too small
 1:
-    die GetCurrentDirectoryA
+    die "GetCurrentDirectoryA: Buffer too small"
 
 .global CreateProcessA
 CreateProcessA:
@@ -181,7 +181,6 @@ GetModuleHandleA:
 1:
     .asciz "stub: GetModuleHandleA: %s\n"
 
-# TODO
 .global GetModuleFileNameA
 GetModuleFileNameA:
     push [esp + 4 * 1]
@@ -189,35 +188,24 @@ GetModuleFileNameA:
     call printf
     add esp, 4 * 2
 
-    mov eax, [esp + 4 * 2]
-    mov byte ptr [eax], 0
-    mov eax, 1
+    xor eax, eax
     ret 4 * 3
 
 1:
-    .asciz "die: GetModuleFileNameA: %d\n"
+    .asciz "stub: GetModuleFileNameA: %d\n"
 
-# TODO
 .global LoadLibraryA
 LoadLibraryA:
-    mov eax, [esp + 4]
-    test eax, eax
-    jnz 1f
-    stub "LoadLibraryA: 0"
-    mov eax, 1
-    ret 4
-
-1:
-    push eax
+    push [esp + 4]
     push offset 9f
     call printf
     add esp, 4 * 2
 
-    mov eax, 1
+    xor eax, eax
     ret 4
 
 9:
-    .asciz "die: LoadLibraryA: %s\n"
+    .asciz "stub: LoadLibraryA: %s\n"
 
 .global FreeLibrary
 FreeLibrary:
