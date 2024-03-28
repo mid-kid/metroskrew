@@ -186,18 +186,41 @@ FreeLibrary:
 
 .global GlobalAlloc
 GlobalAlloc:
-    push ebx
-    mov eax, [esp + 4 * (1 + 1)]
-    test eax, eax
-    jnz 1f
-    push [esp + 4 * (1 + 2)]
+    push ebp
+    mov ebp, esp
+
+    push [ebp + 4 + 4 * 2]
     call malloc
-    pop ebx
-    pop ebx
-    ret 4 * 2
+    add esp, 4
+    push eax
+
+    # Handle 0x20, initializing the memory to zero
+    test dword ptr [ebp + 4 + 4 * 1], 0x40
+    jz 1f
+    push [ebp + 4 + 4 * 2]
+    push 0
+    push [ebp - 4]
+    call memset
+    add esp, 4 * 3
 
 1:
-    die GlobalAlloc
+    # Handle the rest
+    test dword ptr [ebp + 4 + 4 * 1], ~0x40
+    jnz 8f
+
+    pop eax
+    leave
+    ret 4 * 2
+
+8:
+    push [ebp + 4 + 4 * 1]
+    push offset 9f
+    call printf
+    push 1
+    jmp exit
+
+9:
+    .asciz "die: GlobalAlloc %04x\n"
 
 .global GlobalFree
 GlobalFree:

@@ -1,6 +1,5 @@
 .macro stub name
-    mov eax, offset stub_str\@
-    push eax
+    push offset stub_str\@
     call puts
     pop eax
     jmp stub_end\@
@@ -10,11 +9,9 @@ stub_end\@:
 .endm
 
 .macro die name
-    mov eax, offset die_str\@
-    push eax
+    push offset die_str\@
     call puts
-    pop eax
-    mov eax, 1
+    push 1
     jmp exit
 die_str\@:
     .asciz "die: \name"
