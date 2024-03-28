@@ -72,7 +72,8 @@ GetStdHandle:
     ret 4
 
 1:
-    die GetStdHandle
+    mov eax, -1
+    ret 4
 
 # Multithread locks
 .global InitializeCriticalSection
