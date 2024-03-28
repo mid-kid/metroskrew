@@ -86,7 +86,7 @@ FindClose:
 
 .global GetCommandLineA
 GetCommandLineA:
-    stub GetCommandLineA
+    stub "GetCommandLineA: only first argument"
     mov eax, [main_argv]
     mov eax, [eax]
     ret
@@ -170,7 +170,16 @@ TlsSetValue:
 
 .global GetModuleHandleA
 GetModuleHandleA:
-    die GetModuleHandleA
+    push [esp + 4]
+    push offset 1f
+    call printf
+    add esp, 4 * 2
+
+    xor eax, eax
+    ret 4
+
+1:
+    .asciz "stub: GetModuleHandleA: %s\n"
 
 .global GetModuleFileNameA
 GetModuleFileNameA:
