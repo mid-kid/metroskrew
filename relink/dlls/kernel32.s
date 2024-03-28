@@ -264,7 +264,7 @@ GetFullPathNameA:
 
     # Append slash
     mov ebx, [ebp + 4 + 4 * 3]
-    mov byte ptr [ebx + eax], '/'
+    mov byte ptr [ebx + eax], '\\'
     inc eax
 1:
 
@@ -292,14 +292,15 @@ GetFullPathNameA:
     call strcpy
     add esp, 4 * 2
 
+    mov eax, [ebp + 4 + 4 * 3]
 2:
     mov bl, [eax]
     inc eax
     cmp bl, '\0'
     jz 2f
-    cmp bl, '\\'
+    cmp bl, '/'
     jnz 2b
-    mov byte ptr [eax - 1], '/'
+    mov byte ptr [eax - 1], '\\'
     jmp 2b
 2:
     sub eax, [ebp + 4 + 4 * 3]
