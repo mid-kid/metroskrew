@@ -83,7 +83,9 @@ WSAStartup:
 _WS2_32.dll_74:
 .global WSACleanup
 WSACleanup:
-    die WSACleanup
+    # Nothing to do, really
+    xor eax, eax
+    ret
 
 .global _WS2_32.dll_97
 _WS2_32.dll_97:

@@ -21,9 +21,39 @@ GetCurrentProcess:
 
 .global DuplicateHandle
 DuplicateHandle:
-    stub DuplicateHandle
+    push ebp
+    mov ebp, esp
+    push ebx
+
+    # Check if it's an stdio handle
+    mov eax, [ebp + 4 + 4 * 2]
+    dec eax
+    cmp eax, 3
+    jae 8f
+    inc eax
+
+    # Store the handle
+    mov ebx, [ebp + 4 + 4 * 4]
+    test ebx, ebx
+    jz 8f
+    mov [ebx], eax
+
     mov eax, 1
+    pop ebx
+    leave
     ret 4 * 7
+
+# TODO: Actually duplicate non-stdio handles
+8:
+    push [ebp + 4 + 4 * 2]
+    push offset 9f
+    call printf
+    add esp, 4 * 2
+    push 1
+    jmp exit
+
+9:
+    .asciz "die: DuplicateHandle: %d\n"
 
 .global GetLastError
 GetLastError:
@@ -38,6 +68,7 @@ GetStdHandle:
     sub eax, 10
     cmp eax, 3
     jae 1f
+    inc eax
     ret 4
 
 1:
@@ -136,7 +167,13 @@ GetExitCodeProcess:
 
 .global CloseHandle
 CloseHandle:
-    die CloseHandle
+    mov eax, [esp + 4]
+    dec eax
+    push eax
+    call close
+    add esp, 4
+    inc eax
+    ret 4
 
 # Thread local storage
 # Assuming no multithreading
@@ -341,7 +378,7 @@ WriteFile:
     push ebp
     mov ebp, esp
     mov eax, [ebp + 4 + 4 * 1]
-    neg eax
+    dec eax
     push [ebp + 4 + 4 * 3]
     push [ebp + 4 + 4 * 2]
     push eax
