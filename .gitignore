@@ -1,0 +1,5 @@
+*.o
+/bins/
+/main
+/relink/mwccarm
+/relink/mwccarm.s
