@@ -118,7 +118,7 @@ FindClose:
 
 .global GetCommandLineA
 GetCommandLineA:
-    stub "GetCommandLineA: only first argument"
+    stub "GetCommandLineA: only program name"
     mov eax, [main_argv]
     mov eax, [eax]
     ret
@@ -510,6 +510,8 @@ GlobalReAlloc:
     mov ebx, [ebp + 4 + 4 * 2]
     sub ebx, ecx
     jc 1f
+    add eax, ecx
+
     push ebx
     push 0
     push eax
@@ -525,7 +527,7 @@ GlobalReAlloc:
     pop ecx
     pop ebx
     leave
-    ret 4 * 2
+    ret 4 * 3
 
 8:
     push [ebp + 4 + 4 * 3]
@@ -539,7 +541,6 @@ GlobalReAlloc:
 
 .global GlobalFlags
 GlobalFlags:
-    stub GlobalFlags
     xor eax, eax
     ret 4
 

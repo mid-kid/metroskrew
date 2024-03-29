@@ -1,5 +1,5 @@
-ASFLAGS := -I ../bins $(ASFLAGS)
-LDFLAGS := -Wl,-z,noexecstack -no-pie
+ASFLAGS := -g -I ../bins $(ASFLAGS)
+LDFLAGS := -g -Wl,-z,noexecstack -no-pie
 TARGET_ARCH := -m32
 TARGET_MACH := --32
 
