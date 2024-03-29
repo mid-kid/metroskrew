@@ -181,13 +181,43 @@ GetModuleHandleA:
 1:
     .asciz "stub: GetModuleHandleA: %s\n"
 
+# TODO
 .global GetModuleFileNameA
 GetModuleFileNameA:
-    die GetModuleFileNameA
+    push [esp + 4 * 1]
+    push offset 1f
+    call printf
+    add esp, 4 * 2
 
+    mov eax, [esp + 4 * 2]
+    mov byte ptr [eax], 0
+    mov eax, 1
+    ret 4 * 3
+
+1:
+    .asciz "die: GetModuleFileNameA: %d\n"
+
+# TODO
 .global LoadLibraryA
 LoadLibraryA:
-    die LoadLibraryA
+    mov eax, [esp + 4]
+    test eax, eax
+    jnz 1f
+    stub "LoadLibraryA: 0"
+    mov eax, 1
+    ret 4
+
+1:
+    push eax
+    push offset 9f
+    call printf
+    add esp, 4 * 2
+
+    mov eax, 1
+    ret 4
+
+9:
+    .asciz "die: LoadLibraryA: %s\n"
 
 .global FreeLibrary
 FreeLibrary:
