@@ -4,7 +4,7 @@
 .global CoInitialize
 CoInitialize:
     stub CoInitialize
-    mov eax, 0
+    xor eax, eax
     ret 4
 
 .global CoUninitialize
@@ -13,7 +13,9 @@ CoUninitialize:
 
 .global CoCreateInstance
 CoCreateInstance:
-    die CoCreateInstance
+    stub CoCreateInstance
+    mov eax, -1
+    ret 4 * 5
 
 .global CoTaskMemAlloc
 CoTaskMemAlloc:
