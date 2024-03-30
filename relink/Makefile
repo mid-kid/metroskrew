@@ -6,6 +6,7 @@ TARGET_MACH := --32
 objects := \
 	entry.o \
 	patch.o \
+	utils.o \
 	mwccarm.o \
 	dlls/advapi32.o \
 	dlls/kernel32.o \

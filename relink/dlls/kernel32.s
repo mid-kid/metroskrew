@@ -95,18 +95,48 @@ FindFirstFileA:
 
 .global GetFileAttributesA
 GetFileAttributesA:
-    push [esp + 4]
-    push offset 1f
-    call printf
+    push ebp
+    mov ebp, esp
+    push ebx
+
+    push [ebp + 4 + 4]
+    call strlen
+    add esp, 4
+    inc eax
+
+    push eax
+    call malloc
+    add esp, 4
+
+    push [ebp + 4 + 4]
+    push eax
+    call strcpy
     add esp, 4 * 2
 
-    call __errno_location
-    mov dword ptr [eax], 2
-    mov eax, -1
-    ret 4
+    push eax
+    call path_unx
+
+    push offset 9f
+    call printf
+    pop eax
+    pop eax
+
+    push 0  # F_OK
+    push eax
+    call access
+    add esp, 4 * 2
+    test eax, eax
+    jnz 1f
+
+    mov eax, 0x80  # FILE_ATTRIBUTE_NORMAL
 
 1:
-    .asciz "GetFileAttributesA: %s\n"
+    pop ebx
+    leave
+    ret 4
+
+9:
+    .asciz "stub: GetFileAttributesA: only presence: %s\n"
 
 .global FindNextFileA
 FindNextFileA:
@@ -145,6 +175,13 @@ GetCurrentDirectoryA:
     jz 1f
 
     push [ebp + 4 + 4 * 2]
+    push offset 9f
+    call printf
+
+    mov eax, [ebp + 4 + 4 * 2]
+    call path_dos
+
+    push [ebp + 4 + 4 * 2]
     call strlen
 
     leave
@@ -153,6 +190,9 @@ GetCurrentDirectoryA:
 # TODO: Return necessary amount of bytes if buffer too small
 1:
     die "GetCurrentDirectoryA: Buffer too small"
+
+9:
+    .asciz "GetCurrentDirectoryA: %s\n"
 
 .global CreateProcessA
 CreateProcessA:
@@ -332,7 +372,7 @@ GetFullPathNameA:
     mov eax, [ebp + 4 + 4 * 1]
     mov al, [eax]
     cmp al, '\\'
-    mov eax, 0
+    mov ebx, 0
     jz 1f
 
     # If it's relative, add current directory
@@ -341,25 +381,27 @@ GetFullPathNameA:
     call GetCurrentDirectoryA
 
     # Append slash
-    mov ebx, [ebp + 4 + 4 * 3]
-    mov byte ptr [ebx + eax], '\\'
-    inc eax
+    mov ebx, eax
+    mov eax, [ebp + 4 + 4 * 3]
+    mov byte ptr [eax + ebx], '\\'
+    inc ebx
 1:
 
     # Calculate full string length
-    push eax
+    push ebx
     push [ebp + 4 + 4 * 1]
     call strlen
-    add esp, 4
-    add eax, [esp]
-    inc eax
+    add esp, 4 * 2
+    add eax, ebx
+    push eax  # Return value
 
     # Compare it to the buffer size
+    inc eax
     cmp [ebp + 4 + 4 * 2], eax
-    pop eax
     jc 1f
 
     # Set the file part pointer
+    mov eax, ebx
     add eax, [ebp + 4 + 4 * 3]
     mov ebx, [ebp + 4 + 4 * 4]
     mov [ebx], eax
@@ -370,21 +412,7 @@ GetFullPathNameA:
     call strcpy
     add esp, 4 * 2
 
-    mov eax, [ebp + 4 + 4 * 3]
-2:
-    mov bl, [eax]
-    inc eax
-    cmp bl, '\0'
-    jz 2f
-    cmp bl, '/'
-    jnz 2b
-    mov byte ptr [eax - 1], '\\'
-    jmp 2b
-2:
-    sub eax, [ebp + 4 + 4 * 3]
-    dec eax
-
-1:
+    pop eax
     pop ebx
     leave
     ret 4 * 4
