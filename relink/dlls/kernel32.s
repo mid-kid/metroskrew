@@ -99,23 +99,9 @@ GetFileAttributesA:
     mov ebp, esp
     push ebx
 
-    push [ebp + 4 + 4]
-    call strlen
-    add esp, 4
-    inc eax
-
+    mov eax, [ebp + 4 + 4]
+    call path_dup_unx
     push eax
-    call malloc
-    add esp, 4
-
-    push [ebp + 4 + 4]
-    push eax
-    call strcpy
-    add esp, 4 * 2
-
-    push eax
-    call path_unx
-
     push offset 9f
     call printf
     pop eax
@@ -124,13 +110,15 @@ GetFileAttributesA:
     push 0  # F_OK
     push eax
     call access
-    add esp, 4 * 2
+    mov ebx, eax
+    call free
+    mov eax, ebx
+
     test eax, eax
     jnz 1f
-
     mov eax, 0x80  # FILE_ATTRIBUTE_NORMAL
-
 1:
+
     pop ebx
     leave
     ret 4
@@ -449,7 +437,25 @@ ReadFile:
 
 .global CreateFileA
 CreateFileA:
+    push ebp
+    mov ebp, esp
+
+    push [ebp + 4 + 4 * 7]
+    push [ebp + 4 + 4 * 6]
+    push [ebp + 4 + 4 * 5]
+    push [ebp + 4 + 4 * 4]
+    push [ebp + 4 + 4 * 3]
+    push [ebp + 4 + 4 * 2]
+    push [ebp + 4 + 4 * 1]
+    push offset 1f
+    call printf
+
+    leave
     die CreateFileA
+    ret 4 * 7
+
+1:
+    .asciz "stub: CreateFileA: '%s' %x %x %x %x %x %d\n"
 
 .global GetTickCount
 GetTickCount:

@@ -1,5 +1,30 @@
 .intel_syntax noprefix
 
+.global path_dup_unx
+path_dup_unx:
+    push ebx
+    mov ebx, eax
+
+    push ebx
+    call strlen
+    add esp, 4
+    inc eax
+
+    push eax
+    call malloc
+    add esp, 4
+
+    push ebx
+    push eax
+    call strcpy
+    add esp, 4 * 2
+
+    mov ebx, eax
+    call path_unx
+    mov eax, ebx
+    pop ebx
+    ret
+
 .global path_unx
 path_unx:
 1:
