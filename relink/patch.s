@@ -27,7 +27,7 @@ patch_init_args.end = 0x24a0
 .fill patch_fs_2.end - (. - pe_text), 1, 0x90
 .incbin "mwccarm.exe", 0x400 + patch_fs_2.end, patch_init_args - patch_fs_2.end
 
-init_args:
+# void init_args()
     push ebx
     mov eax, [main_argc]
     mov ebx, [addr_argc]
