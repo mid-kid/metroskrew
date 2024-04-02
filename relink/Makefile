@@ -21,7 +21,7 @@ all: mwccarm
 
 .PHONY: clean
 clean:
-	rm -f mwccarm $(objects)
+	rm -f mwccarm mwccarm.s $(objects)
 
 mwccarm: mwccarm.ld $(objects)
 	$(LINK.o) $(OUTPUT_OPTION) -T $^
