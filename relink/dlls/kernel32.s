@@ -112,6 +112,7 @@ GetFileAttributesA:
     call access
     mov ebx, eax
     call free
+    add esp, 4 * 2
     mov eax, ebx
 
     test eax, eax
