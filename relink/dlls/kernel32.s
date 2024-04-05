@@ -440,23 +440,91 @@ ReadFile:
 CreateFileA:
     push ebp
     mov ebp, esp
+    push ebx
 
-    push [ebp + 4 + 4 * 7]
-    push [ebp + 4 + 4 * 6]
-    push [ebp + 4 + 4 * 5]
-    push [ebp + 4 + 4 * 4]
-    push [ebp + 4 + 4 * 3]
-    push [ebp + 4 + 4 * 2]
-    push [ebp + 4 + 4 * 1]
-    push offset 1f
+    push [ebp + 4 + 4 * 1]  # lpFileName
+    push offset 8f
     call printf
+    add esp, 4 * 2
 
+    # Cover for unsupported functionality
+    mov eax, [ebp + 4 + 4 * 7]  # hTemplateFile
+    and eax, eax
+    jnz 9f
+    mov eax, [ebp + 4 + 4 * 6]  # dwFlagsAndAttributes
+    and eax, ~0x80  # FILE_ATTRIBUTE_NORMAL
+    jnz 9f
+    mov eax, [ebp + 4 + 4 * 4]  # lpSecurityAttributes
+    and eax, eax
+    jnz 9f
+
+    # Ignored, can't action on this
+    #mov eax, [ebp + 4 + 4 * 3]  # dwShareMode
+
+    mov eax, [ebp + 4 + 4 * 5]  # dwCreationDisposition
+    and eax, eax
+    jz 9f
+    cmp eax, 6
+    jnc 9f
+    mov eax, [offset 5f + (eax - 1) * 4]
+    push eax
+
+    mov eax, [ebp + 4 + 4 * 2]  # dwDesiredAccess
+    mov ebx, 1
+    cmp eax, 0x40000000
+    jz 1f
+    inc ebx
+    cmp eax, 0x80000000
+    jz 1f
+    inc ebx
+    cmp eax, 0xc0000000
+    jnz 9f
+1:
+    mov ebx, [offset 6f + (ebx - 1) * 4]
+    pop eax
+    or eax, ebx
+
+    pop ebx
+
+    push 0777  # mode
+    push eax  # flags
+    push [ebp + 4 + 4 * 1]  # lpFileName
+    call open
     leave
-    die CreateFileA
     ret 4 * 7
 
+5:
+    # dwCreationDisposition:
+    .long 00300  # CREATE_NEW = O_CREAT | O_EXCL
+    .long 01100  # CREATE_ALWAYS = O_CREAT | O_TRUNC
+    .long 00000  # OPEN_EXISTING = 0
+    .long 00100  # OPEN_ALWAYS = O_CREAT
+    .long 01000  # TRUNCATE_EXISTING = O_TRUNC
+
+6:
+    # dwDesiredAccess
+    .long 01  # GENERIC_WRITE = O_WRONLY
+    .long 00  # GENERIC_READ = O_RDONLY
+    .long 02  # GENERIC_WRITE | GENERIC_READ = O_RDWR
+
+8:
+    .asciz "CreateFileA: %s\n"
+
+9:
+    push [ebp + 4 + 4 * 7]  # hTemplateFile
+    push [ebp + 4 + 4 * 6]  # dwFlagsAndAttributes
+    push [ebp + 4 + 4 * 5]  # dwCreationDisposition
+    push [ebp + 4 + 4 * 4]  # lpSecurityAttributes
+    push [ebp + 4 + 4 * 3]  # dwShareMode
+    push [ebp + 4 + 4 * 2]  # dwDesiredAccess
+    push [ebp + 4 + 4 * 1]  # lpFileName
+    push offset 1f
+    call printf
+    push 1
+    jmp exit
+
 1:
-    .asciz "stub: CreateFileA: '%s' %x %x %x %x %x %d\n"
+    .asciz "die: CreateFileA: '%s' %x %x %x %x %x %d\n"
 
 .global GetTickCount
 GetTickCount:
