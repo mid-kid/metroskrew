@@ -442,11 +442,6 @@ CreateFileA:
     mov ebp, esp
     push ebx
 
-    push [ebp + 4 + 4 * 1]  # lpFileName
-    push offset 8f
-    call printf
-    add esp, 4 * 2
-
     # Cover for unsupported functionality
     mov eax, [ebp + 4 + 4 * 7]  # hTemplateFile
     and eax, eax
@@ -488,8 +483,19 @@ CreateFileA:
 
     push 0777  # mode
     push eax  # flags
-    push [ebp + 4 + 4 * 1]  # lpFileName
+    mov eax, [ebp + 4 + 4 * 1]  # lpFileName
+    call path_dup_unx
+    push eax
     call open
+    inc eax
+
+    push eax
+    push [esp + 4]
+    push offset 8f
+    call printf
+    add esp, 4 * 2
+    pop eax
+
     leave
     ret 4 * 7
 
@@ -508,7 +514,7 @@ CreateFileA:
     .long 02  # GENERIC_WRITE | GENERIC_READ = O_RDWR
 
 8:
-    .asciz "CreateFileA: %s\n"
+    .asciz "CreateFileA: %s: %d\n"
 
 9:
     push [ebp + 4 + 4 * 7]  # hTemplateFile
