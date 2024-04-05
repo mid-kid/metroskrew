@@ -538,7 +538,7 @@ CreateFileA:
 
     pop ebx
 
-    push 0777  # mode
+    push 0666  # mode
     push eax  # flags
     mov eax, [ebp + 4 + 4 * 1]  # lpFileName
     call path_dup_unx
@@ -550,7 +550,9 @@ CreateFileA:
     push [esp + 4]
     push offset 8f
     call printf
-    add esp, 4 * 2
+    pop eax
+    pop eax
+    call free
     pop eax
 
     leave
