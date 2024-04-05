@@ -560,6 +560,46 @@ SetFileTime:
 
 .global GetFileSize
 GetFileSize:
+    push ebp
+    mov ebp, esp
+
+    mov eax, [ebp + 4 + 4 * 2]  # lpFileSizeHigh
+    and eax, eax
+    jnz 9f
+
+    mov eax, [ebp + 4 + 4 * 1]
+    dec eax
+    push eax
+
+    # Get cur position
+    push 1  # SEEK_CUR
+    push 0
+    push [ebp - 4 * 1]
+    call lseek
+    add esp, 4 * 3
+    push eax
+
+    # Get end position
+    push 2  # SEEK_END
+    push 0
+    push [ebp - 4 * 1]
+    call lseek
+    add esp, 4 * 3
+    push eax
+
+    # Restore position
+    push 0  # SEEK_SET
+    push [ebp - 4 * 2]
+    push [ebp - 4 * 1]
+    call lseek
+    add esp, 4 * 3
+
+    pop eax
+
+    leave
+    ret 4 * 2
+
+9:
     die GetFileSize
 
 .global SetEndOfFile
