@@ -609,7 +609,27 @@ FormatMessageA:
 
 .global GetFileTime
 GetFileTime:
-    die GetFileTime
+    stub GetFileTime
+
+    mov eax, [esp + 4 * 2]  # lpCreationTime
+    and eax, eax
+    jz 1f
+    mov dword ptr [eax + 4 * 0], 0  # dwLowDateTime
+    mov dword ptr [eax + 4 * 1], 0  # dwHighDateTime
+1:
+    mov eax, [esp + 4 * 2]  # lpLastAccessTime
+    and eax, eax
+    jz 1f
+    mov dword ptr [eax + 4 * 0], 0  # dwLowDateTime
+    mov dword ptr [eax + 4 * 1], 0  # dwHighDateTime
+1:
+    mov eax, [esp + 4 * 2]  # lpLastWriteTime
+    and eax, eax
+    jz 1f
+    mov dword ptr [eax + 4 * 0], 0  # dwLowDateTime
+    mov dword ptr [eax + 4 * 1], 0  # dwHighDateTime
+1:
+    ret 4 * 4
 
 .global SetFileTime
 SetFileTime:
