@@ -528,7 +528,9 @@ CreateFileA:
 
 .global GetTickCount
 GetTickCount:
-    die GetTickCount
+    stub GetTickCount
+    xor eax, eax
+    ret
 
 .global DeleteFileA
 DeleteFileA:
@@ -572,11 +574,27 @@ SetStdHandle:
 
 .global GetSystemTime
 GetSystemTime:
-    die GetSystemTime
+    stub GetSystemTime
+
+    mov eax, [esp + 4]
+    mov word ptr [eax + 2 * 0], 0  # wYear
+    mov word ptr [eax + 2 * 1], 0  # wMonth
+    mov word ptr [eax + 2 * 2], 0  # wDayOfWeek
+    mov word ptr [eax + 2 * 3], 0  # wDay
+    mov word ptr [eax + 2 * 4], 0  # wHour
+    mov word ptr [eax + 2 * 5], 0  # wMinute
+    mov word ptr [eax + 2 * 6], 0  # wSecond
+    mov word ptr [eax + 2 * 7], 0  # wMilliseconds
+    ret 4
 
 .global SystemTimeToFileTime
 SystemTimeToFileTime:
-    die SystemTimeToFileTime
+    stub SystemTimeToFileTime
+
+    mov eax, [esp + 4 * 2]
+    mov dword ptr [eax + 4 * 0], 0  # dwLowDateTime
+    mov dword ptr [eax + 4 * 1], 0  # dwHighDateTime
+    ret 4 * 2
 
 .global CompareFileTime
 CompareFileTime:
