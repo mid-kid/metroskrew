@@ -455,6 +455,42 @@ WriteFile:
 
 .global ReadFile
 ReadFile:
+    push ebp
+    mov ebp, esp
+
+    mov eax, [ebp + 4 + 4 * 5]
+    and eax, eax
+    jnz 9f
+
+    mov eax, [ebp + 4 + 4 * 4]
+    and eax, eax
+    jz 1f
+    mov dword ptr [eax], 0
+1:
+
+    push [ebp + 4 + 4 * 3]
+    push [ebp + 4 + 4 * 2]
+    mov eax, [ebp + 4 + 4 * 1]
+    dec eax
+    push eax
+    call read
+
+    cmp eax, -1
+    jz 2f
+    push ebx
+    mov ebx, [ebp + 4 + 4 * 4]
+    and ebx, ebx
+    jz 1f
+    mov [ebx], eax
+1:
+    pop ebx
+2:
+
+    inc eax
+    leave
+    ret 4 * 5
+
+9:
     die ReadFile
 
 .global CreateFileA
