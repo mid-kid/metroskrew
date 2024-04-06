@@ -551,8 +551,8 @@ CreateFileA:
     push offset 8f
     call printf
     pop eax
-    pop eax
     call free
+    pop eax
     pop eax
 
     leave
