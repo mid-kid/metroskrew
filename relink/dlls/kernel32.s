@@ -599,7 +599,24 @@ GetTickCount:
 
 .global DeleteFileA
 DeleteFileA:
-    die DeleteFileA
+    mov eax, [esp + 4]
+    call path_dup_unx
+    push eax
+    push offset 9f
+    call printf
+    pop eax
+    call unlink
+    push eax
+    push [esp + 4]
+    call free
+    pop eax
+    pop eax
+    add esp, 4
+    inc eax
+    ret 4
+
+9:
+    .asciz "DeleteFileA: %s\n"
 
 .global MoveFileA
 MoveFileA:
