@@ -29,4 +29,4 @@ $(name): $(name).ld $(objects)
 	$(LINK.o) $(OUTPUT_OPTION) -T $^
 
 $(name).s: ../main
-	../main ../bins/$(name).exe > $@
+	../main ../bins/$(name).exe > $@ || rm $@
