@@ -545,16 +545,16 @@ CreateFileA:
     push eax
     call open
     inc eax
-
     push eax
+
     push [esp + 4]
     push offset 8f
     call printf
     pop eax
     call free
     pop eax
-    pop eax
 
+    pop eax
     leave
     ret 4 * 7
 
@@ -573,7 +573,7 @@ CreateFileA:
     .long 02  # GENERIC_WRITE | GENERIC_READ = O_RDWR
 
 8:
-    .asciz "CreateFileA: %s: %d\n"
+    .asciz "CreateFileA: %s\n"
 
 9:
     push [ebp + 4 + 4 * 7]  # hTemplateFile
