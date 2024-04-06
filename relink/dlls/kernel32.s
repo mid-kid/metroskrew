@@ -591,9 +591,11 @@ CreateFileA:
     push eax
 
     push [esp + 4]
+.ifndef NDEBUG
     push offset 8f
     call printf
     pop eax
+.endif
     call free
     pop eax
 
@@ -615,8 +617,10 @@ CreateFileA:
     .long 00  # GENERIC_READ = O_RDONLY
     .long 02  # GENERIC_WRITE | GENERIC_READ = O_RDWR
 
+.ifndef NDEBUG
 8:
     .asciz "CreateFileA: %s\n"
+.endif
 
 9:
     push [ebp + 4 + 4 * 7]  # hTemplateFile
@@ -645,9 +649,11 @@ DeleteFileA:
     mov eax, [esp + 4]
     call path_dup_unx
     push eax
+.ifndef NDEBUG
     push offset 9f
     call printf
     pop eax
+.endif
     call unlink
     push eax
     push [esp + 4]
@@ -658,8 +664,10 @@ DeleteFileA:
     inc eax
     ret 4
 
+.ifndef NDEBUG
 9:
     .asciz "DeleteFileA: %s\n"
+.endif
 
 .global MoveFileA
 MoveFileA:
