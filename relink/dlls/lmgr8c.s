@@ -5,7 +5,9 @@
 _LMGR8C.dll_be:
 .global lp_checkout
 lp_checkout:
-    die lp_checkout
+    stub lp_checkout
+    xor eax, eax
+    ret
 
 .global _LMGR8C.dll_bd
 _LMGR8C.dll_bd:
