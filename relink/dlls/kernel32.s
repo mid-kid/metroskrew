@@ -101,11 +101,13 @@ GetFileAttributesA:
 
     mov eax, [ebp + 4 + 4]
     call path_dup_unx
+.ifndef NDEBUG
     push eax
     push offset 9f
     call printf
     pop eax
     pop eax
+.endif
 
     push 0  # F_OK
     push eax
@@ -124,8 +126,10 @@ GetFileAttributesA:
     leave
     ret 4
 
+.ifndef NDEBUG
 9:
     .asciz "stub: GetFileAttributesA: only presence: %s\n"
+.endif
 
 .global FindNextFileA
 FindNextFileA:
@@ -163,9 +167,12 @@ GetCurrentDirectoryA:
     test eax, eax
     jz 1f
 
+.ifndef NDEBUG
     push [ebp + 4 + 4 * 2]
     push offset 9f
     call printf
+    add esp, 4 * 2
+.endif
 
     mov eax, [ebp + 4 + 4 * 2]
     call path_dos
@@ -176,12 +183,13 @@ GetCurrentDirectoryA:
     leave
     ret 4 * 2
 
-# TODO: Return necessary amount of bytes if buffer too small
 1:
     die "GetCurrentDirectoryA: Buffer too small"
 
+.ifndef NDEBUG
 9:
     .asciz "GetCurrentDirectoryA: %s\n"
+.endif
 
 .global CreateProcessA
 CreateProcessA:
@@ -237,55 +245,71 @@ TlsSetValue:
 
 .global GetModuleHandleA
 GetModuleHandleA:
+.ifndef NDEBUG
     push [esp + 4]
-    push offset 1f
+    push offset 9f
     call printf
     add esp, 4 * 2
+.endif
 
     xor eax, eax
     ret 4
 
-1:
+.ifndef NDEBUG
+9:
     .asciz "stub: GetModuleHandleA: %s\n"
+.endif
 
 .global GetModuleFileNameA
 GetModuleFileNameA:
+.ifndef NDEBUG
     push [esp + 4 * 1]
-    push offset 1f
+    push offset 9f
     call printf
     add esp, 4 * 2
+.endif
 
     xor eax, eax
     ret 4 * 3
 
-1:
+.ifndef NDEBUG
+9:
     .asciz "stub: GetModuleFileNameA: %d\n"
+.endif
 
 .global LoadLibraryA
 LoadLibraryA:
+.ifndef NDEBUG
     push [esp + 4]
     push offset 1f
     call printf
     add esp, 4 * 2
+.endif
 
     mov eax, -1
     ret 4
 
+.ifndef NDEBUG
 1:
     .asciz "HACK: LoadLibraryA: %s\n"
+.endif
 
 .global FreeLibrary
 FreeLibrary:
+.ifndef NDEBUG
     push [esp + 4]
     push offset 1f
     call printf
     add esp, 4 * 2
+.endif
 
     mov eax, 1
     ret 4
 
+.ifndef NDEBUG
 1:
     .asciz "HACK: FreeLibrary: %d\n"
+.endif
 
 .global GlobalAlloc
 GlobalAlloc:
@@ -352,10 +376,12 @@ GetFullPathNameA:
     mov ebp, esp
     push ebx
 
+.ifndef NDEBUG
     push [ebp + 4 + 4 * 1]
-    push offset 5f
+    push offset 9f
     call printf
     add esp, 4 * 2
+.endif
 
     # Check if the string starts at the root
     mov eax, [ebp + 4 + 4 * 1]
@@ -406,8 +432,10 @@ GetFullPathNameA:
     leave
     ret 4 * 4
 
-5:
+.ifndef NDEBUG
+9:
     .asciz "GetFullPathNameA: %s\n"
+.endif
 
 .global SetFilePointer
 SetFilePointer:

@@ -3,15 +3,20 @@
 
 .global RegOpenKeyExA
 RegOpenKeyExA:
+.ifndef NDEBUG
     push [esp + 4 * 2]
-    push offset 1f
+    push offset 9f
     call printf
     add esp, 4 * 2
+.endif
+
     mov eax, 1
     ret 4 * 5
 
-1:
+.ifndef NDEBUG
+9:
     .asciz "stub: RegOpenKeyExA: %s\n"
+.endif
 
 .global RegQueryValueExA
 RegQueryValueExA:

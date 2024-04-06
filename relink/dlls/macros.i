@@ -1,4 +1,5 @@
 .macro stub name
+.ifndef NDEBUG
     push offset stub_str\@
     call puts
     pop eax
@@ -6,6 +7,7 @@
 stub_str\@:
     .asciz "stub: \name"
 stub_end\@:
+.endif
 .endm
 
 .macro die name
