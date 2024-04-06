@@ -411,7 +411,22 @@ GetFullPathNameA:
 
 .global SetFilePointer
 SetFilePointer:
-    die SetFilePointer
+    mov eax, [esp + 4 * 3]
+    and eax, eax
+    jnz 9f
+
+    push [esp + 4 * 4]  # whence = dwMoveMethod (values map directly)
+    push [esp + 4 * 2]  # offset = lDistanceToMove
+    mov eax, [esp + 4 * 1]  # hFile
+    dec eax
+    push eax  # fd
+    call lseek
+    add esp, 4 * 3
+    # Return value is exactly the same
+    ret 4 * 4
+
+9:
+    die "SetFilePointer: Only 32 bits"
 
 .global WriteFile
 WriteFile:
@@ -696,7 +711,7 @@ GetFileSize:
     ret 4 * 2
 
 9:
-    die GetFileSize
+    die "GetFileSize: Only 32 bits"
 
 .global SetEndOfFile
 SetEndOfFile:
