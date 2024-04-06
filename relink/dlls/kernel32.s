@@ -639,7 +639,26 @@ MoveFileA:
 
 .global FormatMessageA
 FormatMessageA:
-    die FormatMessageA
+    push ebp
+    mov ebp, esp
+
+    push [ebp + 4 + 4 * 7]  # Arguments
+    push [ebp + 4 + 4 * 6]  # nSize
+    push [ebp + 4 + 4 * 5]  # lpBuffer
+    push [ebp + 4 + 4 * 4]  # dwLanguageId
+    push [ebp + 4 + 4 * 3]  # dwMessageId
+    push [ebp + 4 + 4 * 2]  # lpSource
+    push [ebp + 4 + 4 * 1]  # dwFlags
+    push offset 9f
+    call printf
+    add esp, 4 * 8
+
+    xor eax, eax
+    leave
+    ret 4 * 7
+
+9:
+    .asciz "stub: FormatMessageA: %x %x %d %d %x %d %x\n"
 
 .global GetFileTime
 GetFileTime:

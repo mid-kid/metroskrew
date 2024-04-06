@@ -13,7 +13,8 @@ lp_checkout:
 _LMGR8C.dll_bd:
 .global lp_checkin
 lp_checkin:
-    die lp_checkin
+    stub lp_checkin
+    ret
 
 .global _LMGR8C.dll_bf
 _LMGR8C.dll_bf:
