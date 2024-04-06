@@ -3,11 +3,13 @@ LDFLAGS := -g -Wl,-z,noexecstack -no-pie
 TARGET_ARCH := -m32
 TARGET_MACH := --32 -march=i386
 
+name := mwccarm
+
 objects := \
+	$(name).o \
 	entry.o \
 	patch.o \
 	utils.o \
-	mwccarm.o \
 	dlls/advapi32.o \
 	dlls/kernel32.o \
 	dlls/lmgr8c.o \
@@ -17,14 +19,14 @@ objects := \
 	dlls/ole32.o
 
 .PHONY: all
-all: mwccarm
+all: $(name)
 
 .PHONY: clean
 clean:
-	rm -f mwccarm mwccarm.s $(objects)
+	rm -f $(name) $(name).s $(objects)
 
-mwccarm: mwccarm.ld $(objects)
+$(name): $(name).ld $(objects)
 	$(LINK.o) $(OUTPUT_OPTION) -T $^
 
-mwccarm.s: ../main
-	../main ../bins/mwccarm.exe > $@
+$(name).s: ../main
+	../main ../bins/$(name).exe > $@
