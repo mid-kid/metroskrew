@@ -415,9 +415,9 @@ SetFilePointer:
     and eax, eax
     jnz 9f
 
-    push [esp + 4 * 4]  # whence = dwMoveMethod (values map directly)
-    push [esp + 4 * 2]  # offset = lDistanceToMove
-    mov eax, [esp + 4 * 1]  # hFile
+    push [esp + 4 * 0 + 4 * 4]  # whence = dwMoveMethod (values map directly)
+    push [esp + 4 * 1 + 4 * 2]  # offset = lDistanceToMove
+    mov eax, [esp + 4 * 2 + 4 * 1]  # hFile
     dec eax
     push eax  # fd
     call lseek
