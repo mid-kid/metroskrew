@@ -30,3 +30,5 @@ $(name): $(name).ld $(objects)
 
 $(name).s: ../main
 	../main ../bins/$(name).exe > $@ || { rm $@; false; }
+
+../main: ;
