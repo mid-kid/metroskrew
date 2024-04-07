@@ -194,6 +194,13 @@ bool pe_read_export_table(struct pe_file *file, struct pe_export *out)
 {
     unsigned long off, addr, size;
     if (!pe_get_datadir(file, 0, &addr, &size)) return false;
+
+    // Export table doesn't exist
+    if (!addr || !size) {
+        memset(out, 0, sizeof(*out));
+        return true;
+    }
+
     if (!pe_find_file_offset(file, addr, &off)) return false;
     if (fseek(file->f, off, SEEK_SET) == -1) return false;
 
@@ -248,8 +255,8 @@ error:
 
 void pe_free_export_table(struct pe_export *out)
 {
-    free(out->func_off);
-    free(out->name_off);
+    if (out->func_off) free(out->func_off);
+    if (out->name_off) free(out->name_off);
 }
 
 bool pe_read_import_table(struct pe_file *file, struct pe_import *out)
