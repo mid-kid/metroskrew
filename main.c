@@ -451,8 +451,8 @@ int dump_asm(struct pe_file *file, char *binfile)
         return EXIT_FAILURE;
     }
 
-    printf("pe_start = 0x%lx\n", pe_get_entrypoint(file));
     printf(".global pe_start\n");
+    printf("pe_start = 0x%lx\n", pe_get_entrypoint(file));
 
     for (unsigned x = 0; x < pe_get_sections_num(file); x++) {
         struct pe_section sec;
