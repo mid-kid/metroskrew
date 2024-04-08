@@ -3,6 +3,9 @@
 .section .patch_pe_text, "ax"
 pe_text:
 
+text_off = 0x400
+text_len = 0x198a00
+
 addr_argc = pe_text + 0x8a + 2
 addr_argv = pe_text + 0x84 + 2
 
@@ -13,19 +16,19 @@ patch_fs_2.end = 0x47
 patch_init_args = 0x21b0
 patch_init_args.end = 0x24a0
 
-.incbin "mwccarm.exe", 0x400, patch_fs_1
+.incbin "mwccarm.exe", text_off, patch_fs_1
 
     xor eax, eax
     push eax
 
 .fill patch_fs_1.end - (. - pe_text), 1, 0x90
-.incbin "mwccarm.exe", 0x400 + patch_fs_1.end, patch_fs_2 - patch_fs_1.end
+.incbin "mwccarm.exe", text_off + patch_fs_1.end, patch_fs_2 - patch_fs_1.end
 
     xor eax, eax
     push eax
 
 .fill patch_fs_2.end - (. - pe_text), 1, 0x90
-.incbin "mwccarm.exe", 0x400 + patch_fs_2.end, patch_init_args - patch_fs_2.end
+.incbin "mwccarm.exe", text_off + patch_fs_2.end, patch_init_args - patch_fs_2.end
 
 # void init_args()
     push ebx
@@ -39,4 +42,4 @@ patch_init_args.end = 0x24a0
     ret
 
 .fill patch_init_args.end - (. - pe_text), 1, 0x90
-.incbin "mwccarm.exe", 0x400 + patch_init_args.end, 0x198a00 - patch_init_args.end
+.incbin "mwccarm.exe", text_off + patch_init_args.end, text_len - patch_init_args.end
