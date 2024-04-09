@@ -25,6 +25,12 @@ all: $(name)
 clean:
 	rm -f $(name) $(name).s $(objects)
 
+.PHONY: dbg rel
+dbg: ASFLAGS := --defsym TRACE=1 $(ASFLAGS)
+dbg: all
+rel: ASFLAGS := --defsym NDEBUG=1 $(ASFLAGS)
+rel: all
+
 $(name): $(name).ld $(objects)
 	$(LINK.o) $(OUTPUT_OPTION) -T $^
 
