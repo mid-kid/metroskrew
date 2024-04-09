@@ -4,7 +4,7 @@
 .global ExitProcess
 ExitProcess: trace ExitProcess
     push [esp + 4]
-    jmp exit
+    call exit
 
 .global IsBadReadPtr
 IsBadReadPtr:
