@@ -12,13 +12,13 @@ stub_end\@:
 
 .macro trace name
 .ifdef TRACE
-    push offset stub_str\@
+    push offset trace_str\@
     call puts
     pop eax
-    jmp stub_end\@
-stub_str\@:
+    jmp trace_end\@
+trace_str\@:
     .asciz "trace: \name"
-stub_end\@:
+trace_end\@:
 .endif
 .endm
 
