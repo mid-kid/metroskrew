@@ -201,14 +201,24 @@ GetExitCodeProcess:
     die GetExitCodeProcess
 
 .global CloseHandle
-CloseHandle: trace CloseHandle
-    mov eax, [esp + 4]
+CloseHandle:
+    mov eax, [esp + 4]  # hObject
     dec eax
     push eax
     call close
-    add esp, 4
     inc eax
+.ifdef TRACE
+    push eax
+    push offset 9f
+    call printf
+    pop eax
+    pop eax
+.endif
+    add esp, 4
     ret 4
+
+9:
+    .asciz "trace: CloseHandle: res=%d hObject=%d\n"
 
 # Thread local storage
 # Assuming no multithreading
