@@ -435,42 +435,52 @@ GetFullPathNameA:
 .endif
 
 .global SetFilePointer
-SetFilePointer: trace SetFilePointer
+SetFilePointer:
     mov eax, [esp + 4 * 3]
     and eax, eax
     jnz 9f
 
-    push [esp + 4 * 0 + 4 * 4]  # whence = dwMoveMethod (values map directly)
+    push [esp + 4 * 0 + 4 * 4]  # whence = dwMoveMethod (the values match)
     push [esp + 4 * 1 + 4 * 2]  # offset = lDistanceToMove
-    mov eax, [esp + 4 * 2 + 4 * 1]  # hFile
+    mov eax, [esp + 4 * 2 + 4 * 1]  # fd = hFile
     dec eax
     push eax  # fd
     call lseek
+.ifdef TRACE
+    push eax
+    push offset 8f
+    call printf
+    pop eax
+    pop eax
+.endif
     add esp, 4 * 3
     # Return value is exactly the same
     ret 4 * 4
+
+8:
+    .asciz "trace: SetFilePointer: res=%d hFile=%d lDistanceToMove=%d dwMoveMethod=%d\n"
 
 9:
     die "SetFilePointer: Only 32 bits"
 
 .global WriteFile
-WriteFile: trace WriteFile
+WriteFile:
     push ebp
     mov ebp, esp
 
-    mov eax, [ebp + 4 + 4 * 5]
+    mov eax, [ebp + 4 + 4 * 5]  # lpOverlapped
     and eax, eax
     jnz 9f
 
-    mov eax, [ebp + 4 + 4 * 4]
+    mov eax, [ebp + 4 + 4 * 4]  # lpNumberOfBytesWritten
     and eax, eax
     jz 1f
     mov dword ptr [eax], 0
 1:
 
-    push [ebp + 4 + 4 * 3]
-    push [ebp + 4 + 4 * 2]
-    mov eax, [ebp + 4 + 4 * 1]
+    push [ebp + 4 + 4 * 3]  # nNumberOfBytesToWrite
+    push [ebp + 4 + 4 * 2]  # lpBuffer
+    mov eax, [ebp + 4 + 4 * 1]  # hFile
     dec eax
     push eax
     call write
@@ -478,17 +488,34 @@ WriteFile: trace WriteFile
     cmp eax, -1
     jz 2f
     push ebx
-    mov ebx, [ebp + 4 + 4 * 4]
+    mov ebx, [ebp + 4 + 4 * 4]  # lpNumberOfBytesWritten
     and ebx, ebx
     jz 1f
     mov [ebx], eax
 1:
     pop ebx
+    xor eax, eax
 2:
-
     inc eax
+
+.ifdef TRACE
+    push eax
+    push [ebp + 4 + 4 * 3]  # nNumberOfBytesToWrite
+    mov eax, [ebp + 4 + 4 * 1]  # hFile
+    dec eax
+    push eax
+    push [esp + 4 * 2]  # res
+    push offset 8f
+    call printf
+    add esp, 4 * 4
+    pop eax
+.endif
+
     leave
     ret 4 * 5
+
+8:
+    .asciz "trace: WriteFile: res=%d hFile=%d nNumberOfBytesToWrite=%d\n"
 
 9:
     die WriteFile
@@ -762,8 +789,8 @@ GetFileSize:
     add esp, 4 * 3
 
 .ifdef TRACE
-    push [ebp - 4 * 3]  # end_pos
     push [ebp - 4 * 1]  # fd
+    push [ebp - 4 * 3]  # end_pos
     push offset 8f
     call printf
     add esp, 4 * 3
@@ -776,7 +803,7 @@ GetFileSize:
 
 .ifdef TRACE
 8:
-    .asciz "trace: GetFileSize: fd=%d size=%d\n"
+    .asciz "trace: GetFileSize: res=%d hFile=%d\n"
 .endif
 
 9:
