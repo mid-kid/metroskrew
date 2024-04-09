@@ -56,10 +56,18 @@ DuplicateHandle: trace DuplicateHandle
     .asciz "die: DuplicateHandle: %d\n"
 
 .global GetLastError
-GetLastError: trace GetLastError
+GetLastError:
     call __errno_location
     mov eax, [eax]
+    push eax
+    push offset 9f
+    call printf
+    pop eax
+    pop eax
     ret
+
+9:
+    .asciz "trace: GetLastError: res=%d\n"
 
 .global GetStdHandle
 GetStdHandle: trace GetStdHandle
@@ -204,9 +212,18 @@ GetExitCodeProcess:
 CloseHandle:
     mov eax, [esp + 4]  # hObject
     dec eax
+
+    # Make sure to not close stdio descriptors
     push eax
+    cmp eax, 3
+    jc 2f
     call close
+    jmp 1f
+2:
+    xor eax, eax
+1:
     inc eax
+
 .ifdef TRACE
     push eax
     push offset 9f
