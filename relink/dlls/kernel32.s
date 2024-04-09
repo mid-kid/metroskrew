@@ -2,7 +2,7 @@
 .include "dlls/macros.i"
 
 .global ExitProcess
-ExitProcess:
+ExitProcess: trace ExitProcess
     push [esp + 4]
     jmp exit
 
@@ -15,12 +15,12 @@ RtlUnwind:
     die RtlUnwind
 
 .global GetCurrentProcess
-GetCurrentProcess:
+GetCurrentProcess: trace GetCurrentProcess
     mov eax, -1
     ret
 
 .global DuplicateHandle
-DuplicateHandle:
+DuplicateHandle: trace DuplicateHandle
     push ebp
     mov ebp, esp
     push ebx
@@ -56,13 +56,13 @@ DuplicateHandle:
     .asciz "die: DuplicateHandle: %d\n"
 
 .global GetLastError
-GetLastError:
+GetLastError: trace GetLastError
     call __errno_location
     mov eax, [eax]
     ret
 
 .global GetStdHandle
-GetStdHandle:
+GetStdHandle: trace GetStdHandle
     mov eax, [esp + 4]
     neg eax
     sub eax, 10
@@ -80,13 +80,13 @@ GetStdHandle:
 .global DeleteCriticalSection
 .global EnterCriticalSection
 .global LeaveCriticalSection
-InitializeCriticalSection:
+InitializeCriticalSection: #trace InitializeCriticalSection
     ret 4
-DeleteCriticalSection:
+DeleteCriticalSection: #trace DeleteCriticalSection
     ret 4
-EnterCriticalSection:
+EnterCriticalSection: #trace EnterCriticalSection
     ret 4
-LeaveCriticalSection:
+LeaveCriticalSection: #trace LeaveCriticalSection
     ret 4
 
 .global FindFirstFileA
@@ -141,18 +141,15 @@ FindClose:
 
 .global GetCommandLineA
 GetCommandLineA:
-    stub "GetCommandLineA: only program name"
-    mov eax, [main_argv]
-    mov eax, [eax]
-    ret
+    die GetCommandLineA
 
 .global GetEnvironmentStrings
-GetEnvironmentStrings:
+GetEnvironmentStrings: #trace GetEnvironmentStrings
     mov eax, environ
     ret
 
 .global FreeEnvironmentStringsA
-FreeEnvironmentStringsA:
+FreeEnvironmentStringsA: #trace FreeEnvironmentStringsA
     ret 4
 
 .global GetCurrentDirectoryA
@@ -204,7 +201,7 @@ GetExitCodeProcess:
     die GetExitCodeProcess
 
 .global CloseHandle
-CloseHandle:
+CloseHandle: trace CloseHandle
     mov eax, [esp + 4]
     dec eax
     push eax
@@ -219,24 +216,24 @@ CloseHandle:
 .global TlsFree
 .global TlsGetValue
 .global TlsSetValue
-TlsAlloc:
+TlsAlloc: #trace TlsAlloc
     push ebx
     push 4
     call malloc
     pop ebx
     pop ebx
     ret
-TlsFree:
+TlsFree: #trace TlsFree
     push [esp + 4]
     call free
     pop eax
     mov eax, 1
     ret 4
-TlsGetValue:
+TlsGetValue: #trace TlsGetValue
     mov eax, [esp + 4]
     mov eax, [eax]
     ret 4
-TlsSetValue:
+TlsSetValue: #trace TlsSetValue
     mov eax, [esp + 4 * 1]
     mov ebx, [esp + 4 * 2]
     mov [eax], ebx
@@ -312,7 +309,7 @@ FreeLibrary:
 .endif
 
 .global GlobalAlloc
-GlobalAlloc:
+GlobalAlloc: #trace GlobalAlloc
     push ebp
     mov ebp, esp
     push ebx
@@ -361,7 +358,7 @@ GlobalAlloc:
     .asciz "die: GlobalAlloc %04x\n"
 
 .global GlobalFree
-GlobalFree:
+GlobalFree: #trace GlobalFree
     mov eax, [esp + 4]
     sub eax, 4
     push eax
@@ -438,7 +435,7 @@ GetFullPathNameA:
 .endif
 
 .global SetFilePointer
-SetFilePointer:
+SetFilePointer: trace SetFilePointer
     mov eax, [esp + 4 * 3]
     and eax, eax
     jnz 9f
@@ -457,7 +454,7 @@ SetFilePointer:
     die "SetFilePointer: Only 32 bits"
 
 .global WriteFile
-WriteFile:
+WriteFile: trace WriteFile
     push ebp
     mov ebp, esp
 
@@ -497,7 +494,7 @@ WriteFile:
     die WriteFile
 
 .global ReadFile
-ReadFile:
+ReadFile: trace ReadFile
     push ebp
     mov ebp, esp
 
@@ -678,6 +675,7 @@ FormatMessageA:
     push ebp
     mov ebp, esp
 
+.ifndef NDEBUG
     push [ebp + 4 + 4 * 7]  # Arguments
     push [ebp + 4 + 4 * 6]  # nSize
     push [ebp + 4 + 4 * 5]  # lpBuffer
@@ -688,13 +686,16 @@ FormatMessageA:
     push offset 9f
     call printf
     add esp, 4 * 8
+.endif
 
     xor eax, eax
     leave
     ret 4 * 7
 
+.ifndef NDEBUG
 9:
     .asciz "stub: FormatMessageA: %x %x %d %d %x %d %x\n"
+.endif
 
 .global GetFileTime
 GetFileTime:
@@ -735,35 +736,48 @@ GetFileSize:
 
     mov eax, [ebp + 4 + 4 * 1]
     dec eax
-    push eax
+    push eax  # fd
 
     # Get cur position
     push 1  # SEEK_CUR
     push 0
-    push [ebp - 4 * 1]
+    push [ebp - 4 * 1]  # fd
     call lseek
     add esp, 4 * 3
-    push eax
+    push eax  # cur_pos
 
     # Get end position
     push 2  # SEEK_END
     push 0
-    push [ebp - 4 * 1]
+    push [ebp - 4 * 1]  # fd
     call lseek
     add esp, 4 * 3
-    push eax
+    push eax  # end_pos
 
     # Restore position
     push 0  # SEEK_SET
-    push [ebp - 4 * 2]
-    push [ebp - 4 * 1]
+    push [ebp - 4 * 2]  # cur_pos
+    push [ebp - 4 * 1]  # fd
     call lseek
     add esp, 4 * 3
 
-    pop eax
+.ifdef TRACE
+    push [ebp - 4 * 3]  # end_pos
+    push [ebp - 4 * 1]  # fd
+    push offset 8f
+    call printf
+    add esp, 4 * 3
+.endif
+
+    pop eax  # end_pos
 
     leave
     ret 4 * 2
+
+.ifdef TRACE
+8:
+    .asciz "trace: GetFileSize: fd=%d size=%d\n"
+.endif
 
 9:
     die "GetFileSize: Only 32 bits"
@@ -813,7 +827,7 @@ CompareFileTime:
     die CompareFileTime
 
 .global GlobalReAlloc
-GlobalReAlloc:
+GlobalReAlloc: trace GlobalReAlloc
     push ebp
     mov ebp, esp
     push ebx
@@ -873,7 +887,7 @@ GlobalReAlloc:
     .asciz "die: GlobalReAlloc %04x\n"
 
 .global GlobalFlags
-GlobalFlags:
+GlobalFlags: #trace GlobalFlags
     xor eax, eax
     ret 4
 
@@ -886,68 +900,84 @@ FindResourceA:
     push ebp
     mov ebp, esp
 
+.ifndef NDEBUG
     push [ebp + 4 + 4 * 3]
     push [ebp + 4 + 4 * 2]
     push [ebp + 4 + 4 * 1]
     push offset 1f
     call printf
+.endif
 
     xor eax, eax
     leave
     ret 4 * 3
 
+.ifndef NDEBUG
 1:
     .asciz "stub: FindResourceA: %d '%s' '%s'\n"
+.endif
 
 .global LoadResource
 LoadResource:
     push ebp
     mov ebp, esp
 
+.ifndef NDEBUG
     push [ebp + 4 + 4 * 2]
     push [ebp + 4 + 4 * 1]
     push offset 1f
     call printf
+.endif
 
     xor eax, eax
     leave
     ret 4 * 2
 
+.ifndef NDEBUG
 1:
     .asciz "stub: LoadResource: %d %d\n"
+.endif
 
 .global LockResource
 LockResource:
     push ebp
     mov ebp, esp
 
+.ifndef NDEBUG
     push [ebp + 4 + 4]
     push offset 1f
     call printf
+.endif
 
     xor eax, eax
     leave
     ret 4
 
+.ifndef NDEBUG
 1:
     .asciz "stub: LockResource: %d\n"
+.endif
 
 .global SizeofResource
 SizeofResource:
     push ebp
     mov ebp, esp
 
+.ifndef NDEBUG
     push [ebp + 4 + 4 * 2]
     push [ebp + 4 + 4 * 1]
     push offset 1f
     call printf
+.endif
 
     xor eax, eax
     leave
     ret 4 * 2
 
+.ifndef NDEBUG
 1:
     .asciz "stub: SizeofResource: %d %d\n"
+.endif
 
 .global CreateFileMappingA
 CreateFileMappingA:
