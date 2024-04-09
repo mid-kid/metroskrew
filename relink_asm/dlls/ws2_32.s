@@ -1,1 +1,0 @@
-../../relink/dlls/ws2_32.s

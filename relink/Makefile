@@ -3,12 +3,10 @@ LDFLAGS := -g -Wl,-z,noexecstack -no-pie
 TARGET_ARCH := -m32
 TARGET_MACH := --32 -march=i386
 
-name := mwccarm
+tools := mwccarm mwasmarm
 
 objects := \
-	$(name).o \
 	entry.o \
-	patch.o \
 	utils.o \
 	dlls/advapi32.o \
 	dlls/kernel32.o \
@@ -19,11 +17,11 @@ objects := \
 	dlls/ole32.o
 
 .PHONY: all
-all: $(name)
+all: $(addsuffix .exe,$(tools))
 
 .PHONY: clean
 clean:
-	rm -f $(name) $(name).s $(objects)
+	rm -f $(foreach x,$(tools),$x.exe $x.s $x.o $x_patch.o) $(objects)
 
 .PHONY: dbg rel
 dbg: ASFLAGS := --defsym TRACE=1 $(ASFLAGS)
@@ -31,10 +29,10 @@ dbg: all
 rel: ASFLAGS := --defsym NDEBUG=1 $(ASFLAGS)
 rel: all
 
-$(name): $(name).ld $(objects)
+$(addsuffix .exe,$(tools)): %.exe: %.ld %.o %_patch.o $(objects)
 	$(LINK.o) $(OUTPUT_OPTION) -T $^
 
-$(name).s: ../main
-	../main ../bins/$(name).exe > $@ || { rm $@; false; }
+$(addsuffix .s,$(tools)): %.s: ../main
+	../main ../bins/$*.exe > $@ || { rm $@; false; }
 
 ../main: ;
