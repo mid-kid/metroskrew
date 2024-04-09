@@ -59,15 +59,19 @@ DuplicateHandle: trace DuplicateHandle
 GetLastError:
     call __errno_location
     mov eax, [eax]
+.ifdef TRACE
     push eax
     push offset 9f
     call printf
     pop eax
     pop eax
+.endif
     ret
 
+.ifdef TRACE
 9:
     .asciz "trace: GetLastError: res=%d\n"
+.endif
 
 .global GetStdHandle
 GetStdHandle: trace GetStdHandle
@@ -234,8 +238,10 @@ CloseHandle:
     add esp, 4
     ret 4
 
+.ifdef TRACE
 9:
     .asciz "trace: CloseHandle: res=%d hObject=%d\n"
+.endif
 
 # Thread local storage
 # Assuming no multithreading
@@ -484,8 +490,10 @@ SetFilePointer:
     # Return value is exactly the same
     ret 4 * 4
 
+.ifdef TRACE
 8:
     .asciz "trace: SetFilePointer: res=%d hFile=%d lDistanceToMove=%d dwMoveMethod=%d\n"
+.endif
 
 9:
     die "SetFilePointer: Only 32 bits"
@@ -541,8 +549,10 @@ WriteFile:
     leave
     ret 4 * 5
 
+.ifdef TRACE
 8:
     .asciz "trace: WriteFile: res=%d hFile=%d nNumberOfBytesToWrite=%d\n"
+.endif
 
 9:
     die WriteFile
