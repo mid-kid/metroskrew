@@ -134,9 +134,24 @@ GetFileAttributesA:
     mov eax, 0x80  # FILE_ATTRIBUTE_NORMAL
 1:
 
+.ifdef TRACE
+    push [ebp + 4 + 4]
+    push eax
+    push offset 8f
+    call printf
+    pop eax
+    pop eax
+    add esp, 4 * 1
+.endif
+
     pop ebx
     leave
     ret 4
+
+.ifdef TRACE
+8:
+    .asciz "trace: GetFileAttributesA: res=%x lpFileName=%s\n"
+.endif
 
 .ifndef NDEBUG
 9:
