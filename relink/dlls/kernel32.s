@@ -2,9 +2,15 @@
 .include "dlls/macros.i"
 
 .global ExitProcess
-ExitProcess: trace ExitProcess
+ExitProcess:
     push [esp + 4]
+    push offset 9f
+    call printf
+    pop eax
     call exit
+
+9:
+    .asciz "trace: ExitProcess: uExitCode=%d\n"
 
 .global IsBadReadPtr
 IsBadReadPtr:
