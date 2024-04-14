@@ -1,6 +1,7 @@
+CFLAGS := -g $(CFLAGS)
 ASFLAGS := -g -I ../bins $(ASFLAGS)
 LDFLAGS := -g -Wl,-z,noexecstack -no-pie
-TARGET_ARCH := -m32
+TARGET_ARCH := -m32 -march=i386
 TARGET_MACH := --32 -march=i386
 
 tools := mwccarm mwasmarm
@@ -34,5 +35,10 @@ $(addsuffix .exe,$(tools)): %.exe: %.ld %.o %_patch.o $(objects)
 
 $(addsuffix .s,$(tools)): %.s: ../main
 	../main ../bins/$*.exe > $@ || { rm $@; false; }
+
+# Shitty include-dependencies
+$(addsuffix .o,$(tools)): $(wildcard *.i)
+$(addsuffix _patch.o,$(tools)): $(wildcard *.i)
+$(objects): $(wildcard *.i)
 
 ../main: ;
