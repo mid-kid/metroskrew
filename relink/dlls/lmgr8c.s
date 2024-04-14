@@ -1,5 +1,5 @@
 .intel_syntax noprefix
-.include "dlls/macros.i"
+.include "macros.i"
 
 .global _LMGR8C.dll_be
 _LMGR8C.dll_be:

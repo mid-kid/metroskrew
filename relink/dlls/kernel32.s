@@ -1,5 +1,5 @@
 .intel_syntax noprefix
-.include "dlls/macros.i"
+.include "macros.i"
 
 .global ExitProcess
 ExitProcess:
