@@ -844,8 +844,7 @@ GetFileSize:
     stat eax, fstat
     cmp eax, -1
     jz 1f
-    mov eax, [sys_stat_size_offsetof]
-    mov eax, [esp + eax]
+    stat_get size
 1:
     stat_pop
 

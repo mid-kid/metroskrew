@@ -6,6 +6,11 @@
     add esp, 4 * 2
 .endm
 
+.macro stat_get name, struct=esp
+    mov eax, [sys_stat_\name\()_offsetof]
+    mov eax, [\struct + eax]
+.endm
+
 .macro stat_pop
     add esp, [sys_stat_sizeof]
 .endm
