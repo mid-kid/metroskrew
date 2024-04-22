@@ -533,9 +533,5 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    char *binfile = strrchr(argv[1], '/');
-    if (!binfile) binfile = argv[1];
-    if (*binfile == '/') binfile++;
-
-    return dump_asm(file, binfile);
+    return dump_asm(file, argv[1]);
 }
