@@ -9,6 +9,7 @@ tools := mwccarm mwasmarm
 objects := \
 	entry.o \
 	utils.o \
+	sysdeps.o \
 	dlls/advapi32.o \
 	dlls/kernel32.o \
 	dlls/lmgr8c.o \
@@ -16,6 +17,9 @@ objects := \
 	dlls/version.o \
 	dlls/ws2_32.o \
 	dlls/ole32.o
+
+.PHONY: default
+default: dbg
 
 .PHONY: all
 all: $(addsuffix .exe,$(tools))

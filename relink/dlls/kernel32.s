@@ -1,5 +1,6 @@
 .intel_syntax noprefix
 .include "macros.i"
+.include "stat.i"
 
 .global ExitProcess
 ExitProcess:
@@ -836,41 +837,25 @@ GetFileSize:
     jnz 9f
 
     mov eax, [ebp + 4 + 4 * 1]
-    dec eax
-    push eax  # fd
-
-    # Get cur position
-    push 1  # SEEK_CUR
-    push 0
-    push [ebp - 4 * 1]  # fd
-    call lseek
-    add esp, 4 * 3
-    push eax  # cur_pos
-
-    # Get end position
-    push 2  # SEEK_END
-    push 0
-    push [ebp - 4 * 1]  # fd
-    call lseek
-    add esp, 4 * 3
-    push eax  # end_pos
-
-    # Restore position
-    push 0  # SEEK_SET
-    push [ebp - 4 * 2]  # cur_pos
-    push [ebp - 4 * 1]  # fd
-    call lseek
-    add esp, 4 * 3
+    dec eax  # fd
+.ifdef TRACE
+    push eax
+.endif
+    stat eax, fstat
+    cmp eax, -1
+    jz 1f
+    mov eax, [sys_stat_size_offsetof]
+    mov eax, [esp + eax]
+1:
+    stat_pop
 
 .ifdef TRACE
-    push [ebp - 4 * 1]  # fd
-    push [ebp - 4 * 3]  # end_pos
+    push eax
     push offset 8f
     call printf
-    add esp, 4 * 3
+    pop eax
+    pop eax
 .endif
-
-    pop eax  # end_pos
 
     leave
     ret 4 * 2
