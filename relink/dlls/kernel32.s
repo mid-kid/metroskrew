@@ -144,29 +144,39 @@ GetFileAttributesA:
     pop eax
 .endif
 
-    push 0  # F_OK
-    push eax
-    call access
+    mov ebx, eax
+    stat ebx
+    push ebx
     mov ebx, eax
     call free
-    add esp, 4 * 2
-    mov eax, ebx
+    add esp, 4
+    and ebx, ebx
+    jnz 2f
 
-    test eax, eax
+    # Check if the file is a dir
+    stat_get mode
+    and eax, 0170000  # S_IFMT
+    cmp eax, 0040000  # S_IFDIR
     jnz 1f
-    mov eax, 0x80  # FILE_ATTRIBUTE_NORMAL
+    or ebx, 0x10  # FILE_ATTRIBUTE_DIRECTORY
 1:
+
+    # If no flags have been set, set to 0x80
+    and ebx, ebx
+    jnz 2f
+    or ebx, 0x80  # FILE_ATTRIBUTE_NORMAL
+2:
+    stat_pop
 
 .ifdef TRACE
     push [ebp + 4 + 4]
-    push eax
+    push ebx
     push offset 8f
     call printf
-    pop eax
-    pop eax
-    add esp, 4 * 1
+    add esp, 4 * 3
 .endif
 
+    mov eax, ebx
     pop ebx
     leave
     ret 4
@@ -178,7 +188,7 @@ GetFileAttributesA:
 
 .ifndef NDEBUG
 9:
-    .asciz "stub: GetFileAttributesA: only presence: %s\n"
+    .asciz "stub: GetFileAttributesA: only presence and directory: %s\n"
 .endif
 
 .global FindNextFileA
