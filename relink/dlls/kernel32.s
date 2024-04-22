@@ -112,20 +112,20 @@ LeaveCriticalSection: #trace LeaveCriticalSection
 FindFirstFileA:
     push ebp
     mov ebp, esp
-.ifdef TRACE
+.ifdef NDEBUG
     push [ebp + 4 + 4 * 1]
     push offset 9f
     call printf
     add esp, 4 * 2
 .endif
 
-    die FindFirstFileA
+    mov eax, -1
     leave
     ret 4 * 2
 
-.ifdef TRACE
+.ifdef NDEBUG
 9:
-    .asciz "trace: FindFirstFileA: lpFileName=%s\n"
+    .asciz "stub: FindFirstFileA: lpFileName=%s\n"
 .endif
 
 .global GetFileAttributesA
