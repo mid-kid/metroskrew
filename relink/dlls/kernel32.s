@@ -57,7 +57,7 @@ DuplicateHandle: trace DuplicateHandle
     call printf
     add esp, 4 * 2
     push 1
-    jmp exit
+    call exit
 
 9:
     .asciz "die: DuplicateHandle: %d\n"
@@ -433,7 +433,7 @@ GlobalAlloc: #trace GlobalAlloc
     push offset 9f
     call printf
     push 1
-    jmp exit
+    call exit
 
 9:
     .asciz "die: GlobalAlloc %04x\n"
@@ -742,7 +742,7 @@ CreateFileA:
     push offset 1f
     call printf
     push 1
-    jmp exit
+    call exit
 
 1:
     .asciz "die: CreateFileA: '%s' %x %x %x %x %x %d\n"
@@ -976,7 +976,7 @@ GlobalReAlloc: trace GlobalReAlloc
     push offset 9f
     call printf
     push 1
-    jmp exit
+    call exit
 
 9:
     .asciz "die: GlobalReAlloc %04x\n"
