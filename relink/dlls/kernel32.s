@@ -134,9 +134,6 @@ GetFileAttributesA:
     mov ebp, esp
     push ebx
 
-    call __errno_location
-    mov dword ptr [eax], 0
-
     mov eax, [ebp + 4 + 4]
     call path_dup_unx
 .ifndef NDEBUG
