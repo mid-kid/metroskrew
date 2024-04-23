@@ -112,7 +112,7 @@ LeaveCriticalSection: #trace LeaveCriticalSection
 FindFirstFileA:
     push ebp
     mov ebp, esp
-.ifdef NDEBUG
+.ifndef NDEBUG
     push [ebp + 4 + 4 * 1]
     push offset 9f
     call printf
@@ -123,7 +123,7 @@ FindFirstFileA:
     leave
     ret 4 * 2
 
-.ifdef NDEBUG
+.ifndef NDEBUG
 9:
     .asciz "stub: FindFirstFileA: lpFileName=%s\n"
 .endif
