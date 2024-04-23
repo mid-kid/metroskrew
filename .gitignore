@@ -1,7 +1,6 @@
+*.exe
 *.o
 /bins/
 /main
-/relink/mwccarm
 /relink/mwccarm.s
-/relink_asm/mwasmarm
 /relink_asm/mwasmarm.s
