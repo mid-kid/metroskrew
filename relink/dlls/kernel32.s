@@ -134,6 +134,9 @@ GetFileAttributesA:
     mov ebp, esp
     push ebx
 
+    call __errno_location
+    mov dword ptr [eax], 0
+
     mov eax, [ebp + 4 + 4]
     call path_dup_unx
 .ifndef NDEBUG
@@ -1076,7 +1079,14 @@ SizeofResource:
 
 .global CreateFileMappingA
 CreateFileMappingA:
-    die CreateFileMappingA
+    stub CreateFileMappingA
+    xor eax, eax
+    ret 4 * 6
+
+.ifndef NDEBUG
+1:
+    .asciz "stub: CreateFileMappingA: lpName=%s\n"
+.endif
 
 .global MapViewOfFile
 MapViewOfFile:
