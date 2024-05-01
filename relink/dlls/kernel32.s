@@ -108,25 +108,139 @@ EnterCriticalSection: #trace EnterCriticalSection
 LeaveCriticalSection: #trace LeaveCriticalSection
     ret 4
 
+MAX_PATH = 260
+
 .global FindFirstFileA
 FindFirstFileA:
     push ebp
     mov ebp, esp
+    push ebx
+
 .ifndef NDEBUG
-    push [ebp + 4 + 4 * 1]
-    push offset 9f
+    push [ebp + 4 + 4 * 1]  # lpFileName
+    push offset 4f
     call printf
     add esp, 4 * 2
 .endif
 
-    mov eax, -1
+    # Convert the string
+    mov eax, [ebp + 4 + 4 * 1]  # lpFileName
+    call path_dup_unx
+    push eax  # path = [ebp - 4 * 2]
+
+    # Check if we're trying to list an actual directory
+    push 0
+    push eax  # path
+    call strchr
+    add esp, 4 * 2
+
+    mov ebx, -2
+    cmp word ptr [eax + ebx], 0x2a2f  # '/*' = Anything
+    jz 1f
+
+    # Unhandled condition
+    add esp, 4
+    jmp 9f
+1:
+    # Truncate the string
+    mov byte ptr [eax + ebx], 0
+
+    # Create a DIR stream and read the first entry
+    call opendir
+    and eax, eax
+    jz 8f
+    push eax  # dir = [ebp - 4 * 3]
+    call readdir
+    and eax, eax
+    jz 7f
+
+    # Prepare strncpy
+    add eax, [dirent_name_offsetof]
+    push MAX_PATH - 1  # max_path = [ebp - 4 * 4]
+    push eax  # dirent_name = [ebp - 4 * 5]
+
+    # Initialize unused fields of WIN32_FIND_DATAA
+    push 4 * 10 + MAX_PATH + 14
+    push 0
+    push [ebp + 4 + 4 * 2]  # lpFindFileData
+    call memset
+    add esp, 4 * 3
+
+    # Create full path
+    mov eax, [esp]  # dirent_name_offsetof
+    mov ebx, [ebp - 4 * 2]  # path
+    call path_join
+
+    # Get the file attributes
+    push eax
+    call GetFileAttributes_do
+    call free
+    add esp, 4
+    and ebx, ebx
+    jz 6f
+    mov eax, [ebp + 4 + 4 * 2]  # lpFindFileData.dwFileAttributes
+    mov [eax], ebx
+
+    # Copy the filename
+    mov eax, [ebp + 4 + 4 * 2]  # lpFindFileData
+    add eax, 4 * 10  # cFileName
+    push eax
+    call strncpy
+    add esp, 4 * 3
+
+    push 4 * 2
+    call malloc
+    pop ebx  # dir
+    mov [eax], ebx
+    pop ebx  # path
+    mov [eax + 4], ebx
+
+1:
+    pop ebx
+.ifdef TRACE
+    push [ebp + 4 + 4 * 1]  # lpFileName
+    push eax
+    push offset 5f
+    call printf
+.endif
     leave
     ret 4 * 2
 
 .ifndef NDEBUG
-9:
-    .asciz "stub: FindFirstFileA: lpFileName=%s\n"
+4:
+    .asciz "stub: FindFirstFileA: only file name and attributes: %s\n"
 .endif
+
+.ifdef TRACE
+5:
+    .asciz "trace: FindFirstFileA: res=%d lpFileName=%s\n"
+.endif
+
+# GetFileAttributes error
+6:
+    add esp, 4 * 2
+# Readdir error
+7:
+    call closedir
+    pop eax
+# OS error
+8:
+    call free
+    pop eax
+    mov eax, -1
+    jmp 1b
+
+# Unimplemented error
+9:
+    push [ebp + 4 + 4 * 1]  # lpFileName
+    push offset 1f
+    call printf
+    add esp, 4 * 2
+    push 1
+    call exit
+
+1:
+    .asciz "die: FindFirstFileA: lpFileName=%s\n"
 
 .global GetFileAttributesA
 GetFileAttributesA:
@@ -140,33 +254,14 @@ GetFileAttributesA:
     push eax
     push offset 9f
     call printf
-    pop eax
+    add esp, 4
     pop eax
 .endif
 
-    mov ebx, eax
-    stat ebx
-    push ebx
-    mov ebx, eax
+    push eax
+    call GetFileAttributes_do
     call free
     add esp, 4
-    and ebx, ebx
-    jnz 2f
-
-    # Check if the file is a dir
-    stat_get mode
-    and eax, 0170000  # S_IFMT
-    cmp eax, 0040000  # S_IFDIR
-    jnz 1f
-    or ebx, 0x10  # FILE_ATTRIBUTE_DIRECTORY
-1:
-
-    # If no flags have been set, set to 0x80
-    and ebx, ebx
-    jnz 2f
-    or ebx, 0x80  # FILE_ATTRIBUTE_NORMAL
-2:
-    stat_pop
 
 .ifdef TRACE
     push [ebp + 4 + 4]
@@ -190,6 +285,28 @@ GetFileAttributesA:
 9:
     .asciz "stub: GetFileAttributesA: only presence and directory: %s\n"
 .endif
+
+GetFileAttributes_do:
+    stat eax
+    xor ebx, ebx
+    and eax, eax
+    jnz 2f
+
+    # Check if the file is a dir
+    stat_get mode
+    and eax, 0170000  # S_IFMT
+    cmp eax, 0040000  # S_IFDIR
+    jnz 1f
+    or ebx, 0x10  # FILE_ATTRIBUTE_DIRECTORY
+1:
+
+    # If no flags have been set, set to 0x80
+    and ebx, ebx
+    jnz 2f
+    or ebx, 0x80  # FILE_ATTRIBUTE_NORMAL
+2:
+    stat_pop
+    ret
 
 .global FindNextFileA
 FindNextFileA:

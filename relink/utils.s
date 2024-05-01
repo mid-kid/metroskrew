@@ -50,3 +50,31 @@ path_dos:
     jmp 1b
 1:
     ret
+
+# Concatenate [ebx] with [eax], with a path separator
+.global path_join
+path_join:
+    push eax  # ext
+    call strlen
+    push eax  # len_ext
+    push ebx  # base
+    call strlen
+    mov [esp], eax  # len_base
+    add eax, [esp + 4 * 2]  # len_ext
+    add eax, 2  # '/' and '\0'
+    push ebx  # base
+    push eax
+    call malloc
+    mov [esp], eax  # dst
+    call strcpy
+    pop ebx  # dst
+    add esp, 4  # base
+    pop eax  # len_base
+    add eax, ebx
+    mov byte ptr [eax], '/'
+    add eax, 1
+    mov [esp], eax
+    call strcpy
+    add esp, 4 * 2
+    mov eax, ebx
+    ret
