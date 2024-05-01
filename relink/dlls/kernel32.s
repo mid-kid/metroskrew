@@ -167,7 +167,7 @@ FindFirstFileA:
     add esp, 4 * 3
 
     # Create full path
-    mov eax, [esp]  # dirent_name_offsetof
+    mov eax, [esp]  # dirent_name
     mov ebx, [ebp - 4 * 2]  # path
     call path_join
 
@@ -190,6 +190,7 @@ FindFirstFileA:
 
     push 4 * 2
     call malloc
+    add esp, 4
     pop ebx  # dir
     mov [eax], ebx
     pop ebx  # path
@@ -202,6 +203,8 @@ FindFirstFileA:
     push eax
     push offset 5f
     call printf
+    pop eax
+    pop eax
 .endif
     leave
     ret 4 * 2
@@ -310,7 +313,82 @@ GetFileAttributes_do:
 
 .global FindNextFileA
 FindNextFileA:
-    die FindNextFileA
+    push ebp
+    mov ebp, esp
+    push ebx
+
+.ifndef NDEBUG
+    push offset 4f
+    call printf
+    add esp, 4 * 1
+.endif
+
+    # Read the next entry
+    mov eax, [ebp + 4 + 4 * 1]  # hFindFile
+    push [eax]
+    call readdir
+    add esp, 4
+    and eax, eax
+    jz 1f
+
+    # Prepare strncpy
+    add eax, [dirent_name_offsetof]
+    push MAX_PATH - 1  # max_path = [ebp - 4 * 4]
+    push eax  # dirent_name = [ebp - 4 * 5]
+
+    # Initialize unused fields of WIN32_FIND_DATAA
+    push 4 * 10 + MAX_PATH + 14
+    push 0
+    push [ebp + 4 + 4 * 2]  # lpFindFileData
+    call memset
+    add esp, 4 * 3
+
+    # Create full path
+    mov eax, [ebp + 4 + 4 * 1]  # hFindFile
+    mov ebx, [eax + 4]  # path
+    mov eax, [esp]  # dirent_name
+    call path_join
+
+    # Get the file attributes
+    push eax
+    call GetFileAttributes_do
+    call free
+    add esp, 4
+    and ebx, ebx
+    jz 6f
+    mov eax, [ebp + 4 + 4 * 2]  # lpFindFileData.dwFileAttributes
+    mov [eax], ebx
+
+    # Copy the filename
+    mov eax, [ebp + 4 + 4 * 2]  # lpFindFileData
+    add eax, 4 * 10  # cFileName
+    push eax
+    call strncpy
+    add esp, 4 * 3
+
+    mov eax, 1
+1:
+    pop ebx
+.ifdef TRACE
+    push [ebp + 4 + 4 * 1] # lpFileName
+    push eax
+    push offset 5f
+    call printf
+    pop eax
+    pop eax
+.endif
+    leave
+    ret 4 * 2
+
+.ifndef NDEBUG
+4:
+    .asciz "stub: FindNextFileA: only file name and attributes\n"
+.endif
+
+.ifdef TRACE
+5:
+    .asciz "trace: FindNextFileA: res=%d hFindFile=%d\n"
+.endif
 
 .global FindClose
 FindClose:
