@@ -216,7 +216,7 @@ FindFirstFileA:
 
 .ifdef TRACE
 5:
-    .asciz "trace: FindFirstFileA: res=%d lpFileName=%s\n"
+    .asciz "trace: FindFirstFileA: res=%x lpFileName=%s\n"
 .endif
 
 # GetFileAttributes error
@@ -387,12 +387,40 @@ FindNextFileA:
 
 .ifdef TRACE
 5:
-    .asciz "trace: FindNextFileA: res=%d hFindFile=%d\n"
+    .asciz "trace: FindNextFileA: res=%d hFindFile=%x\n"
 .endif
 
 .global FindClose
 FindClose:
-    die FindClose
+    push [esp + 4]  # hFindFile
+
+    mov eax, [esp]
+    push [eax]
+    call closedir
+    add esp, 4
+
+    mov eax, [esp]
+    push [eax + 4]
+    call free
+    add esp, 4
+
+    call free
+    mov eax, 1
+
+.ifdef TRACE
+    push eax
+    push offset 9f
+    call printf
+    add esp, 4
+    pop eax
+.endif
+    add esp, 4
+    ret 4
+
+.ifdef TRACE
+9:
+    .asciz "trace: FindClose: res=%d hFindFile=%x\n"
+.endif
 
 .global GetCommandLineA
 GetCommandLineA:
