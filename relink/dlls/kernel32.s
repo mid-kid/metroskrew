@@ -323,51 +323,10 @@ FindNextFileA:
     add esp, 4 * 1
 .endif
 
-    # Read the next entry
     mov eax, [ebp + 4 + 4 * 1]  # hFindFile
-    push [eax]
-    call readdir
-    add esp, 4
-    and eax, eax
-    jz 1f
+    mov ebx, [ebp + 4 + 4 * 2]  # lpFindFileData
+    call FindNextFileA_do
 
-    # Prepare strncpy
-    add eax, [dirent_name_offsetof]
-    push MAX_PATH - 1  # max_path = [ebp - 4 * 4]
-    push eax  # dirent_name = [ebp - 4 * 5]
-
-    # Initialize unused fields of WIN32_FIND_DATAA
-    push 4 * 10 + MAX_PATH + 14
-    push 0
-    push [ebp + 4 + 4 * 2]  # lpFindFileData
-    call memset
-    add esp, 4 * 3
-
-    # Create full path
-    mov eax, [ebp + 4 + 4 * 1]  # hFindFile
-    mov ebx, [eax + 4]  # path
-    mov eax, [esp]  # dirent_name
-    call path_join
-
-    # Get the file attributes
-    push eax
-    call GetFileAttributes_do
-    call free
-    add esp, 4
-    and ebx, ebx
-    jz 6f
-    mov eax, [ebp + 4 + 4 * 2]  # lpFindFileData.dwFileAttributes
-    mov [eax], ebx
-
-    # Copy the filename
-    mov eax, [ebp + 4 + 4 * 2]  # lpFindFileData
-    add eax, 4 * 10  # cFileName
-    push eax
-    call strncpy
-    add esp, 4 * 3
-
-    mov eax, 1
-1:
     pop ebx
 .ifdef TRACE
     push [ebp + 4 + 4 * 1] # lpFileName
@@ -389,6 +348,62 @@ FindNextFileA:
 5:
     .asciz "trace: FindNextFileA: res=%d hFindFile=%x\n"
 .endif
+
+FindNextFileA_do:
+    push eax
+    push ebx
+
+    # Read the next entry
+    push [eax]
+    call readdir
+    add esp, 4
+    and eax, eax
+    jz 1f
+
+    # Prepare strncpy
+    add eax, [dirent_name_offsetof]
+    push MAX_PATH - 1
+    push eax  # dirent_name
+
+    # Initialize unused fields of WIN32_FIND_DATAA
+    push 4 * 10 + MAX_PATH + 14
+    push 0
+    push ebx
+    call memset
+    add esp, 4 * 3
+
+    # Create full path
+    mov eax, [esp + 4 * 3]  # hFindFile
+    mov ebx, [eax + 4]  # path
+    mov eax, [esp]  # dirent_name
+    call path_join
+
+    # Get the file attributes
+    push eax
+    call GetFileAttributes_do
+    call free
+    add esp, 4
+    and ebx, ebx
+    jz 2f
+    mov eax, [esp + 4 * 2]  # lpFindFileData.dwFileAttributes
+    mov [eax], ebx
+
+    # Copy the filename
+    mov eax, [esp + 4 * 2]  # lpFindFileData
+    add eax, 4 * 10  # cFileName
+    push eax
+    call strncpy
+    add esp, 4 * 3
+
+    mov eax, 1
+1:
+    add esp, 4 * 2
+    ret
+
+1:
+    xor eax, eax
+    add esp, 4 * 4
+    ret
 
 .global FindClose
 FindClose:
