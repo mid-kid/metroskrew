@@ -126,7 +126,7 @@ FindFirstFileA:
     # Convert the string
     mov eax, [ebp + 4 + 4 * 1]  # lpFileName
     call path_dup_unx
-    push eax  # path = [ebp - 4 * 2]
+    push eax  # path
 
     # Check if we're trying to list an actual directory
     push 0
@@ -145,49 +145,13 @@ FindFirstFileA:
     # Truncate the string
     mov byte ptr [eax + ebx], 0
 
-    # Create a DIR stream and read the first entry
+    # Create a DIR stream
     call opendir
     and eax, eax
     jz 8f
-    push eax  # dir = [ebp - 4 * 3]
-    call readdir
-    and eax, eax
-    jz 7f
+    push eax  # dir
 
-    # Prepare strncpy
-    add eax, [dirent_name_offsetof]
-    push MAX_PATH - 1  # max_path = [ebp - 4 * 4]
-    push eax  # dirent_name = [ebp - 4 * 5]
-
-    # Initialize unused fields of WIN32_FIND_DATAA
-    push 4 * 10 + MAX_PATH + 14
-    push 0
-    push [ebp + 4 + 4 * 2]  # lpFindFileData
-    call memset
-    add esp, 4 * 3
-
-    # Create full path
-    mov eax, [esp]  # dirent_name
-    mov ebx, [ebp - 4 * 2]  # path
-    call path_join
-
-    # Get the file attributes
-    push eax
-    call GetFileAttributes_do
-    call free
-    add esp, 4
-    and ebx, ebx
-    jz 6f
-    mov eax, [ebp + 4 + 4 * 2]  # lpFindFileData.dwFileAttributes
-    mov [eax], ebx
-
-    # Copy the filename
-    mov eax, [ebp + 4 + 4 * 2]  # lpFindFileData
-    add eax, 4 * 10  # cFileName
-    push eax
-    call strncpy
-    add esp, 4 * 3
-
+    # Create hFindFile object
     push 4 * 2
     call malloc
     add esp, 4
@@ -195,6 +159,13 @@ FindFirstFileA:
     mov [eax], ebx
     pop ebx  # path
     mov [eax + 4], ebx
+
+    push eax
+    mov ebx, [ebp + 4 + 4 * 2]  # lpFindFileData
+    call FindNextFileA_do
+    and eax, eax
+    jnz 7f
+    pop eax
 
 1:
     pop ebx
@@ -219,17 +190,20 @@ FindFirstFileA:
     .asciz "trace: FindFirstFileA: res=%x lpFileName=%s\n"
 .endif
 
-# GetFileAttributes error
-6:
-    add esp, 4 * 2
-# Readdir error
+# FindNextFileA_do error
 7:
-    call closedir
     pop eax
+    push [eax + 4]
+    push [eax]
+    push eax
+    call free
+    add esp, 4
+    call closedir
+    add esp, 4
 # OS error
 8:
     call free
-    pop eax
+    add esp, 4
     mov eax, -1
     jmp 1b
 
@@ -407,19 +381,17 @@ FindNextFileA_do:
 
 .global FindClose
 FindClose:
-    push [esp + 4]  # hFindFile
-
-    mov eax, [esp]
+    mov eax, [esp + 4]  # hFindFile
+    push eax
+    push [eax + 4]
     push [eax]
+
     call closedir
     add esp, 4
-
-    mov eax, [esp]
-    push [eax + 4]
     call free
     add esp, 4
-
     call free
+    add esp, 4
     mov eax, 1
 
 .ifdef TRACE
