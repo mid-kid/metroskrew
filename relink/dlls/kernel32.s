@@ -4,8 +4,8 @@
 
 .global ExitProcess
 ExitProcess:
-.ifdef TRACE
     push [esp + 4]
+.ifdef TRACE
     push offset 9f
     call printf
     pop eax
