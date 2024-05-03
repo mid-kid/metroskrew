@@ -136,12 +136,24 @@ FindFirstFileA:
 
     mov ebx, -2
     cmp word ptr [eax + ebx], 0x2a2f  # '/*' = Anything
-    jz 1f
+    jz 2f
 
-    # Unhandled condition
+    mov ebx, -1
+    cmp byte ptr [eax + ebx], 0x2f  # '/' = trailing slash
+    jz 2f
+
+    # Assume it's a full path to a file
+
+    # Create hFindFile object
+    push 4 * 2
+    call malloc
     add esp, 4
-    jmp 9f
-1:
+    mov dword ptr [eax], 0
+    pop ebx  # path
+    mov [eax + 4], ebx
+    jmp 1f
+
+2:
     # Truncate the string
     mov byte ptr [eax + ebx], 0
 
@@ -160,11 +172,12 @@ FindFirstFileA:
     pop ebx  # path
     mov [eax + 4], ebx
 
+1:
     push eax
     mov ebx, [ebp + 4 + 4 * 2]  # lpFindFileData
     call FindNextFileA_do
     and eax, eax
-    jnz 7f
+    jz 7f
     pop eax
 
 1:
@@ -193,12 +206,16 @@ FindFirstFileA:
 # FindNextFileA_do error
 7:
     pop eax
-    push [eax + 4]
-    push [eax]
     push eax
-    call free
-    add esp, 4
+    push [eax + 4]
+    mov eax, [eax]
+    and eax, eax
+    jnz 2f
+    push eax
     call closedir
+    add esp, 4
+2:
+    call free
     add esp, 4
 # OS error
 8:
@@ -327,15 +344,36 @@ FindNextFileA_do:
     push eax
     push ebx
 
+    # If there's no DIR, assume the path is full
+    cmp dword ptr [eax], 0
+    jnz 2f
+
+    # Find the filename component
+    push '/'
+    push [eax + 4]
+    call strrchr
+    and eax, eax
+    jnz 1f
+    mov eax, [esp]
+    dec eax
+1:
+    add esp, 4 * 2
+    inc eax
+
+    jmp 3f
+
+2:
     # Read the next entry
     push [eax]
     call readdir
     add esp, 4
     and eax, eax
-    jz 1f
+    jz 7f
+    add eax, [dirent_name_offsetof]
+
+3:
 
     # Prepare strncpy
-    add eax, [dirent_name_offsetof]
     push MAX_PATH - 1
     push eax  # dirent_name
 
@@ -346,19 +384,31 @@ FindNextFileA_do:
     call memset
     add esp, 4 * 3
 
-    # Create full path
-    mov eax, [esp + 4 * 3]  # hFindFile
-    mov ebx, [eax + 4]  # path
+    # Create full path if we don't already have one
+    mov ebx, [esp + 4 * 3]  # hFindFile
+    mov eax, [ebx]  # dir
+    mov ebx, [ebx + 4]  # path
+    and eax, eax
+    jz 1f
+
+    # Create path and get the file attributes
     mov eax, [esp]  # dirent_name
     call path_join
-
-    # Get the file attributes
     push eax
     call GetFileAttributes_do
     call free
     add esp, 4
+
+    jmp 2f
+
+1:
+    # Get file attributes directly
+    mov eax, ebx
+    call GetFileAttributes_do
+
+2:
     and ebx, ebx
-    jz 2f
+    jz 8f
     mov eax, [esp + 4 * 2]  # lpFindFileData.dwFileAttributes
     mov [eax], ebx
 
@@ -369,38 +419,56 @@ FindNextFileA_do:
     call strncpy
     add esp, 4 * 3
 
+.ifndef NDEBUG
+    mov eax, [esp]
+    push [eax]
+    add eax, 4 * 10
+    push eax
+    push offset 9f
+    call printf
+    add esp, 4 * 3
+.endif
+
     mov eax, 1
-1:
+7:
     add esp, 4 * 2
     ret
 
-1:
+8:
     xor eax, eax
     add esp, 4 * 4
     ret
+
+.ifndef NDEBUG
+9:
+    .asciz "FindFile: '%s' (0x%x)\n"
+.endif
 
 .global FindClose
 FindClose:
     mov eax, [esp + 4]  # hFindFile
     push eax
     push [eax + 4]
-    push [eax]
 
+    mov eax, [eax]
+    and eax, eax
+    jz 1f
+    push eax
     call closedir
     add esp, 4
+1:
+
     call free
     add esp, 4
     call free
-    add esp, 4
-    mov eax, 1
 
 .ifdef TRACE
     push eax
     push offset 9f
     call printf
-    add esp, 4
-    pop eax
+    add esp, 4 * 2
 .endif
+    mov eax, 1
     add esp, 4
     ret 4
 
