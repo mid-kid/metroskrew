@@ -387,7 +387,7 @@ FindNextFileA_do:
     push eax  # dirent_name
 
     # Initialize unused fields of WIN32_FIND_DATAA
-    push 4 * 10 + MAX_PATH + 14
+    push 4 * 11 + MAX_PATH + 14
     push 0
     push ebx
     call memset
@@ -416,6 +416,7 @@ FindNextFileA_do:
     call GetFileAttributes_do
 
 2:
+    # Set the file attributes
     and ebx, ebx
     jz 8f
     mov eax, [esp + 4 * 2]  # lpFindFileData.dwFileAttributes
@@ -423,7 +424,7 @@ FindNextFileA_do:
 
     # Copy the filename
     mov eax, [esp + 4 * 2]  # lpFindFileData
-    add eax, 4 * 10  # cFileName
+    add eax, 4 * 11  # cFileName
     push eax
     call strncpy
     add esp, 4 * 3
@@ -431,7 +432,7 @@ FindNextFileA_do:
 .ifndef NDEBUG
     mov eax, [esp]
     push [eax]
-    add eax, 4 * 10
+    add eax, 4 * 11
     push eax
     push offset 9f
     call printf
@@ -1209,7 +1210,7 @@ CompareFileTime:
     die CompareFileTime
 
 .global GlobalReAlloc
-GlobalReAlloc: trace GlobalReAlloc
+GlobalReAlloc: #trace GlobalReAlloc
     push ebp
     mov ebp, esp
     push ebx
