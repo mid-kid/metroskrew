@@ -381,7 +381,6 @@ FindNextFileA_do:
     add eax, [dirent_name_offsetof]
 
 3:
-
     # Prepare strncpy
     push MAX_PATH - 1
     push eax  # dirent_name
