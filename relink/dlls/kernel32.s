@@ -261,6 +261,11 @@ GetFileAttributesA:
     call free
     add esp, 4
 
+    and ebx, ebx
+    jnz 1f
+    mov ebx, -1
+1:
+
 .ifdef TRACE
     push [ebp + 4 + 4]
     push ebx
