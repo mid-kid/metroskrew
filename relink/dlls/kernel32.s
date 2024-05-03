@@ -493,6 +493,7 @@ GetCommandLineA:
 .global GetEnvironmentStrings
 GetEnvironmentStrings: #trace GetEnvironmentStrings
     mov eax, environ
+    mov eax, [eax]
     ret
 
 .global FreeEnvironmentStringsA
