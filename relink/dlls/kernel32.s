@@ -4,14 +4,18 @@
 
 .global ExitProcess
 ExitProcess:
+.ifdef TRACE
     push [esp + 4]
     push offset 9f
     call printf
     pop eax
+.endif
     call exit
 
+.ifdef TRACE
 9:
     .asciz "trace: ExitProcess: uExitCode=%d\n"
+.endif
 
 .global IsBadReadPtr
 IsBadReadPtr:
