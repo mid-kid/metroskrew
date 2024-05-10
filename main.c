@@ -27,17 +27,23 @@ struct pe_export {
     unsigned long dllname;
     unsigned long func_num;
     unsigned long name_num;
-    unsigned long *func_off;
-    unsigned long *name_off;
+    unsigned long *func_addr;
+    unsigned long *name_addr;
     unsigned long *ords;
 };
 
 struct pe_import {
     unsigned long addr_num;
     unsigned long name_num;
-    unsigned long *addr_off;
-    unsigned long *dllname_off;
-    unsigned long *name_off;
+    unsigned long *imp_addr;
+    unsigned long *dllname_addr;
+    unsigned long *name_addr;
+};
+
+struct pe_rsrc_string {
+    unsigned long num;
+    unsigned long *id;
+    unsigned long *addr;
 };
 
 uint16_t read_u16(const unsigned char *mem)
@@ -227,18 +233,18 @@ bool pe_read_export_table(struct pe_file *file, struct pe_export *out)
 
     out->func_num = func_num;
     out->name_num = name_num;
-    out->func_off = malloc(sizeof(*out->func_off) * func_num);
-    out->name_off = malloc(sizeof(*out->name_off) * func_num);
-    memset(out->name_off, 0, sizeof(*out->name_off) * func_num);
+    out->func_addr = malloc(sizeof(*out->func_addr) * func_num);
+    out->name_addr = malloc(sizeof(*out->name_addr) * func_num);
+    memset(out->name_addr, 0, sizeof(*out->name_addr) * func_num);
 
     for (unsigned long x = 0; x < func_num; x++) {
-        out->func_off[x] = file->base_addr + read_u32(func_tab + 4 * x);
+        out->func_addr[x] = file->base_addr + read_u32(func_tab + 4 * x);
     }
 
     for (unsigned long x = 0; x < name_num; x++) {
         unsigned ord = read_u16(ords_tab + 2 * x);
         if (ord >= func_num) continue;
-        out->name_off[ord] = read_u32(name_tab + 4 * x);
+        out->name_addr[ord] = read_u32(name_tab + 4 * x);
     }
 
     if (fseek(file->f, name_tab_off, SEEK_SET) == -1) goto error;
@@ -255,8 +261,8 @@ error:
 
 void pe_free_export_table(struct pe_export *out)
 {
-    if (out->func_off) free(out->func_off);
-    if (out->name_off) free(out->name_off);
+    if (out->func_addr) free(out->func_addr);
+    if (out->name_addr) free(out->name_addr);
 }
 
 bool pe_read_import_table(struct pe_file *file, struct pe_import *out)
@@ -274,9 +280,9 @@ bool pe_read_import_table(struct pe_file *file, struct pe_import *out)
 
     unsigned long addr_num = 0;
     unsigned long name_num = 0;
-    unsigned long *addr_off = malloc(1);
-    unsigned long *dllname_off = malloc(1);
-    unsigned long *name_off = malloc(1);
+    unsigned long *imp_addr = malloc(1);
+    unsigned long *dllname_addr = malloc(1);
+    unsigned long *name_addr = malloc(1);
 
     unsigned char *desc = header;
     while (header + size >= desc + 0x14) {
@@ -299,8 +305,8 @@ bool pe_read_import_table(struct pe_file *file, struct pe_import *out)
 
             if (info_addr < 0x80000000) info_addr += 2;
 
-            name_off = realloc(name_off, sizeof(*name_off) * (name_num + 1));
-            name_off[name_num++] = info_addr;
+            name_addr = realloc(name_addr, sizeof(*name_addr) * (name_num + 1));
+            name_addr[name_num++] = info_addr;
         }
 
         if (fseek(file->f, thunk_off, SEEK_SET) == -1) goto error;
@@ -310,10 +316,10 @@ bool pe_read_import_table(struct pe_file *file, struct pe_import *out)
             unsigned long info_addr = read_u32(info_bin);
             if (!info_addr) break;
 
-            addr_off = realloc(addr_off, sizeof(*addr_off) * (addr_num + 1));
-            dllname_off = realloc(dllname_off, sizeof(*dllname_off) * (addr_num + 1));
-            addr_off[addr_num] = file->base_addr + x;
-            dllname_off[addr_num] = dname_addr;
+            imp_addr = realloc(imp_addr, sizeof(*imp_addr) * (addr_num + 1));
+            dllname_addr = realloc(dllname_addr, sizeof(*dllname_addr) * (addr_num + 1));
+            imp_addr[addr_num] = file->base_addr + x;
+            dllname_addr[addr_num] = dname_addr;
             addr_num++;
         }
     }
@@ -321,23 +327,156 @@ bool pe_read_import_table(struct pe_file *file, struct pe_import *out)
     free(header);
     out->addr_num = addr_num;
     out->name_num = name_num;
-    out->addr_off = addr_off;
-    out->dllname_off = dllname_off;
-    out->name_off = name_off;
+    out->imp_addr = imp_addr;
+    out->dllname_addr = dllname_addr;
+    out->name_addr = name_addr;
     return true;
 
 error:
-    free(addr_off);
-    free(dllname_off);
-    free(name_off);
+    free(imp_addr);
+    free(dllname_addr);
+    free(name_addr);
     return false;
 }
 
 void pe_free_import_table(struct pe_import *out)
 {
-    free(out->addr_off);
-    free(out->dllname_off);
-    free(out->name_off);
+    free(out->imp_addr);
+    free(out->dllname_addr);
+    free(out->name_addr);
+}
+
+struct pe_dir_header {
+    unsigned num_name;
+    unsigned num_id;
+};
+
+bool pe_dir_read_header(struct pe_file *file, struct pe_dir_header *out)
+{
+    unsigned char header[0x10];
+    if (fread(header, sizeof(header), 1, file->f) != 1) return false;
+
+    out->num_name = read_u16(header + 0xc);
+    out->num_id = read_u16(header + 0xe);
+
+    return true;
+}
+
+struct pe_dir_entry {
+    unsigned long id;
+    unsigned long off;
+    bool dir;
+};
+
+bool pe_dir_read_entry(struct pe_file *file, struct pe_dir_entry *out)
+{
+    unsigned char entry[0x8];
+    if (fread(entry, sizeof(entry), 1, file->f) != 1) return false;
+
+    out->id = read_u32(entry + 0);
+    unsigned long off = read_u32(entry + 4);
+    out->off = off & 0x7fffffff;
+    out->dir = off & 0x80000000;
+
+    return true;
+}
+
+bool pe_get_rsrc_dir(struct pe_file *file, unsigned type, unsigned long *off, unsigned long *dir_off, unsigned long *dir_addr)
+{
+    unsigned long dir_size;
+    if (!pe_get_datadir(file, 2, dir_addr, &dir_size)) return false;
+
+    // Resoruces doesn't exist
+    if (!*dir_addr || !dir_size) {
+        *off = 0;
+        return true;
+    }
+
+    if (!pe_find_file_offset(file, *dir_addr, dir_off)) return false;
+    if (fseek(file->f, *dir_off, SEEK_SET) == -1) return false;
+
+    // Read header and skip named entries
+    struct pe_dir_header header;
+    if (!pe_dir_read_header(file, &header)) return false;
+    if (fseek(file->f, header.num_name * 8, SEEK_CUR) == -1) return false;
+
+    // Parse ID entries
+    while (header.num_id--) {
+        struct pe_dir_entry entry;
+        if (!pe_dir_read_entry(file, &entry)) return false;
+
+        if (entry.id != type) continue;
+
+        // Make sure we're actually getting a dir
+        if (!entry.dir) return false;
+
+        *off = *dir_off + entry.off;
+        return true;
+    }
+
+    // Didn't find the entry
+    *off = 0;
+    return true;
+}
+
+bool pe_read_rsrc_strings(struct pe_file *file, struct pe_rsrc_string *out)
+{
+    unsigned long off, dir_off, dir_addr;
+    if (!pe_get_rsrc_dir(file, 6, &off, &dir_off, &dir_addr)) return false;
+
+    if (!off) {
+        memset(out, 0, sizeof(*out));
+        return true;
+    }
+
+    if (fseek(file->f, off, SEEK_SET) == -1) return false;
+
+    // Read header
+    struct pe_dir_header header;
+    if (!pe_dir_read_header(file, &header)) return false;
+
+    unsigned long *rsrc_id = malloc(sizeof(unsigned long) * header.num_id);
+    unsigned long *rsrc_addr = malloc(sizeof(unsigned long) * header.num_id);
+
+    unsigned long entry_off_base = off + 0x10 + header.num_name * 8;
+    for (unsigned x = 0; x < header.num_id; x++) {
+        unsigned long entry_off = entry_off_base + x * 8;
+
+        struct pe_dir_entry entry;
+        if (fseek(file->f, entry_off, SEEK_SET) == -1) goto error;
+        if (!pe_dir_read_entry(file, &entry)) goto error;
+
+        if (!entry.dir) goto error;
+        unsigned long sub_off = dir_off + entry.off;
+        struct pe_dir_header sub_header;
+        if (fseek(file->f, sub_off, SEEK_SET) == -1) goto error;
+        if (!pe_dir_read_header(file, &sub_header)) goto error;
+
+        // These are the expected values for metrowerks binaries...
+        // It's not entirely clear what the expected constraints are.
+        if (sub_header.num_name != 0) goto error;
+        if (sub_header.num_id != 1) goto error;
+
+        struct pe_dir_entry sub_entry;
+        if (!pe_dir_read_entry(file, &sub_entry)) goto error;
+
+        // Again, checking for expected values
+        if (sub_entry.dir) goto error;
+        if (sub_entry.id != 0x409) goto error;
+
+        rsrc_id[x] = entry.id;
+        rsrc_addr[x] = dir_addr + sub_entry.off;
+    }
+
+    out->num = header.num_id;
+    out->id = rsrc_id;
+    out->addr = rsrc_addr;
+    return true;
+
+error:
+    free(rsrc_id);
+    free(rsrc_addr);
+    return false;
 }
 
 struct dump_export {
@@ -349,7 +488,7 @@ struct dump_export {
 bool dump_find_export(struct pe_file *file, unsigned long addr, struct pe_export *exports, struct dump_export *dump)
 {
     for (unsigned x = 0; x < exports->func_num; x++) {
-        if (exports->func_off[x] != addr) continue;
+        if (exports->func_addr[x] != addr) continue;
 
         dump->num = x;
         dump->dllname = NULL;
@@ -359,7 +498,7 @@ bool dump_find_export(struct pe_file *file, unsigned long addr, struct pe_export
             exit(EXIT_FAILURE);
         }
         if (x < exports->name_num) {
-            if (!pe_read_name(file, exports->name_off[x], &dump->name)) {
+            if (!pe_read_name(file, exports->name_addr[x], &dump->name)) {
                 fprintf(stderr, "Failed to read export name\n");
                 exit(EXIT_FAILURE);
             }
@@ -394,20 +533,20 @@ struct dump_import {
 bool dump_find_import(struct pe_file *file, unsigned long addr, struct pe_import *imports, struct dump_import *dump)
 {
     for (unsigned x = 0; x < imports->addr_num; x++) {
-        if (imports->addr_off[x] != addr) continue;
+        if (imports->imp_addr[x] != addr) continue;
 
         dump->num = 0;
         dump->dllname = NULL;
         dump->name = NULL;
-        if (!pe_read_name(file, imports->dllname_off[x], &dump->dllname)) {
+        if (!pe_read_name(file, imports->dllname_addr[x], &dump->dllname)) {
             fprintf(stderr, "Failed to read dllname\n");
             exit(EXIT_FAILURE);
         }
         if (x < imports->name_num) {
-            unsigned off = imports->name_off[x];
+            unsigned off = imports->name_addr[x];
             if (off >= 0x80000000) {
                 dump->num = off - 0x80000000;
-            } else if (!pe_read_name(file, imports->name_off[x], &dump->name)) {
+            } else if (!pe_read_name(file, imports->name_addr[x], &dump->name)) {
                 fprintf(stderr, "Failed to read import name\n");
                 exit(EXIT_FAILURE);
             }
@@ -448,6 +587,12 @@ int dump_asm(struct pe_file *file, char *binfile)
     struct pe_import imports;
     if (!pe_read_import_table(file, &imports)) {
         fprintf(stderr, "Failed to read import table\n");
+        return EXIT_FAILURE;
+    }
+
+    struct pe_rsrc_string rsrc_strings;
+    if (!pe_read_rsrc_strings(file, &rsrc_strings)) {
+        fprintf(stderr, "Failed to read string resources\n");
         return EXIT_FAILURE;
     }
 
