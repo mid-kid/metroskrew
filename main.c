@@ -663,10 +663,14 @@ int dump_asm(struct pe_file *file, char *binfile)
         char *name = sec.name;
         if (*name == '.') name++;
 
-        printf("\n");
-        printf("pe_%s_addr = 0x%lx\n", name, sec.address);
-        printf(".global pe_%s_addr\n", name);
-        printf(".section .pe_%s, \"awx\"\n", name);
+        printf("\n"
+            "pe_%s_addr = 0x%lx\n"
+            ".global pe_%s_addr\n"
+            ".section .pe_%s, \"awx\"\n",
+            name, sec.address,
+            name,
+            name
+        );
 
         unsigned long size = sec.dsize;
         if (sec.vsize > sec.dsize) size = sec.vsize;
@@ -737,6 +741,17 @@ int dump_asm(struct pe_file *file, char *binfile)
             }
         }
     }
+
+    printf("\n"
+        ".section .pe_rsrc_strings, \"a\"\n"
+        ".global pe_rsrc_strings\n"
+        "pe_rsrc_strings:\n"
+    );
+    for (unsigned x = 0; x < rsrc_strings.num; x++) {
+        unsigned long id = rsrc_strings.id[x];
+        printf("    .long %ld, pe_rsrc_strings_%ld\n", id, id);
+    }
+    printf("    .long -1\n");
 
     pe_free_export_table(&exports);
     pe_free_import_table(&imports);
