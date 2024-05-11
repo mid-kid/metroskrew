@@ -2,5 +2,5 @@
 *.o
 /bins/
 /main
+/relink/mwasmarm.s
 /relink/mwccarm.s
-/relink_asm/mwasmarm.s
