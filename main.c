@@ -44,6 +44,7 @@ struct pe_rsrc_string {
     unsigned long num;
     unsigned long *id;
     unsigned long *addr;
+    unsigned long *size;
 };
 
 uint16_t read_u16(const unsigned char *mem)
@@ -437,6 +438,7 @@ bool pe_read_rsrc_strings(struct pe_file *file, struct pe_rsrc_string *out)
 
     unsigned long *rsrc_id = malloc(sizeof(unsigned long) * header.num_id);
     unsigned long *rsrc_addr = malloc(sizeof(unsigned long) * header.num_id);
+    unsigned long *rsrc_size = malloc(sizeof(unsigned long) * header.num_id);
 
     unsigned long entry_off_base = off + 0x10 + header.num_name * 8;
     for (unsigned x = 0; x < header.num_id; x++) {
@@ -463,20 +465,36 @@ bool pe_read_rsrc_strings(struct pe_file *file, struct pe_rsrc_string *out)
         // Again, checking for expected values
         if (sub_entry.dir) goto error;
         if (sub_entry.id != 0x409) goto error;
+        if (fseek(file->f, dir_off + sub_entry.off, SEEK_SET) == -1) goto error;
+
+        unsigned char data_header[0x10];
+        if (fread(data_header, sizeof(data_header), 1, file->f) != 1) goto error;
+
+        unsigned long str_addr = file->base_addr + read_u32(data_header + 0);
+        unsigned long str_size = read_u32(data_header + 4);
 
         rsrc_id[x] = entry.id;
-        rsrc_addr[x] = dir_addr + sub_entry.off;
+        rsrc_addr[x] = str_addr;
+        rsrc_size[x] = str_size;
     }
 
     out->num = header.num_id;
     out->id = rsrc_id;
     out->addr = rsrc_addr;
+    out->size = rsrc_size;
     return true;
 
 error:
     free(rsrc_id);
     free(rsrc_addr);
     return false;
+}
+
+void pe_free_rsrc_strings(struct pe_rsrc_string *out)
+{
+    free(out->id);
+    free(out->addr);
+    free(out->size);
 }
 
 struct dump_export {
@@ -508,8 +526,11 @@ bool dump_find_export(struct pe_file *file, unsigned long addr, struct pe_export
     return false;
 }
 
-unsigned dump_do_export(struct dump_export *dump)
+unsigned dump_do_export(struct dump_export *dump, char *binfile, unsigned long pos)
 {
+    (void)binfile;
+    (void)pos;
+
     printf(".global _%s_%x\n", dump->dllname, dump->num);
     printf("_%s_%x:\n", dump->dllname, dump->num);
     if (dump->name) {
@@ -556,9 +577,10 @@ bool dump_find_import(struct pe_file *file, unsigned long addr, struct pe_import
     return false;
 }
 
-unsigned dump_do_import(struct dump_import *dump, char *binfile)
+unsigned dump_do_import(struct dump_import *dump, char *binfile, unsigned long pos)
 {
     (void)binfile;
+    (void)pos;
     unsigned size = 0;
 
     if (dump->name) {
@@ -574,6 +596,38 @@ unsigned dump_do_import(struct dump_import *dump, char *binfile)
     }
     free(dump->dllname);
     return size;
+}
+
+struct dump_rsrc_string {
+    unsigned long id;
+    unsigned long size;
+};
+
+bool dump_find_rsrc_string(struct pe_file *file, unsigned long addr, struct pe_rsrc_string *rsrc_strings, struct dump_rsrc_string *dump)
+{
+    (void)file;
+
+    for (unsigned x = 0; x < rsrc_strings->num; x++) {
+        if (rsrc_strings->addr[x] != addr) continue;
+
+        dump->id = rsrc_strings->id[x];
+        dump->size = rsrc_strings->size[x];
+        return true;
+    }
+
+    return false;
+}
+
+unsigned dump_do_rsrc_string(struct dump_rsrc_string *dump, char *binfile, unsigned long pos)
+{
+    (void)binfile;
+    (void)pos;
+
+    printf(".global pe_rsrc_strings_%ld\n"
+        "pe_rsrc_strings_%ld:\n"
+        "    .incbin \"%s\", 0x%lx, 0x%lx\n",
+        dump->id, dump->id, binfile, pos, dump->size);
+    return dump->size;
 }
 
 int dump_asm(struct pe_file *file, char *binfile)
@@ -623,12 +677,22 @@ int dump_asm(struct pe_file *file, char *binfile)
             bool dump = false;
 
             struct dump_export dump_export;
-            bool found_export = dump_find_export(file, sec.address + pos, &exports, &dump_export);
+            bool found_export =
+                dump_find_export(file, sec.address + pos,
+                &exports, &dump_export);
             if (found_export) dump = true;
 
             struct dump_import dump_import;
-            bool found_import = dump_find_import(file, sec.address + pos, &imports, &dump_import);
+            bool found_import =
+                dump_find_import(file, sec.address + pos,
+                &imports, &dump_import);
             if (found_import) dump = true;
+
+            struct dump_rsrc_string dump_rsrc_string;
+            bool found_rsrc_string =
+                dump_find_rsrc_string(file, sec.address + pos,
+                &rsrc_strings, &dump_rsrc_string);
+            if (found_rsrc_string) dump = true;
 
             if (pos >= size) {
                 dump = true;
@@ -642,17 +706,29 @@ int dump_asm(struct pe_file *file, char *binfile)
             if (last_pos == pos) {
                 // nothing!
             } else if (pos <= sec.dsize) {
-                printf(".incbin \"%s\", 0x%lx, 0x%lx\n", binfile, sec.offset + last_pos, pos - last_pos);
+                printf(".incbin \"%s\", 0x%lx, 0x%lx\n", binfile,
+                    sec.offset + last_pos, pos - last_pos);
             } else if (last_pos < sec.dsize) {
-                printf(".incbin \"%s\", 0x%lx, 0x%lx\n", binfile, sec.offset + last_pos, sec.dsize - last_pos);
+                printf(".incbin \"%s\", 0x%lx, 0x%lx\n", binfile,
+                    sec.offset + last_pos, sec.dsize - last_pos);
                 printf(".zero 0x%lx\n", pos - sec.dsize);
             } else {
                 printf(".zero 0x%lx\n", pos - last_pos);
             }
             last_pos = pos;
 
-            if (found_export) pos += dump_do_export(&dump_export);
-            if (found_import) pos += dump_do_import(&dump_import, binfile);
+            if (found_export) {
+                pos += dump_do_export(&dump_export, binfile,
+                    sec.offset + last_pos);
+            }
+            if (found_import) {
+                pos += dump_do_import(&dump_import, binfile,
+                    sec.offset + last_pos);
+            }
+            if (found_rsrc_string) {
+                pos += dump_do_rsrc_string(&dump_rsrc_string, binfile,
+                    sec.offset + last_pos);
+            }
 
             if (last_pos != pos) {
                 last_pos = pos;
@@ -662,6 +738,9 @@ int dump_asm(struct pe_file *file, char *binfile)
         }
     }
 
+    pe_free_export_table(&exports);
+    pe_free_import_table(&imports);
+    pe_free_rsrc_strings(&rsrc_strings);
     return EXIT_SUCCESS;
 }
 
