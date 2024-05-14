@@ -751,7 +751,7 @@ int dump_asm(struct pe_file *file, char *binfile)
         unsigned long id = rsrc_strings.id[x];
         printf("    .long %ld, pe_rsrc_strings_%ld\n", id, id);
     }
-    printf("    .long -1\n");
+    printf("    .long 0\n");
 
     pe_free_export_table(&exports);
     pe_free_import_table(&imports);
