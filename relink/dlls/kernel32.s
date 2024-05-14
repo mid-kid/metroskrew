@@ -742,35 +742,28 @@ GetFullPathNameA:
     mov ebp, esp
     push ebx
 
-.ifndef NDEBUG
-    push [ebp + 4 + 4 * 1]
-    push offset 9f
-    call printf
-    add esp, 4 * 2
-.endif
-
     # Check if the string starts at the root
-    mov eax, [ebp + 4 + 4 * 1]
+    mov eax, [ebp + 4 + 4 * 1]  # lpFileName
     mov al, [eax]
     cmp al, '\\'
     mov ebx, 0
     jz 1f
 
     # If it's relative, add current directory
-    push [ebp + 4 + 4 * 3]
-    push [ebp + 4 + 4 * 2]
+    push [ebp + 4 + 4 * 3]  # lpBuffer
+    push [ebp + 4 + 4 * 2]  # nBufferLength
     call GetCurrentDirectoryA
 
     # Append slash
     mov ebx, eax
-    mov eax, [ebp + 4 + 4 * 3]
+    mov eax, [ebp + 4 + 4 * 3]  # lpBuffer
     mov byte ptr [eax + ebx], '\\'
     inc ebx
 1:
 
     # Calculate full string length
     push ebx
-    push [ebp + 4 + 4 * 1]
+    push [ebp + 4 + 4 * 1]  # lpFileName
     call strlen
     add esp, 4 * 2
     add eax, ebx
@@ -778,20 +771,28 @@ GetFullPathNameA:
 
     # Compare it to the buffer size
     inc eax
-    cmp [ebp + 4 + 4 * 2], eax
+    cmp [ebp + 4 + 4 * 2], eax  # nBufferLength
     jc 1f
 
     # Set the file part pointer
     mov eax, ebx
-    add eax, [ebp + 4 + 4 * 3]
-    mov ebx, [ebp + 4 + 4 * 4]
+    add eax, [ebp + 4 + 4 * 3]  # lpBuffer
+    mov ebx, [ebp + 4 + 4 * 4]  # lpFilePart
     mov [ebx], eax
 
     # Append the filename
-    push [ebp + 4 + 4 * 1]
+    push [ebp + 4 + 4 * 1]  # lpFileName
     push eax
     call strcpy
     add esp, 4 * 2
+
+.ifndef NDEBUG
+    push [ebp + 4 + 4 * 3]  # lpBuffer
+    push [ebp + 4 + 4 * 1]  # lpFileName
+    push offset 9f
+    call printf
+    add esp, 4 * 3
+.endif
 
     pop eax
     pop ebx
@@ -800,7 +801,7 @@ GetFullPathNameA:
 
 .ifndef NDEBUG
 9:
-    .asciz "GetFullPathNameA: %s\n"
+    .asciz "GetFullPathNameA: '%s' = '%s'\n"
 .endif
 
 .global SetFilePointer
