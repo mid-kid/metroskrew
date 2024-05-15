@@ -755,6 +755,8 @@ GetFullPathNameA:
     # Check if the string starts at the root
     mov eax, [ebp + 4 + 4 * 1]  # lpFileName
     mov ebx, 0
+    cmp byte ptr [eax], '\\'
+    jz 1f
     cmp word ptr [eax], 0x3a5a  # Z:
     jnz 2f
     cmp byte ptr [eax + 2], '\\'
