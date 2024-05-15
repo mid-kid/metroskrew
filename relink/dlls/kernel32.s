@@ -1476,4 +1476,14 @@ GetLocalTime:
 
 .global GetTimeZoneInformation
 GetTimeZoneInformation:
-    die GetTimeZoneInformation
+    stub GetTimeZoneInformation
+
+    mov eax, [esp + 4]
+    push 172
+    push 0
+    push eax
+    call memset
+    add esp, 4 * 3
+
+    xor eax, eax
+    ret 4
