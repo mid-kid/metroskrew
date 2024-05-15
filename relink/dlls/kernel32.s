@@ -799,7 +799,8 @@ GetFullPathNameA:
     add esp, 4 * 2
 
 .ifndef NDEBUG
-    push [ebp + 4 + 4 * 4]  # lpFilePart
+    mov eax, [ebp + 4 + 4 * 4]  # lpFilePart
+    push [eax]
     push [ebp + 4 + 4 * 3]  # lpBuffer
     push [ebp + 4 + 4 * 1]  # lpFileName
     push offset 9f
