@@ -5,6 +5,13 @@ path_dup_unx:
     push ebx
     mov ebx, eax
 
+    cmp word ptr [ebx], 0x3a5a  # Z:
+    jnz 1f
+    cmp byte ptr [ebx + 2], '\\'
+    jnz 1f
+    add ebx, 2
+1:
+
     push ebx
     call strlen
     add esp, 4

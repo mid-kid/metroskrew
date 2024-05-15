@@ -507,10 +507,23 @@ GetCurrentDirectoryA:
 
     push [ebp + 4 + 4 * 1]
     push [ebp + 4 + 4 * 2]
+
+    mov eax, [esp + 4]
+    sub eax, 2
+    jc 1f
+    mov [esp + 4], eax
+    mov eax, [esp]
+    mov word ptr [eax], 0x3a5a  # Z:
+    add eax, 2
+    mov [esp], eax
+
     call getcwd
     add esp, 4 * 2
     test eax, eax
     jz 1f
+
+    mov eax, [ebp + 4 + 4 * 2]
+    call path_dos
 
 .ifndef NDEBUG
     push [ebp + 4 + 4 * 2]
@@ -518,9 +531,6 @@ GetCurrentDirectoryA:
     call printf
     add esp, 4 * 2
 .endif
-
-    mov eax, [ebp + 4 + 4 * 2]
-    call path_dos
 
     push [ebp + 4 + 4 * 2]
     call strlen
@@ -744,10 +754,12 @@ GetFullPathNameA:
 
     # Check if the string starts at the root
     mov eax, [ebp + 4 + 4 * 1]  # lpFileName
-    mov al, [eax]
-    cmp al, '\\'
     mov ebx, 0
+    cmp word ptr [eax], 0x3a5a  # Z:
+    jnz 2f
+    cmp byte ptr [eax + 2], '\\'
     jz 1f
+2:
 
     # If it's relative, add current directory
     push [ebp + 4 + 4 * 3]  # lpBuffer
@@ -787,11 +799,12 @@ GetFullPathNameA:
     add esp, 4 * 2
 
 .ifndef NDEBUG
+    push [ebp + 4 + 4 * 4]  # lpFilePart
     push [ebp + 4 + 4 * 3]  # lpBuffer
     push [ebp + 4 + 4 * 1]  # lpFileName
     push offset 9f
     call printf
-    add esp, 4 * 3
+    add esp, 4 * 4
 .endif
 
     pop eax
@@ -801,7 +814,7 @@ GetFullPathNameA:
 
 .ifndef NDEBUG
 9:
-    .asciz "GetFullPathNameA: '%s' = '%s'\n"
+    .asciz "GetFullPathNameA: '%s' = '%s' (%s)\n"
 .endif
 
 .global SetFilePointer
