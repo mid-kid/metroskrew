@@ -301,13 +301,11 @@ GetFileAttributes_do:
     cmp eax, 0040000  # S_IFDIR
     jnz 1f
     or ebx, 0x10  # FILE_ATTRIBUTE_DIRECTORY
+    jmp 2f
 1:
-
-    # If no flags have been set, set to 0x80
-    and ebx, ebx
-    jnz 2f
-    or ebx, 0x80  # FILE_ATTRIBUTE_NORMAL
+    or ebx, 0x20  # FILE_ATTRIBUTE_ARCHIVE
 2:
+
     stat_pop
     ret
 
