@@ -1241,7 +1241,9 @@ SystemTimeToFileTime:
 
 .global CompareFileTime
 CompareFileTime:
-    die CompareFileTime
+    stub CompareFileTime
+    xor eax, eax
+    ret 4 * 2
 
 .global GlobalReAlloc
 GlobalReAlloc: #trace GlobalReAlloc
