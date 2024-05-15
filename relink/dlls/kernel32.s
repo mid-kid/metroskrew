@@ -784,23 +784,37 @@ GetFullPathNameA:
     # Compare it to the buffer size
     inc eax
     cmp [ebp + 4 + 4 * 2], eax  # nBufferLength
-    jc 1f
-
-    # Set the file part pointer
-    mov eax, ebx
-    add eax, [ebp + 4 + 4 * 3]  # lpBuffer
-    mov ebx, [ebp + 4 + 4 * 4]  # lpFilePart
-    mov [ebx], eax
+    jc 8f
 
     # Append the filename
+    mov eax, ebx
+    add eax, [ebp + 4 + 4 * 3]  # lpBuffer
     push [ebp + 4 + 4 * 1]  # lpFileName
     push eax
     call strcpy
+
+    # Set the file part pointer
+    mov dword ptr [esp + 4], '\\'
+    call strrchr
+    inc eax
+    cmp eax, 1
+    jnz 1f
+    mov eax, [esp]
+1:
+    mov ebx, [ebp + 4 + 4 * 4]  # lpFilePart
+    and ebx, ebx
+    jz 1f
+    mov [ebx], eax
+1:
     add esp, 4 * 2
 
 .ifndef NDEBUG
     mov eax, [ebp + 4 + 4 * 4]  # lpFilePart
-    push [eax]
+    and eax, eax
+    jz 1f
+    mov eax, [eax]
+1:
+    push eax
     push [ebp + 4 + 4 * 3]  # lpBuffer
     push [ebp + 4 + 4 * 1]  # lpFileName
     push offset 9f
@@ -812,6 +826,9 @@ GetFullPathNameA:
     pop ebx
     leave
     ret 4 * 4
+
+8:
+    die "GetFullPathNameA: Buffer too small"
 
 .ifndef NDEBUG
 9:
