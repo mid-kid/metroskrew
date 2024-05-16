@@ -561,10 +561,11 @@ CloseHandle:
     dec eax
 
     # Make sure to not close stdio descriptors
-    push eax
     cmp eax, 3
     jc 2f
+    push eax
     call close
+    add esp, 4
     jmp 1f
 2:
     xor eax, eax
@@ -578,7 +579,6 @@ CloseHandle:
     pop eax
     pop eax
 .endif
-    add esp, 4
     ret 4
 
 .ifdef TRACE
@@ -751,7 +751,7 @@ GetFullPathNameA:
 
     # Check if the string starts at the root
     mov eax, [ebp + 4 + 4 * 1]  # lpFileName
-    mov ebx, 0
+    xor ebx, ebx
     cmp byte ptr [eax], '\\'
     jz 1f
     cmp word ptr [eax], 0x3a5a  # Z:
@@ -1141,18 +1141,19 @@ GetFileTime:
     mov dword ptr [eax + 4 * 0], 0  # dwLowDateTime
     mov dword ptr [eax + 4 * 1], 0  # dwHighDateTime
 1:
-    mov eax, [esp + 4 * 2]  # lpLastAccessTime
+    mov eax, [esp + 4 * 3]  # lpLastAccessTime
     and eax, eax
     jz 1f
     mov dword ptr [eax + 4 * 0], 0  # dwLowDateTime
     mov dword ptr [eax + 4 * 1], 0  # dwHighDateTime
 1:
-    mov eax, [esp + 4 * 2]  # lpLastWriteTime
+    mov eax, [esp + 4 * 4]  # lpLastWriteTime
     and eax, eax
     jz 1f
     mov dword ptr [eax + 4 * 0], 0  # dwLowDateTime
     mov dword ptr [eax + 4 * 1], 0  # dwHighDateTime
 1:
+    mov eax, 1
     ret 4 * 4
 
 .global SetFileTime
@@ -1316,19 +1317,16 @@ FileTimeToSystemTime:
 
 .global FindResourceA
 FindResourceA:
-    push ebp
-    mov ebp, esp
-
 .ifndef NDEBUG
-    push [ebp + 4 + 4 * 3]
-    push [ebp + 4 + 4 * 2]
-    push [ebp + 4 + 4 * 1]
+    mov eax, esp
+    push [eax + 4 * 3]
+    push [eax + 4 * 2]
+    push [eax + 4 * 1]
     push offset 1f
     call printf
 .endif
 
     xor eax, eax
-    leave
     ret 4 * 3
 
 .ifndef NDEBUG
@@ -1415,13 +1413,13 @@ UnmapViewOfFile:
 .global GetSystemDirectoryA
 GetSystemDirectoryA:
     stub GetSystemDirectoryA
-    mov eax, 0
+    xor eax, eax
     ret 4 * 2
 
 .global GetWindowsDirectoryA
 GetWindowsDirectoryA:
     stub GetWindowsDirectoryA
-    mov eax, 0
+    xor eax, eax
     ret 4 * 2
 
 .global SetConsoleCtrlHandler
@@ -1433,7 +1431,7 @@ SetConsoleCtrlHandler:
 .global GetConsoleScreenBufferInfo
 GetConsoleScreenBufferInfo:
     stub GetConsoleScreenBufferInfo
-    mov eax, 0
+    xor eax, eax
     ret 4 * 2
 
 .global SetFileAttributesA
