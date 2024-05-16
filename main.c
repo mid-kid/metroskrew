@@ -21,6 +21,7 @@ struct pe_section {
     unsigned long address;
     unsigned long dsize;
     unsigned long offset;
+    bool r, w, x;
 };
 
 struct pe_export {
@@ -148,6 +149,10 @@ bool pe_read_section_header(struct pe_file *file, unsigned num, struct pe_sectio
     out->address = file->base_addr + read_u32(header + 0x0c);
     out->dsize = read_u32(header + 0x10);
     out->offset = read_u32(header + 0x14);
+    unsigned long flags = read_u32(header + 0x24);
+    out->x = flags & 0x20000000;
+    out->r = flags & 0x40000000;
+    out->w = flags & 0x80000000;
 
     return true;
 }
@@ -666,10 +671,11 @@ int dump_asm(struct pe_file *file, char *binfile)
         printf("\n"
             "pe_%s_addr = 0x%lx\n"
             ".global pe_%s_addr\n"
-            ".section .pe_%s, \"awx\"\n",
+            ".section .pe_%s, \"%s%s%s\"\n",
             name, sec.address,
             name,
-            name
+            name,
+            sec.r ? "a" : "", sec.w ? "w" : "", sec.x ? "x" : ""
         );
 
         unsigned long size = sec.dsize;
