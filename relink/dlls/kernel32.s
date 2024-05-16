@@ -1021,12 +1021,15 @@ CreateFileA:
 
     push [esp + 4]
 .ifndef NDEBUG
+    mov eax, [esp + 4]
+    dec eax
+    push eax
     push offset 8f
     call printf
-    pop eax
+    add esp, 4 * 2
 .endif
     call free
-    pop eax
+    add esp, 4
 
     pop eax
     leave
@@ -1048,7 +1051,7 @@ CreateFileA:
 
 .ifndef NDEBUG
 8:
-    .asciz "CreateFileA: %s\n"
+    .asciz "CreateFileA: res=%d lpFileName=%s\n"
 .endif
 
 9:
@@ -1401,11 +1404,6 @@ CreateFileMappingA:
     stub CreateFileMappingA
     xor eax, eax
     ret 4 * 6
-
-.ifndef NDEBUG
-1:
-    .asciz "stub: CreateFileMappingA: lpName=%s\n"
-.endif
 
 .global MapViewOfFile
 MapViewOfFile:
