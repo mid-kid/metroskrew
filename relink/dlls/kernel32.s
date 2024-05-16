@@ -414,8 +414,7 @@ FindNextFileA_do:
 
 2:
     # Set the file attributes
-    and ebx, ebx
-    jz 8f
+    # If the file doesn't exist anymore, attributes will be 0
     mov eax, [esp + 4 * 2]  # lpFindFileData.dwFileAttributes
     mov [eax], ebx
 
