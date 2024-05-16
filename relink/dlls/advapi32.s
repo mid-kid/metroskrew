@@ -10,7 +10,7 @@ RegOpenKeyExA:
     add esp, 4 * 2
 .endif
 
-    mov eax, 1
+    mov eax, 2
     ret 4 * 5
 
 .ifndef NDEBUG
