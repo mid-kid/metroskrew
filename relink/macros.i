@@ -26,7 +26,7 @@ trace_end\@:
     push offset die_str\@
     call puts
     push 1
-    jmp exit
+    call exit
 die_str\@:
     .asciz "die: \name"
 .endm
