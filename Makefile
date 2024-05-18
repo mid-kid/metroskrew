@@ -1,8 +1,22 @@
-CFLAGS := -O2 -g -Wall -Wextra $(CFLAGS)
+CC := cc -m32
+MESON ?= meson
+
+build := build
 
 .PHONY: all
-all: main
+all: $(build)/build.ninja
+	$(MESON) compile -C $(build)
+
+.PHONY: setup
+setup: $(build)/build.ninja
 
 .PHONY: clean
 clean:
-	rm -f main
+	$(MESON) compile -C $(build) --clean
+
+.PHONY: distclean
+distclean:
+	rm -r $(build)
+
+$(build)/build.ninja:
+	CC="$(CC)" $(MESON) setup $(build)

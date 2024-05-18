@@ -13,30 +13,31 @@ sources = [
   'dlls/ole32.s'
 ]
 
-common = static_library('common', sources, pic: false)
+arch = '-march=i386'
+
+common = static_library('common',
+  sources,
+  c_args: arch,
+  pic: false)
 
 foreach tool, bin : tools
-  prog_dump = custom_target(
+  prog = custom_target(
     command: [exedump, '@INPUT@'],
     input: bin,
     output: tool + '.s',
     capture: true,
-    build_by_default: true
-  )
-  prog = declare_dependency(
-    link_whole: common,
-    sources: [prog_dump, tool + '_patch.s']
-  )
+    build_by_default: true)
 
-  # TODO: How to remove this hack?
+  # TODO: How to avoid this?
   ldscript = fs.copyfile(tool + '.ld')
 
   executable(tool,
-    dependencies: prog,
+    prog, tool + '_patch.s',
     name_suffix: 'exe',
-    link_args: ['-Wl,-z,noexecstack', '-no-pie', '-T', ldscript.full_path()],
+    c_args: arch,
+    link_whole: common,
+    link_args: [arch, '-Wl,-z,noexecstack', '-no-pie', '-T', ldscript.full_path()],
     link_depends: ldscript,
     include_directories: inc_root,
-    install: true
-  )
+    install: true)
 endforeach
