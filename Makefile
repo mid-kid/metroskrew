@@ -1,5 +1,6 @@
-CC := cc -m32
 MESON ?= meson
+
+CROSS := cc-m32
 
 build := build
 
@@ -19,4 +20,4 @@ distclean:
 	rm -r $(build)
 
 $(build)/build.ninja:
-	CC="$(CC)" $(MESON) setup $(build)
+	$(MESON) setup --cross-file meson/$(CROSS).ini $(build)
