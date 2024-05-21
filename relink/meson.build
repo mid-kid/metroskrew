@@ -1,5 +1,8 @@
 fs = import('fs')
 
+assert(host_machine.cpu_family() == 'x86',
+  'This project can only be built for 32-bit x86')
+
 sources = [
   'entry.s',
   'utils.s',
