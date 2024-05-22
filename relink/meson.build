@@ -2,11 +2,11 @@ fs = import('fs')
 
 assert(host_machine.cpu_family() == 'x86',
   'This project can only be built for 32-bit x86')
+arch = '-march=i386'
 
-sources = [
+sources_s = [
   'entry.s',
   'utils.s',
-  'sysdeps.c',
   'dlls/advapi32.s',
   'dlls/kernel32.s',
   'dlls/lmgr8c.s',
@@ -15,26 +15,44 @@ sources = [
   'dlls/ws2_32.s',
   'dlls/ole32.s'
 ]
+sources_c = [
+  'sysdeps.c'
+]
 
-arch = '-march=i386'
+as = find_program('as')
+
+bld_as = generator(as,
+  arguments: [
+    '-I', meson.current_source_dir(),
+    arch, '@EXTRA_ARGS@',
+    '--MD', '@OUTPUT@.d',
+    '-o', '@OUTPUT@',
+    '@INPUT@'
+  ],
+  output: '@PLAINNAME@.o',
+  depfile: '@PLAINNAME@.o.d')
 
 common = static_library('common',
-  sources,
+  sources_c,
+  objects: bld_as.process(sources_s),
   c_args: arch,
   pic: false)
 
 foreach tool, bin : tools
-  prog = custom_target(
+  prog_src = custom_target(
     command: [exedump, '@INPUT@'],
     input: bin,
     output: tool + '.s',
     capture: true,
     build_by_default: true)
+  prog = bld_as.process(
+    prog_src, tool + '_patch.s',
+    extra_args: ['-I', meson.project_source_root()])
 
   ldscript = tool + '.ld'
 
   executable(tool,
-    prog, tool + '_patch.s',
+    objects: prog,
     name_suffix: 'exe',
     c_args: arch,
     link_args: [
@@ -45,6 +63,5 @@ foreach tool, bin : tools
     ],
     link_whole: common,
     link_depends: ldscript,
-    include_directories: inc_root,
     install: true)
 endforeach

@@ -9,6 +9,4 @@ tools = {
   'mwasmarm': files('bins/mwasmarm.exe')
 }
 
-inc_root = include_directories('.')
-
 subdir('relink')
