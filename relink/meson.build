@@ -24,6 +24,8 @@ as = find_program('as')
 bld_as = generator(as,
   arguments: [
     '-I', meson.current_source_dir(),
+    get_option('debug') ? [] : ['--defsym', 'NDEBUG=1'],
+    get_option('trace') ? ['--defsym', 'TRACE=1'] : [],
     arch, '@EXTRA_ARGS@',
     '--MD', '@OUTPUT@.d',
     '-o', '@OUTPUT@',
