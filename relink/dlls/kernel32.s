@@ -573,11 +573,11 @@ CloseHandle:
     inc eax
 
 .ifdef TRACE
+    push [esp + 4]
     push eax
     push offset 9f
     call printf
-    pop eax
-    pop eax
+    add esp, 4 * 3
 .endif
     ret 4
 
