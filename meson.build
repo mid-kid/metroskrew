@@ -1,5 +1,5 @@
 project('metroskrew', 'c',
-  default_options: ['warning_level=3'])
+  default_options: ['warning_level=2'])
 
 exedump = executable('main', 'main.c', native: true)
 
