@@ -23,10 +23,10 @@ setup: $(build)/opt.trace/build.ninja
 
 .PHONY: clean
 clean:
-	! test -f $(build)/meson.build || $(MESON) compile -C $(build) --clean
-	! test -f $(build)/opt.release/meson.build || \
+	! test -f $(build)/build.ninja || $(MESON) compile -C $(build) --clean
+	! test -f $(build)/opt.release/build.ninja || \
 		$(MESON) compile -C $(build)/opt.release --clean
-	! test -f $(build)/opt.trace/meson.build || \
+	! test -f $(build)/opt.trace/build.ninja || \
 		$(MESON) compile -C $(build)/opt.trace --clean
 
 .PHONY: distclean
