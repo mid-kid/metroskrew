@@ -31,7 +31,7 @@ clean:
 
 .PHONY: distclean
 distclean:
-	rm -r $(build)
+	rm -rf $(build)
 
 $(build)/build.ninja:
 	$(MESON) setup --cross-file meson/$(CROSS).ini $(build)

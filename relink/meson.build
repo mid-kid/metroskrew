@@ -23,7 +23,9 @@ as = find_program('as')
 
 c_args = [
   arch,
-  '-U_FILE_OFFSET_BITS'
+  '-U_FILE_OFFSET_BITS',
+  get_option('debug') ? [] : ['-DNDEBUG'],
+  get_option('trace') ? ['-DTRACE'] : []
 ]
 
 as_args = [
