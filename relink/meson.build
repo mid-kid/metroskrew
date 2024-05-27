@@ -30,7 +30,7 @@ c_args = [
 
 as_args = [
   arch,
-  '-I', meson.current_source_dir(),
+  '-I' + meson.current_source_dir(),
   get_option('debug') ? [] : ['--defsym', 'NDEBUG=1'],
   get_option('trace') ? ['--defsym', 'TRACE=1'] : []
 ]
@@ -60,7 +60,7 @@ foreach tool, bin : tools
     build_by_default: true)
   prog = bld_as.process(
     prog_src, tool + '_patch.s',
-    extra_args: ['-I', meson.project_source_root()])
+    extra_args: '-I' + meson.project_source_root())
 
   ldscript = tool + '.ld'
 
@@ -71,7 +71,7 @@ foreach tool, bin : tools
       arch,
       '-Wl,-z,noexecstack',
       '-no-pie',
-      '-T', meson.current_source_dir() / ldscript
+      '-T' + meson.current_source_dir() / ldscript
     ],
     link_whole: common,
     link_depends: ldscript,
