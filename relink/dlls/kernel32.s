@@ -556,6 +556,7 @@ WaitForSingleObject:
 GetExitCodeProcess:
     die GetExitCodeProcess
 
+.weak CloseHandle
 .global CloseHandle
 CloseHandle:
     mov eax, [esp + 4]  # hObject

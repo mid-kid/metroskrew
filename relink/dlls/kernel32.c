@@ -1,5 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdint.h>
+#include <unistd.h>
 
 // WINE headers, used for the sake of type-checking definitions
 #include "windef.h"
@@ -19,7 +21,8 @@
 // winbase.h
 
 WINBASEAPI VOID DECLSPEC_NORETURN WINAPI ExitProcess(DWORD uExitCode)
-{ TR("ExitProcess: uExitCode=%lu", uExitCode);
+{
+    TR("ExitProcess: uExitCode=%lu", uExitCode);
     exit(uExitCode);
 }
 
@@ -43,7 +46,16 @@ WINBASEAPI UINT        WINAPI GetCurrentDirectoryA(UINT,LPSTR);
 WINBASEAPI BOOL        WINAPI CreateProcessA(LPCSTR,LPSTR,LPSECURITY_ATTRIBUTES,LPSECURITY_ATTRIBUTES,BOOL,DWORD,LPVOID,LPCSTR,LPSTARTUPINFOA,LPPROCESS_INFORMATION);
 WINBASEAPI DWORD       WINAPI WaitForSingleObject(HANDLE,DWORD);
 WINBASEAPI BOOL        WINAPI GetExitCodeProcess(HANDLE,LPDWORD);
-WINBASEAPI BOOL        WINAPI CloseHandle(HANDLE);
+
+WINBASEAPI BOOL WINAPI CloseHandle(HANDLE hObject)
+{
+    uintptr_t uObject = (uintptr_t)hObject;
+    BOOL res = TRUE;
+    if (uObject > 3) res = close(uObject - 1) == 0;
+    TR("CloseHandle: res=%d hObject=%p", res, hObject);
+    return res;
+}
+
 WINBASEAPI DWORD       WINAPI TlsAlloc(void);
 WINBASEAPI BOOL        WINAPI TlsFree(DWORD);
 WINBASEAPI LPVOID      WINAPI TlsGetValue(DWORD);
