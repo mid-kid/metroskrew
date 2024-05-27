@@ -16,7 +16,8 @@ sources_s = [
   'dlls/ole32.s'
 ]
 sources_c = [
-  'sysdeps.c'
+  'sysdeps.c',
+  'dlls/kernel32.c'
 ]
 
 as = find_program('as')

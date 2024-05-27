@@ -2,6 +2,7 @@
 .include "macros.i"
 .include "stat.i"
 
+.weak ExitProcess
 .global ExitProcess
 ExitProcess:
     push [esp + 4]
