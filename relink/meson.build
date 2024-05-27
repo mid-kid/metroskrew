@@ -21,12 +21,22 @@ sources_c = [
 
 as = find_program('as')
 
+c_args = [
+  arch,
+  '-U_FILE_OFFSET_BITS'
+]
+
+as_args = [
+  arch,
+  '-I', meson.current_source_dir(),
+  get_option('debug') ? [] : ['--defsym', 'NDEBUG=1'],
+  get_option('trace') ? ['--defsym', 'TRACE=1'] : []
+]
+
 bld_as = generator(as,
   arguments: [
-    '-I', meson.current_source_dir(),
-    get_option('debug') ? [] : ['--defsym', 'NDEBUG=1'],
-    get_option('trace') ? ['--defsym', 'TRACE=1'] : [],
-    arch, '@EXTRA_ARGS@',
+    as_args,
+    '@EXTRA_ARGS@',
     '--MD', '@OUTPUT@.d',
     '-o', '@OUTPUT@',
     '@INPUT@'
@@ -37,8 +47,7 @@ bld_as = generator(as,
 common = static_library('common',
   sources_c,
   objects: bld_as.process(sources_s),
-  c_args: arch,
-  pic: false)
+  c_args: c_args)
 
 foreach tool, bin : tools
   prog_src = custom_target(
@@ -56,7 +65,6 @@ foreach tool, bin : tools
   executable(tool,
     objects: prog,
     name_suffix: 'exe',
-    c_args: arch,
     link_args: [
       arch,
       '-Wl,-z,noexecstack',
