@@ -147,6 +147,7 @@ WINBASEAPI BOOL        WINAPI TlsSetValue(DWORD,LPVOID);
 
 WINBASEAPI HMODULE WINAPI GetModuleHandleA(LPCSTR lpModuleName)
 {
+    (void)lpModuleName;
     STUB("GetModuleHandleA: %s", lpModuleName);
     return NULL;
 }
