@@ -499,6 +499,7 @@ GetEnvironmentStrings: #trace GetEnvironmentStrings
 FreeEnvironmentStringsA: #trace FreeEnvironmentStringsA
     ret 4
 
+.weak GetCurrentDirectoryA
 .global GetCurrentDirectoryA
 GetCurrentDirectoryA:
     push ebp

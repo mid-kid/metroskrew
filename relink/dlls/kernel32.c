@@ -73,7 +73,21 @@ WINBASEAPI BOOL        WINAPI FindClose(HANDLE);
 WINBASEAPI LPSTR       WINAPI GetCommandLineA(void);
 WINBASEAPI LPSTR       WINAPI GetEnvironmentStringsA(void);
 WINBASEAPI BOOL        WINAPI FreeEnvironmentStringsA(LPSTR);
-WINBASEAPI UINT        WINAPI GetCurrentDirectoryA(UINT,LPSTR);
+
+WINBASEAPI UINT WINAPI GetCurrentDirectoryA(UINT nBufferLength, LPSTR lpBuffer)
+{
+    if (nBufferLength < 2) return 0;
+    if (!getcwd(lpBuffer + 2, nBufferLength - 2)) return 0;
+
+    // Convert to DOS path
+    lpBuffer[0] = 'Z';
+    lpBuffer[1] = ':';
+    for (char *c = lpBuffer; *c; c++) if (*c == '/') *c = '\\';
+
+    DB("GetCurrentDirectoryA: %s", lpBuffer);
+    return strlen(lpBuffer);
+}
+
 WINBASEAPI BOOL        WINAPI CreateProcessA(LPCSTR,LPSTR,LPSECURITY_ATTRIBUTES,LPSECURITY_ATTRIBUTES,BOOL,DWORD,LPVOID,LPCSTR,LPSTARTUPINFOA,LPPROCESS_INFORMATION);
 WINBASEAPI DWORD       WINAPI WaitForSingleObject(HANDLE,DWORD);
 WINBASEAPI BOOL        WINAPI GetExitCodeProcess(HANDLE,LPDWORD);
@@ -99,7 +113,7 @@ WINBASEAPI BOOL WINAPI FreeLibrary(HMODULE hLibModule)
 {
     (void)hLibModule;
     BOOL res = TRUE;
-    TR("FreeLibrary: res=%d hLibModule=%p", hLibModule);
+    TR("FreeLibrary: res=%d hLibModule=%p", res, hLibModule);
     STUB("HACK: FreeLibrary");
     return res;
 }
@@ -200,6 +214,7 @@ WINBASEAPI BOOL    WINAPI SetConsoleCtrlHandler( PHANDLER_ROUTINE,BOOL);
 
 WINBASEAPI BOOL WINAPI GetConsoleScreenBufferInfo(HANDLE hConsole, LPCONSOLE_SCREEN_BUFFER_INFO lpConsoleScreenBufferInfo)
 {
+    (void)lpConsoleScreenBufferInfo;
     STUB("GetConsoleScreenBufferInfo: hConsole=%p", hConsole);
     return FALSE;
 }
