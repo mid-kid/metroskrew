@@ -144,7 +144,12 @@ WINBASEAPI DWORD       WINAPI TlsAlloc(void);
 WINBASEAPI BOOL        WINAPI TlsFree(DWORD);
 WINBASEAPI LPVOID      WINAPI TlsGetValue(DWORD);
 WINBASEAPI BOOL        WINAPI TlsSetValue(DWORD,LPVOID);
-WINBASEAPI HMODULE     WINAPI GetModuleHandleA(LPCSTR);
+
+WINBASEAPI HMODULE WINAPI GetModuleHandleA(LPCSTR lpModuleName)
+{
+    STUB("GetModuleHandleA: %s", lpModuleName);
+    return NULL;
+}
 
 WINBASEAPI DWORD WINAPI GetModuleFileNameA(HMODULE hModule, LPSTR lpFileName, DWORD nSize)
 {

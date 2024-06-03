@@ -623,6 +623,7 @@ TlsSetValue: #trace TlsSetValue
     mov eax, 1
     ret 4 * 2
 
+.weak GetModuleHandleA
 .global GetModuleHandleA
 GetModuleHandleA:
 .ifndef NDEBUG
