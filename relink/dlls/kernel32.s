@@ -26,6 +26,7 @@ IsBadReadPtr:
 RtlUnwind:
     die RtlUnwind
 
+.weak GetCurrentProcess
 .global GetCurrentProcess
 GetCurrentProcess: trace GetCurrentProcess
     mov eax, -1

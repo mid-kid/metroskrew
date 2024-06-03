@@ -41,7 +41,12 @@ WINBASEAPI VOID DECLSPEC_NORETURN WINAPI ExitProcess(DWORD uExitCode)
 }
 
 WINBASEAPI BOOL        WINAPI IsBadReadPtr(LPCVOID,UINT_PTR);
-WINBASEAPI HANDLE      WINAPI GetCurrentProcess(void);
+
+WINBASEAPI HANDLE WINAPI GetCurrentProcess(void)
+{
+    TR("GetCurrentProcess");
+    return (HANDLE)-1;
+}
 
 WINBASEAPI BOOL WINAPI DuplicateHandle(HANDLE hSourceProcessHandle, HANDLE hSourceHandle, HANDLE hTargetProcessHandle, HANDLE *lpTargetHandle, DWORD dwDesiredAccess, BOOL bInheritHandle, DWORD dwOptions)
 {
