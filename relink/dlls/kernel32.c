@@ -114,6 +114,7 @@ WINBASEAPI UINT WINAPI GetCurrentDirectoryA(UINT nBufferLength, LPSTR lpBuffer)
     *p++ = 'Z';
     *p++ = ':';
     for (char *c = path; *c; c++) *p++ = *c == '/' ? '\\' : *c;
+    *p++ = '\0';
 
     DB("GetCurrentDirectoryA: %s", lpBuffer);
     return strlen(lpBuffer);
