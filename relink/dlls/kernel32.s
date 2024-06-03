@@ -243,6 +243,7 @@ FindFirstFileA:
 1:
     .asciz "die: FindFirstFileA: lpFileName=%s\n"
 
+.weak GetFileAttributesA
 .global GetFileAttributesA
 GetFileAttributesA:
     push ebp

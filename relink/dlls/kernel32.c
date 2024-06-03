@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <sys/stat.h>
 
 // WINE headers, used for the sake of type-checking definitions
 #include "windef.h"
@@ -72,7 +73,28 @@ WINBASEAPI void        WINAPI DeleteCriticalSection(CRITICAL_SECTION *lpCrit);
 WINBASEAPI void        WINAPI EnterCriticalSection(CRITICAL_SECTION *lpCrit);
 WINBASEAPI void        WINAPI LeaveCriticalSection(CRITICAL_SECTION *lpCrit);
 WINBASEAPI HANDLE      WINAPI FindFirstFileA(LPCSTR,LPWIN32_FIND_DATAA);
-WINBASEAPI DWORD       WINAPI GetFileAttributesA(LPCSTR);
+
+DWORD GetFileAttributes_do(char *path)
+{
+    struct stat buf;
+    if (stat(path, &buf) != 0) return 0;
+
+    DWORD res = 0;
+    res |= (buf.st_mode & S_IFMT) == S_IFDIR ?
+        FILE_ATTRIBUTE_DIRECTORY : FILE_ATTRIBUTE_ARCHIVE;
+    return res;
+}
+
+WINBASEAPI DWORD WINAPI GetFileAttributesA(LPCSTR lpFileName)
+{
+    char *path = path_dup_unx_c(lpFileName);
+    STUB("GetFileAttributes: only presence and directory: %s", path);
+    DWORD res = GetFileAttributes_do(path);
+    DB("GetFileAttributesA: res=%lx lpFileName=%s", res, path);
+    free(path);
+    return res;
+}
+
 WINBASEAPI BOOL        WINAPI FindNextFileA(HANDLE,LPWIN32_FIND_DATAA);
 WINBASEAPI BOOL        WINAPI FindClose(HANDLE);
 WINBASEAPI LPSTR       WINAPI GetCommandLineA(void);
@@ -117,9 +139,9 @@ WINBASEAPI HMODULE     WINAPI LoadLibraryA(LPCSTR);
 WINBASEAPI BOOL WINAPI FreeLibrary(HMODULE hLibModule)
 {
     (void)hLibModule;
+    STUB("HACK: FreeLibrary");
     BOOL res = TRUE;
     TR("FreeLibrary: res=%d hLibModule=%p", res, hLibModule);
-    STUB("HACK: FreeLibrary");
     return res;
 }
 
