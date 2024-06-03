@@ -152,7 +152,37 @@ WINBASEAPI BOOL WINAPI FreeLibrary(HMODULE hLibModule)
 
 WINBASEAPI HGLOBAL     WINAPI GlobalAlloc(UINT,SIZE_T) __WINE_ALLOC_SIZE(2) __WINE_DEALLOC(GlobalFree) __WINE_MALLOC;
 WINBASEAPI HGLOBAL     WINAPI GlobalFree(HGLOBAL);
-WINBASEAPI DWORD       WINAPI GetFullPathNameA(LPCSTR,DWORD,LPSTR,LPSTR*);
+
+WINBASEAPI DWORD WINAPI GetFullPathNameA(LPCSTR lpFileName, DWORD nBufferLength, LPSTR lpBuffer, LPSTR *lpFilePart)
+{
+    DWORD res = 0;
+
+    size_t name_len = strlen(lpFileName);
+    size_t full_len = name_len;
+
+    // If the path isn't absolute, add the current directory
+    if (lpFileName[0] != '\\' &&
+            (lpFileName[0] != 'Z' || lpFileName[1] != ':')) {
+        res = GetCurrentDirectoryA(nBufferLength, lpBuffer);
+        if (!res) return 0;
+        full_len += res + 1;
+        if (res + 1 > nBufferLength) return full_len + 1;
+        lpBuffer[res++] = '\\';
+    }
+
+    // Append the filename
+    if (full_len + 1 > nBufferLength) return full_len + 1;
+    strcpy(lpBuffer + res, lpFileName);
+
+    // Figure out the file portion
+    char *part = strrchr(lpBuffer, '\\');
+    if (!part) part = lpBuffer;
+    *lpFilePart = part;
+
+    DB("GetFullPathNameA: '%s' = '%s' (%s)", lpFileName, lpBuffer, *lpFilePart);
+    return full_len;
+}
+
 WINBASEAPI DWORD       WINAPI SetFilePointer(HANDLE,LONG,LPLONG,DWORD);
 WINBASEAPI BOOL        WINAPI WriteFile(HANDLE,LPCVOID,DWORD,LPDWORD,LPOVERLAPPED);
 WINBASEAPI BOOL        WINAPI ReadFile(HANDLE,LPVOID,DWORD,LPDWORD,LPOVERLAPPED);

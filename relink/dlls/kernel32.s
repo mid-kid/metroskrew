@@ -750,6 +750,7 @@ GlobalFree: #trace GlobalFree
     xor eax, eax
     ret 4
 
+.weak GetFullPathNameA
 .global GetFullPathNameA
 GetFullPathNameA:
     push ebp
