@@ -210,6 +210,9 @@ WINBASEAPI DWORD       WINAPI FormatMessageA(DWORD,LPCVOID,DWORD,DWORD,LPSTR,DWO
 
 WINBASEAPI BOOL WINAPI GetFileTime(HANDLE hFile, LPFILETIME lpCreationTime, LPFILETIME lpLastAccessTime, LPFILETIME lpLastWriteTime)
 {
+    (void)lpCreationTime;
+    (void)lpLastAccessTime;
+    (void)lpLastWriteTime;
     STUB("GetFileTime: hFile=%p", hFile);
     return 0;
 }
