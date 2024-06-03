@@ -145,7 +145,16 @@ WINBASEAPI BOOL        WINAPI TlsFree(DWORD);
 WINBASEAPI LPVOID      WINAPI TlsGetValue(DWORD);
 WINBASEAPI BOOL        WINAPI TlsSetValue(DWORD,LPVOID);
 WINBASEAPI HMODULE     WINAPI GetModuleHandleA(LPCSTR);
-WINBASEAPI DWORD       WINAPI GetModuleFileNameA(HMODULE,LPSTR,DWORD);
+
+WINBASEAPI DWORD WINAPI GetModuleFileNameA(HMODULE hModule, LPSTR lpFileName, DWORD nSize)
+{
+    (void)hModule;
+    (void)lpFileName;
+    (void)nSize;
+    STUB("GetModuleFileNameA: hModule=%p", hModule);
+    return 0;
+}
+
 WINBASEAPI HMODULE     WINAPI LoadLibraryA(LPCSTR);
 
 WINBASEAPI BOOL WINAPI FreeLibrary(HMODULE hLibModule)
@@ -248,6 +257,7 @@ WINBASEAPI DWORD       WINAPI FormatMessageA(DWORD,LPCVOID,DWORD,DWORD,LPSTR,DWO
 
 WINBASEAPI BOOL WINAPI GetFileTime(HANDLE hFile, LPFILETIME lpCreationTime, LPFILETIME lpLastAccessTime, LPFILETIME lpLastWriteTime)
 {
+    (void)hFile;
     (void)lpCreationTime;
     (void)lpLastAccessTime;
     (void)lpLastWriteTime;
@@ -309,6 +319,7 @@ WINBASEAPI BOOL    WINAPI SetConsoleCtrlHandler( PHANDLER_ROUTINE,BOOL);
 
 WINBASEAPI BOOL WINAPI GetConsoleScreenBufferInfo(HANDLE hConsole, LPCONSOLE_SCREEN_BUFFER_INFO lpConsoleScreenBufferInfo)
 {
+    (void)hConsole;
     (void)lpConsoleScreenBufferInfo;
     STUB("GetConsoleScreenBufferInfo: hConsole=%p", hConsole);
     return FALSE;

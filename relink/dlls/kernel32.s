@@ -640,6 +640,7 @@ GetModuleHandleA:
     .asciz "stub: GetModuleHandleA: %s\n"
 .endif
 
+.weak GetModuleFileNameA
 .global GetModuleFileNameA
 GetModuleFileNameA:
 .ifndef NDEBUG
