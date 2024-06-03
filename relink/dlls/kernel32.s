@@ -1078,6 +1078,7 @@ GetTickCount:
     xor eax, eax
     ret
 
+.weak DeleteFileA
 .global DeleteFileA
 DeleteFileA:
     mov eax, [esp + 4]

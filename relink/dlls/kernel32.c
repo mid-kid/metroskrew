@@ -122,7 +122,16 @@ die:
 }
 
 WINBASEAPI DWORD       WINAPI GetTickCount(void);
-WINBASEAPI BOOL        WINAPI DeleteFileA(LPCSTR);
+
+WINBASEAPI BOOL WINAPI DeleteFileA(LPCSTR lpFileName)
+{
+    char *path = path_dup_unx_c(lpFileName);
+    BOOL res = unlink(path) == 0;
+    DB("DeleteFileA: res=%d lpFileName=%s\n", res, path);
+    free(path);
+    return res;
+}
+
 WINBASEAPI BOOL        WINAPI MoveFileA(LPCSTR,LPCSTR);
 WINBASEAPI DWORD       WINAPI FormatMessageA(DWORD,LPCVOID,DWORD,DWORD,LPSTR,DWORD,__ms_va_list*);
 WINBASEAPI BOOL        WINAPI GetFileTime(HANDLE,LPFILETIME,LPFILETIME,LPFILETIME);
