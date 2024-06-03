@@ -103,13 +103,17 @@ WINBASEAPI BOOL        WINAPI FreeEnvironmentStringsA(LPSTR);
 
 WINBASEAPI UINT WINAPI GetCurrentDirectoryA(UINT nBufferLength, LPSTR lpBuffer)
 {
-    if (nBufferLength < 2) return 0;
-    if (!getcwd(lpBuffer + 2, nBufferLength - 2)) return 0;
+    char path[0x1000];
+    if (!getcwd(path, sizeof(path))) return 0;
 
-    // Convert to DOS path
-    lpBuffer[0] = 'Z';
-    lpBuffer[1] = ':';
-    for (char *c = lpBuffer; *c; c++) if (*c == '/') *c = '\\';
+    size_t path_len = strlen(path) + 2 + 1;
+    if (nBufferLength < path_len) return path_len;
+
+    // Copy to DOS path
+    char *p = lpBuffer;
+    *p++ = 'Z';
+    *p++ = ':';
+    for (char *c = path; *c; c++) *p++ = *c == '/' ? '\\' : *c;
 
     DB("GetCurrentDirectoryA: %s", lpBuffer);
     return strlen(lpBuffer);
