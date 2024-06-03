@@ -670,6 +670,7 @@ LoadLibraryA:
     .asciz "HACK: LoadLibraryA: %s\n"
 .endif
 
+.weak FreeLibrary
 .global FreeLibrary
 FreeLibrary:
 .ifndef NDEBUG
