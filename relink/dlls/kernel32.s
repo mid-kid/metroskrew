@@ -1434,6 +1434,7 @@ SetConsoleCtrlHandler:
     mov eax, 1
     ret 4 * 2
 
+.weak GetConsoleScreenBufferInfo
 .global GetConsoleScreenBufferInfo
 GetConsoleScreenBufferInfo:
     stub GetConsoleScreenBufferInfo

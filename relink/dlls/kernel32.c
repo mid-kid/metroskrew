@@ -24,8 +24,10 @@
 
 #ifndef NDEBUG
 #define DB(msg, ...) printf(msg "\n", ##__VA_ARGS__)
+#define STUB(msg, ...) printf("stub: " msg "\n", ##__VA_ARGS__)
 #else
 #define DB(msg, ...)
+#define STUB(msg, ...)
 #endif
 
 #define DIE(msg, ...) printf("die: " msg "\n", ##__VA_ARGS__);exit(1)
@@ -98,7 +100,7 @@ WINBASEAPI BOOL WINAPI FreeLibrary(HMODULE hLibModule)
     (void)hLibModule;
     BOOL res = TRUE;
     TR("FreeLibrary: res=%d hLibModule=%p", hLibModule);
-    DB("HACK: FreeLibrary: %d", res);
+    STUB("HACK: FreeLibrary");
     return res;
 }
 
@@ -196,7 +198,11 @@ WINBASEAPI BOOL    WINAPI SetConsoleCtrlHandler( PHANDLER_ROUTINE,BOOL);
 
 // wincon.h
 
-WINBASEAPI BOOL WINAPI   GetConsoleScreenBufferInfo(HANDLE,LPCONSOLE_SCREEN_BUFFER_INFO);
+WINBASEAPI BOOL WINAPI GetConsoleScreenBufferInfo(HANDLE hConsole, LPCONSOLE_SCREEN_BUFFER_INFO lpConsoleScreenBufferInfo)
+{
+    STUB("GetConsoleScreenBufferInfo: hConsole=%p", hConsole);
+    return FALSE;
+}
 
 // winnls.h
 
