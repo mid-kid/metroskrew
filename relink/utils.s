@@ -1,5 +1,11 @@
 .intel_syntax noprefix
 
+.global path_dup_unx_c
+path_dup_unx_c:
+    mov eax, [esp + 4]
+    call path_dup_unx
+    ret
+
 .global path_dup_unx
 path_dup_unx:
     push ebx

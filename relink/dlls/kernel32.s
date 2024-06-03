@@ -966,6 +966,7 @@ ReadFile: trace ReadFile
 9:
     die ReadFile
 
+.weak CreateFileA
 .global CreateFileA
 CreateFileA:
     push ebp

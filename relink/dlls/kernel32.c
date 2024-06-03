@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <unistd.h>
+#include <fcntl.h>
 
 // WINE headers, used for the sake of type-checking definitions
 #include "windef.h"
@@ -12,11 +13,22 @@
 #include "winnls.h"
 #include "timezoneapi.h"
 
+// Local headers
+#include "utils.h"
+
 #ifdef TRACE
 #define TR(msg, ...) printf("trace: " msg "\n", ##__VA_ARGS__)
 #else
 #define TR(msg, ...)
 #endif
+
+#ifndef NDEBUG
+#define DB(msg, ...) printf(msg "\n", ##__VA_ARGS__)
+#else
+#define DB(msg, ...)
+#endif
+
+#define DIE(msg, ...) printf("die: " msg "\n", ##__VA_ARGS__);exit(1)
 
 // winbase.h
 
@@ -70,7 +82,45 @@ WINBASEAPI DWORD       WINAPI GetFullPathNameA(LPCSTR,DWORD,LPSTR,LPSTR*);
 WINBASEAPI DWORD       WINAPI SetFilePointer(HANDLE,LONG,LPLONG,DWORD);
 WINBASEAPI BOOL        WINAPI WriteFile(HANDLE,LPCVOID,DWORD,LPDWORD,LPOVERLAPPED);
 WINBASEAPI BOOL        WINAPI ReadFile(HANDLE,LPVOID,DWORD,LPDWORD,LPOVERLAPPED);
-WINBASEAPI HANDLE      WINAPI CreateFileA(LPCSTR,DWORD,DWORD,LPSECURITY_ATTRIBUTES,DWORD,DWORD,HANDLE);
+
+WINBASEAPI HANDLE WINAPI CreateFileA(LPCSTR lpFileName, DWORD dwDesiredAccess, DWORD dwShareMode, LPSECURITY_ATTRIBUTES lpSecurityAttributes, DWORD dwCreationDisposition, DWORD dwFlagsAndAttributes, HANDLE hTemplateFile)
+{
+    // Cover for unsupported functionality
+    //if (dwShareMode) goto die; // Ignored, can't action on this
+    if (lpSecurityAttributes) goto die;
+    if (dwFlagsAndAttributes & ~FILE_ATTRIBUTE_NORMAL) goto die;
+    if (hTemplateFile) goto die;
+
+    // Figure out the flags
+    if (!dwCreationDisposition || dwCreationDisposition > 6) goto die;
+    int flags = (int []){
+        O_CREAT | O_EXCL,  // CREATE_NEW
+        O_CREAT | O_TRUNC,  // CREATE_ALWAYS
+        0,  // OPEN_EXISTING
+        O_CREAT,  // OPEN_ALWAYS
+        O_TRUNC  // TRUNCATE_EXISTING
+    }[dwCreationDisposition - 1];
+
+    switch (dwDesiredAccess) {
+    case GENERIC_WRITE: flags |= O_WRONLY; break;
+    case GENERIC_READ: flags |= O_RDONLY; break;
+    case GENERIC_WRITE | GENERIC_READ: flags |= O_RDWR; break;
+    default: goto die;
+    }
+
+    char *path = path_dup_unx_c(lpFileName);
+    HANDLE res = (HANDLE)(open(path, flags, 0666) + 1);
+    DB("CreateFileA: res=%p lpFileName=%s\n", res, path);
+    free(path);
+    return res;
+
+die:
+    DIE("CreateFileA: '%s' %lx %lx %p %lx %lx %p",
+        lpFileName, dwDesiredAccess, dwShareMode, lpSecurityAttributes,
+        dwCreationDisposition, dwFlagsAndAttributes, hTemplateFile
+    );
+}
+
 WINBASEAPI DWORD       WINAPI GetTickCount(void);
 WINBASEAPI BOOL        WINAPI DeleteFileA(LPCSTR);
 WINBASEAPI BOOL        WINAPI MoveFileA(LPCSTR,LPCSTR);
