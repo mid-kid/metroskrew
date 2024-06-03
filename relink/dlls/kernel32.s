@@ -31,6 +31,7 @@ GetCurrentProcess: trace GetCurrentProcess
     mov eax, -1
     ret
 
+.weak DuplicateHandle
 .global DuplicateHandle
 DuplicateHandle: trace DuplicateHandle
     push ebp

@@ -40,7 +40,24 @@ WINBASEAPI VOID DECLSPEC_NORETURN WINAPI ExitProcess(DWORD uExitCode)
 
 WINBASEAPI BOOL        WINAPI IsBadReadPtr(LPCVOID,UINT_PTR);
 WINBASEAPI HANDLE      WINAPI GetCurrentProcess(void);
-WINBASEAPI BOOL        WINAPI DuplicateHandle(HANDLE,HANDLE,HANDLE,HANDLE*,DWORD,BOOL,DWORD);
+
+WINBASEAPI BOOL WINAPI DuplicateHandle(HANDLE hSourceProcessHandle, HANDLE hSourceHandle, HANDLE hTargetProcessHandle, HANDLE *lpTargetHandle, DWORD dwDesiredAccess, BOOL bInheritHandle, DWORD dwOptions)
+{
+    uintptr_t uSourceHandle = (uintptr_t)hSourceHandle;
+
+    // TODO: Actually duplicate non-stdio handles
+    if (uSourceHandle < 1 || uSourceHandle > 3) goto die;
+
+    *lpTargetHandle = hSourceHandle;
+    TR("DuplicateHandle: hSourceHandle=%d", uSourceHandle);
+    return TRUE;
+
+die:
+    DIE("DuplicateHandle: %p %p %p %lx %d %lx",
+        hSourceProcessHandle, hSourceHandle, hTargetProcessHandle,
+        dwDesiredAccess, bInheritHandle, dwOptions);
+}
+
 WINBASEAPI DWORD       WINAPI GetLastError(void);
 WINBASEAPI HANDLE      WINAPI GetStdHandle(DWORD);
 WINBASEAPI void        WINAPI InitializeCriticalSection(CRITICAL_SECTION *lpCrit);
