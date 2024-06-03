@@ -74,7 +74,15 @@ WINBASEAPI DWORD WINAPI GetLastError(void)
     return res;
 }
 
-WINBASEAPI HANDLE      WINAPI GetStdHandle(DWORD);
+WINBASEAPI HANDLE WINAPI GetStdHandle(DWORD nStdHandle)
+{
+    DWORD num = -nStdHandle - 10;
+    if (num > 2) return INVALID_HANDLE_VALUE;
+    HANDLE res = (HANDLE)(num + 1);
+    TR("GetStdHandle: res=%ld nStdHandle=%ld", (DWORD)res, nStdHandle);
+    return res;
+}
+
 WINBASEAPI void        WINAPI InitializeCriticalSection(CRITICAL_SECTION *lpCrit);
 WINBASEAPI void        WINAPI DeleteCriticalSection(CRITICAL_SECTION *lpCrit);
 WINBASEAPI void        WINAPI EnterCriticalSection(CRITICAL_SECTION *lpCrit);

@@ -88,6 +88,7 @@ GetLastError:
     .asciz "trace: GetLastError: res=%d\n"
 .endif
 
+.weak GetStdHandle
 .global GetStdHandle
 GetStdHandle: trace GetStdHandle
     mov eax, [esp + 4]
