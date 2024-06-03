@@ -69,6 +69,7 @@ DuplicateHandle: trace DuplicateHandle
 9:
     .asciz "die: DuplicateHandle: %d\n"
 
+.weak GetLastError
 .global GetLastError
 GetLastError:
     call __errno_location

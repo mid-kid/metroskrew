@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <unistd.h>
+#include <errno.h>
 #include <fcntl.h>
 #include <sys/stat.h>
 
@@ -66,7 +67,13 @@ die:
         dwDesiredAccess, bInheritHandle, dwOptions);
 }
 
-WINBASEAPI DWORD       WINAPI GetLastError(void);
+WINBASEAPI DWORD WINAPI GetLastError(void)
+{
+    DWORD res = errno;
+    TR("GetLastError: res=%ld", res);
+    return res;
+}
+
 WINBASEAPI HANDLE      WINAPI GetStdHandle(DWORD);
 WINBASEAPI void        WINAPI InitializeCriticalSection(CRITICAL_SECTION *lpCrit);
 WINBASEAPI void        WINAPI DeleteCriticalSection(CRITICAL_SECTION *lpCrit);
