@@ -1169,6 +1169,7 @@ GetFileTime:
 SetFileTime:
     die SetFileTime
 
+.weak GetFileSize
 .global GetFileSize
 GetFileSize:
     push ebp

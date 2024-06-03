@@ -31,7 +31,7 @@
 #define STUB(msg, ...)
 #endif
 
-#define DIE(msg, ...) printf("die: " msg "\n", ##__VA_ARGS__);exit(1)
+#define DIE(msg, ...) { printf("die: " msg "\n", ##__VA_ARGS__);exit(1); }
 
 // winbase.h
 
@@ -77,7 +77,7 @@ WINBASEAPI HANDLE      WINAPI FindFirstFileA(LPCSTR,LPWIN32_FIND_DATAA);
 DWORD GetFileAttributes_do(char *path)
 {
     struct stat buf;
-    if (stat(path, &buf) != 0) return 0;
+    if (stat(path, &buf) != 0) return INVALID_FILE_ATTRIBUTES;
 
     DWORD res = 0;
     res |= (buf.st_mode & S_IFMT) == S_IFDIR ?
@@ -205,7 +205,20 @@ WINBASEAPI BOOL        WINAPI MoveFileA(LPCSTR,LPCSTR);
 WINBASEAPI DWORD       WINAPI FormatMessageA(DWORD,LPCVOID,DWORD,DWORD,LPSTR,DWORD,__ms_va_list*);
 WINBASEAPI BOOL        WINAPI GetFileTime(HANDLE,LPFILETIME,LPFILETIME,LPFILETIME);
 WINBASEAPI BOOL        WINAPI SetFileTime(HANDLE,const FILETIME*,const FILETIME*,const FILETIME*);
-WINBASEAPI DWORD       WINAPI GetFileSize(HANDLE,LPDWORD);
+
+WINBASEAPI DWORD WINAPI GetFileSize(HANDLE hFile, LPDWORD lpFileSizeHigh)
+{
+    uintptr_t uFile = (uintptr_t)hFile;
+
+    if (lpFileSizeHigh) DIE("GetFileSize: Only 32 bits");
+
+    struct stat buf;
+    if (fstat(uFile - 1, &buf) != 0) return INVALID_FILE_SIZE;
+    DWORD res = buf.st_size;
+    TR("GetFileSize: res=%ld hFile=%d", res, uFile);
+    return res;
+}
+
 WINBASEAPI BOOL        WINAPI SetEndOfFile(HANDLE);
 WINBASEAPI BOOL        WINAPI CreateDirectoryA(LPCSTR,LPSECURITY_ATTRIBUTES);
 WINBASEAPI BOOL        WINAPI RemoveDirectoryA(LPCSTR);
