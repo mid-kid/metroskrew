@@ -1140,6 +1140,7 @@ FormatMessageA:
     .asciz "stub: FormatMessageA: %x %x %d %d %x %d %x\n"
 .endif
 
+.weak GetFileTime
 .global GetFileTime
 GetFileTime:
     stub GetFileTime
