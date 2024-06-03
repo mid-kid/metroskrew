@@ -214,7 +214,7 @@ WINBASEAPI HANDLE WINAPI CreateFileA(LPCSTR lpFileName, DWORD dwDesiredAccess, D
 
     char *path = path_dup_unx_c(lpFileName);
     HANDLE res = (HANDLE)(open(path, flags, 0666) + 1);
-    DB("CreateFileA: res=%p lpFileName=%s\n", res, path);
+    DB("CreateFileA: res=%p lpFileName=%s", res, path);
     free(path);
     return res;
 
@@ -231,7 +231,7 @@ WINBASEAPI BOOL WINAPI DeleteFileA(LPCSTR lpFileName)
 {
     char *path = path_dup_unx_c(lpFileName);
     BOOL res = unlink(path) == 0;
-    DB("DeleteFileA: res=%d lpFileName=%s\n", res, path);
+    DB("DeleteFileA: res=%d lpFileName=%s", res, path);
     free(path);
     return res;
 }
