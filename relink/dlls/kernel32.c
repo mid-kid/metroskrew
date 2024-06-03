@@ -95,7 +95,9 @@ WINBASEAPI HMODULE     WINAPI LoadLibraryA(LPCSTR);
 
 WINBASEAPI BOOL WINAPI FreeLibrary(HMODULE hLibModule)
 {
+    (void)hLibModule;
     BOOL res = TRUE;
+    TR("FreeLibrary: res=%d hLibModule=%p", hLibModule);
     DB("HACK: FreeLibrary: %d", res);
     return res;
 }
