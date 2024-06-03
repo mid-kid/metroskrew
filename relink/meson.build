@@ -17,6 +17,7 @@ sources_s = [
 ]
 sources_c = [
   'sysdeps.c',
+  'utils.c',
   'dlls/kernel32.c'
 ]
 
