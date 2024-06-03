@@ -502,17 +502,17 @@ GetCurrentDirectoryA:
     push ebp
     mov ebp, esp
 
-    push [ebp + 4 + 4 * 1]
-    push [ebp + 4 + 4 * 2]
+    push [ebp + 4 + 4 * 1]  # nBufferLength
+    push [ebp + 4 + 4 * 2]  # lpBuffer
 
-    mov eax, [esp + 4]
+    mov eax, [esp + 4]  # nBufferLength
     sub eax, 2
     jc 1f
-    mov [esp + 4], eax
-    mov eax, [esp]
+    mov [esp + 4], eax  # nBufferLength
+    mov eax, [esp]  # lpBuffer
     mov word ptr [eax], 0x3a5a  # Z:
     add eax, 2
-    mov [esp], eax
+    mov [esp], eax  # lpBuffer
 
     call getcwd
     add esp, 4 * 2
