@@ -1468,6 +1468,7 @@ IsValidCodePage:
 GetACP:
     die GetACP
 
+.weak GetLocalTime
 .global GetLocalTime
 GetLocalTime:
     stub GetLocalTime

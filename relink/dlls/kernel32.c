@@ -291,7 +291,11 @@ WINBASEAPI UINT        WINAPI GetSystemDirectoryA(LPSTR,UINT);
 WINBASEAPI UINT        WINAPI GetWindowsDirectoryA(LPSTR,UINT);
 WINBASEAPI BOOL        WINAPI SetFileAttributesA(LPCSTR,DWORD);
 WINBASEAPI HANDLE      WINAPI OpenFileMappingA(DWORD,BOOL,LPCSTR);
-WINBASEAPI VOID        WINAPI GetLocalTime(LPSYSTEMTIME);
+
+WINBASEAPI VOID WINAPI GetLocalTime(LPSYSTEMTIME lpSystemTime)
+{
+    memset(lpSystemTime, 0, sizeof(*lpSystemTime));
+}
 
 // winnt.h
 
