@@ -210,6 +210,7 @@ WINBASEAPI BOOL WINAPI FreeLibrary(HMODULE hLibModule)
 
 struct alloc {
     size_t size;
+    UINT flags;
     char data[];
 };
 
@@ -217,12 +218,16 @@ WINBASEAPI HGLOBAL WINAPI GlobalAlloc(UINT uFlags, SIZE_T dwBytes)
 {
     struct alloc *alloc = malloc(sizeof(struct alloc) + dwBytes);
     alloc->size = dwBytes;
+    alloc->flags = uFlags;
 
     // Optionally initialize memory
     if (uFlags & GMEM_ZEROINIT) {
         uFlags &= ~GMEM_ZEROINIT;
         memset(alloc->data, 0, alloc->size);
     }
+
+    // Don't do anything with GMEM_MOVEABLE
+    uFlags &= ~GMEM_MOVEABLE;
 
     // Unhandled flags
     if (uFlags) {
@@ -427,6 +432,7 @@ WINBASEAPI HGLOBAL WINAPI GlobalReAlloc(HGLOBAL hMem, SIZE_T dwBytes, UINT uFlag
 
     size_t size_old = alloc->size;
     alloc->size = dwBytes;
+    alloc->flags = uFlags;
 
     // Optionally initialize memory
     if (uFlags & GMEM_ZEROINIT) {
@@ -435,6 +441,9 @@ WINBASEAPI HGLOBAL WINAPI GlobalReAlloc(HGLOBAL hMem, SIZE_T dwBytes, UINT uFlag
             memset(alloc->data + size_old, 0, alloc->size - size_old);
         }
     }
+
+    // Don't do anything with GMEM_MOVEABLE
+    uFlags &= ~GMEM_MOVEABLE;
 
     // Unhandled flags
     if (uFlags) {
@@ -446,8 +455,7 @@ WINBASEAPI HGLOBAL WINAPI GlobalReAlloc(HGLOBAL hMem, SIZE_T dwBytes, UINT uFlag
 
 WINBASEAPI UINT WINAPI GlobalFlags(HGLOBAL hMem)
 {
-    (void)hMem;
-    return 0;
+    return ((struct alloc *)hMem - 1)->flags;
 }
 
 WINBASEAPI BOOL        WINAPI FileTimeToSystemTime(const FILETIME*,LPSYSTEMTIME);
