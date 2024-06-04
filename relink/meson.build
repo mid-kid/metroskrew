@@ -9,7 +9,6 @@ sources_s = [
   'utils.s',
   'dlls/advapi32.s',
   'dlls/kernel32.s',
-  'dlls/lmgr8c.s',
   'dlls/user32.s',
   'dlls/version.s',
   'dlls/ws2_32.s',
@@ -18,7 +17,8 @@ sources_s = [
 sources_c = [
   'sysdeps.c',
   'utils.c',
-  'dlls/kernel32.c'
+  'dlls/kernel32.c',
+  'dlls/lmgr8c.c'
 ]
 
 as = find_program('as')
