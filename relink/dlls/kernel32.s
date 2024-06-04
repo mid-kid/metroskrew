@@ -11,7 +11,7 @@ RtlUnwind: die RtlUnwind
 MAX_PATH = 260
 
 .global FindFirstFileA
-FindFirstFileA:
+FindFirstFileA: die FindFirstFileA
     push ebp
     mov ebp, esp
     push ebx
@@ -136,7 +136,7 @@ FindFirstFileA:
 1:
     .asciz "die: FindFirstFileA: lpFileName=%s\n"
 
-GetFileAttributes_do:
+GetFileAttributes_do: die GetFileAttributes_do
     stat eax
     xor ebx, ebx
     and eax, eax
@@ -157,7 +157,7 @@ GetFileAttributes_do:
     ret
 
 .global FindNextFileA
-FindNextFileA:
+FindNextFileA: die FindNextFileA
     push ebp
     mov ebp, esp
     push ebx
@@ -194,7 +194,7 @@ FindNextFileA:
     .asciz "trace: FindNextFileA: res=%d hFindFile=%x\n"
 .endif
 
-FindNextFileA_do:
+FindNextFileA_do: die FindNextFileA_do
     push eax
     push ebx
 
@@ -298,7 +298,7 @@ FindNextFileA_do:
 .endif
 
 .global FindClose
-FindClose:
+FindClose: die FindClose
     mov eax, [esp + 4]  # hFindFile
     push eax
     push [eax + 4]
@@ -334,23 +334,19 @@ FindClose:
 GetCommandLineA: die GetCommandLineA
 
 .global CreateProcessA
-CreateProcessA:
-    die CreateProcessA
+CreateProcessA: die CreateProcessA
 
 .global WaitForSingleObject
-WaitForSingleObject:
-    die WaitForSingleObject
+WaitForSingleObject: die WaitForSingleObject
 
 .global GetExitCodeProcess
-GetExitCodeProcess:
-    die GetExitCodeProcess
+GetExitCodeProcess: die GetExitCodeProcess
 
 .global MoveFileA
-MoveFileA:
-    die MoveFileA
+MoveFileA: die MoveFileA
 
 .global FormatMessageA
-FormatMessageA:
+FormatMessageA: die FormatMessageA
     push ebp
     mov ebp, esp
 
@@ -377,27 +373,22 @@ FormatMessageA:
 .endif
 
 .global SetFileTime
-SetFileTime:
-    die SetFileTime
+SetFileTime: die SetFileTime
 
 .global SetEndOfFile
-SetEndOfFile:
-    die SetEndOfFile
+SetEndOfFile: die SetEndOfFile
 
 .global CreateDirectoryA
-CreateDirectoryA:
-    die CreateDirectoryA
+CreateDirectoryA: die CreateDirectoryA
 
 .global RemoveDirectoryA
-RemoveDirectoryA:
-    die RemoveDirectoryA
+RemoveDirectoryA: die RemoveDirectoryA
 
 .global SetStdHandle
-SetStdHandle:
-    die SetStdHandle
+SetStdHandle: die SetStdHandle
 
 .global CompareFileTime
-CompareFileTime:
+CompareFileTime: die CompareFileTime
     stub CompareFileTime
     xor eax, eax
     ret 4 * 2
