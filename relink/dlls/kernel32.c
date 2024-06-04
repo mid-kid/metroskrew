@@ -419,8 +419,37 @@ WINBASEAPI BOOL WINAPI SystemTimeToFileTime(const SYSTEMTIME *lpSystemTime, LPFI
 }
 
 WINBASEAPI INT         WINAPI CompareFileTime(const FILETIME*,const FILETIME*);
-WINBASEAPI HGLOBAL     WINAPI GlobalReAlloc(HGLOBAL,SIZE_T,UINT) __WINE_ALLOC_SIZE(2) __WINE_DEALLOC(GlobalFree);
-WINBASEAPI UINT        WINAPI GlobalFlags(HGLOBAL);
+
+WINBASEAPI HGLOBAL WINAPI GlobalReAlloc(HGLOBAL hMem, SIZE_T dwBytes, UINT uFlags)
+{
+    struct alloc *alloc = realloc((struct alloc *)hMem - 1,
+        sizeof(struct alloc) + dwBytes);
+
+    size_t size_old = alloc->size;
+    alloc->size = dwBytes;
+
+    // Optionally initialize memory
+    if (uFlags & GMEM_ZEROINIT) {
+        uFlags &= ~GMEM_ZEROINIT;
+        if (alloc->size > size_old) {
+            memset(alloc->data + size_old, 0, alloc->size - size_old);
+        }
+    }
+
+    // Unhandled flags
+    if (uFlags) {
+        DIE("GlobalReAlloc: Unhandled flags: %x", uFlags);
+    }
+
+    return alloc->data;
+}
+
+WINBASEAPI UINT WINAPI GlobalFlags(HGLOBAL hMem)
+{
+    (void)hMem;
+    return 0;
+}
+
 WINBASEAPI BOOL        WINAPI FileTimeToSystemTime(const FILETIME*,LPSYSTEMTIME);
 WINBASEAPI HRSRC       WINAPI FindResourceA(HMODULE,LPCSTR,LPCSTR);
 WINBASEAPI HGLOBAL     WINAPI LoadResource(HMODULE,HRSRC);
