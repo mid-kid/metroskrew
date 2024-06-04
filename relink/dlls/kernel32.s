@@ -1444,6 +1444,7 @@ GetWindowsDirectoryA:
     xor eax, eax
     ret 4 * 2
 
+.weak SetConsoleCtrlHandler
 .global SetConsoleCtrlHandler
 SetConsoleCtrlHandler:
     stub SetConsoleCtrlHandler

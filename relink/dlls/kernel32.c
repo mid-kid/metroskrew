@@ -374,7 +374,13 @@ NTSYSAPI void    NTAPI RtlUnwind(void*,void*,struct _EXCEPTION_RECORD*,void*);
 
 // consoleapi.h
 
-WINBASEAPI BOOL    WINAPI SetConsoleCtrlHandler( PHANDLER_ROUTINE,BOOL);
+WINBASEAPI BOOL WINAPI SetConsoleCtrlHandler(PHANDLER_ROUTINE HandlerRoutine, BOOL Add)
+{
+    (void)HandlerRoutine;
+    (void)Add;
+    STUB("SetConsoleCtrlHandler");
+    return FALSE;
+}
 
 // wincon.h
 
