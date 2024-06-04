@@ -208,8 +208,35 @@ WINBASEAPI BOOL WINAPI FreeLibrary(HMODULE hLibModule)
     return res;
 }
 
-WINBASEAPI HGLOBAL     WINAPI GlobalAlloc(UINT,SIZE_T) __WINE_ALLOC_SIZE(2) __WINE_DEALLOC(GlobalFree) __WINE_MALLOC;
-WINBASEAPI HGLOBAL     WINAPI GlobalFree(HGLOBAL);
+struct alloc {
+    size_t size;
+    char data[];
+};
+
+WINBASEAPI HGLOBAL WINAPI GlobalAlloc(UINT uFlags, SIZE_T dwBytes)
+{
+    struct alloc *alloc = malloc(sizeof(struct alloc) + dwBytes);
+    alloc->size = dwBytes;
+
+    // Optionally initialize memory
+    if (uFlags & GMEM_ZEROINIT) {
+        uFlags &= ~GMEM_ZEROINIT;
+        memset(alloc->data, 0, alloc->size);
+    }
+
+    // Unhandled flags
+    if (uFlags) {
+        DIE("GlobalAlloc: Unhandled flags: %x", uFlags);
+    }
+
+    return alloc->data;
+}
+
+WINBASEAPI HGLOBAL WINAPI GlobalFree(HGLOBAL hMem)
+{
+    free((struct alloc *)hMem - 1);
+    return NULL;
+}
 
 WINBASEAPI DWORD WINAPI GetFullPathNameA(LPCSTR lpFileName, DWORD nBufferLength, LPSTR lpBuffer, LPSTR *lpFilePart)
 {

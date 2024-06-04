@@ -345,65 +345,6 @@ WaitForSingleObject:
 GetExitCodeProcess:
     die GetExitCodeProcess
 
-.global GlobalAlloc
-GlobalAlloc: #trace GlobalAlloc
-    push ebp
-    mov ebp, esp
-    push ebx
-
-    # Always allocate 4 more bytes, for size
-    mov eax, [ebp + 4 + 4 * 2]
-    add eax, 4
-    push eax
-    call malloc
-    add esp, 4
-
-    # Store original size
-    mov ebx, [ebp + 4 + 4 * 2]
-    mov [eax], ebx
-    add eax, 4
-    push eax
-
-    # Handle 0x20, initializing the memory to zero
-    test dword ptr [ebp + 4 + 4 * 1], 0x40
-    jz 1f
-
-    push [ebp + 4 + 4 * 2]
-    push 0
-    push eax
-    call memset
-    add esp, 4 * 3
-
-1:
-    # Handle the rest
-    test dword ptr [ebp + 4 + 4 * 1], ~0x40
-    jnz 8f
-
-    pop eax
-    pop ebx
-    leave
-    ret 4 * 2
-
-8:
-    push [ebp + 4 + 4 * 1]
-    push offset 9f
-    call printf
-    push 1
-    call exit
-
-9:
-    .asciz "die: GlobalAlloc %04x\n"
-
-.global GlobalFree
-GlobalFree: #trace GlobalFree
-    mov eax, [esp + 4]
-    sub eax, 4
-    push eax
-    call free
-    pop eax
-    xor eax, eax
-    ret 4
-
 .global MoveFileA
 MoveFileA:
     die MoveFileA
