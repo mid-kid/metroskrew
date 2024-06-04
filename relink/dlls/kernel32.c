@@ -102,8 +102,21 @@ WINBASEAPI DWORD WINAPI GetFileAttributesA(LPCSTR lpFileName)
 WINBASEAPI BOOL        WINAPI FindNextFileA(HANDLE,LPWIN32_FIND_DATAA);
 WINBASEAPI BOOL        WINAPI FindClose(HANDLE);
 WINBASEAPI LPSTR       WINAPI GetCommandLineA(void);
-WINBASEAPI LPSTR       WINAPI GetEnvironmentStringsA(void);
-WINBASEAPI BOOL        WINAPI FreeEnvironmentStringsA(LPSTR);
+
+#undef GetEnvironmentStrings
+WINBASEAPI LPSTR WINAPI GetEnvironmentStrings(void)
+    __attribute__((weak, alias("GetEnvironmentStringsA")));
+
+WINBASEAPI LPSTR WINAPI GetEnvironmentStringsA(void)
+{
+    return "\0";
+}
+
+WINBASEAPI BOOL WINAPI FreeEnvironmentStringsA(LPSTR penv)
+{
+    (void)penv;
+    return TRUE;
+}
 
 WINBASEAPI UINT WINAPI GetCurrentDirectoryA(UINT nBufferLength, LPSTR lpBuffer)
 {

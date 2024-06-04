@@ -331,18 +331,7 @@ FindClose:
 .endif
 
 .global GetCommandLineA
-GetCommandLineA:
-    die GetCommandLineA
-
-.global GetEnvironmentStrings
-GetEnvironmentStrings: #trace GetEnvironmentStrings
-    mov eax, environ
-    mov eax, [eax]
-    ret
-
-.global FreeEnvironmentStringsA
-FreeEnvironmentStringsA: #trace FreeEnvironmentStringsA
-    ret 4
+GetCommandLineA: die GetCommandLineA
 
 .global CreateProcessA
 CreateProcessA:
