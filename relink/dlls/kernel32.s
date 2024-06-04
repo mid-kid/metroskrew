@@ -1435,6 +1435,7 @@ GetSystemDirectoryA:
     xor eax, eax
     ret 4 * 2
 
+.weak GetWindowsDirectoryA
 .global GetWindowsDirectoryA
 GetWindowsDirectoryA:
     stub GetWindowsDirectoryA

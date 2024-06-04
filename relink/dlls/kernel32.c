@@ -330,7 +330,14 @@ WINBASEAPI UINT WINAPI GetSystemDirectoryA(LPSTR lpBuffer, UINT uSize)
     return 0;
 }
 
-WINBASEAPI UINT        WINAPI GetWindowsDirectoryA(LPSTR,UINT);
+WINBASEAPI UINT WINAPI GetWindowsDirectoryA(LPSTR lpBuffer, UINT uSize)
+{
+    (void)lpBuffer;
+    (void)uSize;
+    STUB("GetWindowsDirectoryA");
+    return 0;
+}
+
 WINBASEAPI BOOL        WINAPI SetFileAttributesA(LPCSTR,DWORD);
 WINBASEAPI HANDLE      WINAPI OpenFileMappingA(DWORD,BOOL,LPCSTR);
 
