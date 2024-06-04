@@ -1,5 +1,8 @@
 #pragma once
 
+#include <stdio.h>
+#include <stdlib.h>
+
 #ifdef TRACE
 #define TR(msg, ...) printf("trace: " msg "\n", ##__VA_ARGS__)
 #else

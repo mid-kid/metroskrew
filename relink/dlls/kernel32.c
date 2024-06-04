@@ -1,5 +1,3 @@
-#include <stdlib.h>
-#include <stdio.h>
 #include <stdint.h>
 #include <unistd.h>
 #include <errno.h>
@@ -7,6 +5,7 @@
 #include <sys/stat.h>
 
 // WINE headers, used for the sake of type-checking definitions
+#include <stdarg.h>
 #include "windef.h"
 #include "winbase.h"
 #include "winnt.h"
@@ -299,7 +298,7 @@ WINBASEAPI BOOL WINAPI WriteFile(HANDLE hFile, LPCVOID lpBuffer, DWORD nNumberOf
     int count = write(uFile - 1, lpBuffer, nNumberOfBytesToWrite);
     BOOL res = count != -1;
     if (lpNumberOfBytesWritten) *lpNumberOfBytesWritten = count != -1 ? count : 0;
-    TR("WriteFile: res=%d hFile=%p nNumberOfBytesToWrite=%ld"
+    TR("WriteFile: res=%d hFile=%p nNumberOfBytesToWrite=%ld "
         "lpNumberOfBytesWritten=%ld", res, hFile, nNumberOfBytesToWrite,
         lpNumberOfBytesWritten ? *lpNumberOfBytesWritten : 0);
     return res;
@@ -316,7 +315,7 @@ WINBASEAPI BOOL WINAPI ReadFile(HANDLE hFile, LPVOID lpBuffer, DWORD nNumberOfBy
     int count = read(uFile - 1, lpBuffer, nNumberOfBytesToRead);
     BOOL res = count != -1;
     if (lpNumberOfBytesRead) *lpNumberOfBytesRead = count != -1 ? count : 0;
-    TR("ReadFile: res=%d hFile=%p nNumberOfBytesToRead=%ld"
+    TR("ReadFile: res=%d hFile=%p nNumberOfBytesToRead=%ld "
         "lpNumberOfBytesRead=%ld", res, hFile, nNumberOfBytesToRead,
         lpNumberOfBytesRead ? *lpNumberOfBytesRead : 0);
     return res;

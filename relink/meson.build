@@ -18,6 +18,7 @@ sources_c = [
   'sysdeps.c',
   'utils.c',
   'dlls/kernel32.c',
+  'dlls/user32.c',
   'dlls/lmgr8c.c'
 ]
 
