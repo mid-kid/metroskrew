@@ -394,8 +394,7 @@ CompareFileTime: die CompareFileTime
     ret 4 * 2
 
 .global FileTimeToSystemTime
-FileTimeToSystemTime:
-    die FileTimeToSystemTime
+FileTimeToSystemTime: die FileTimeToSystemTime
 
 .global FindResourceA
 FindResourceA: die FindResourceA

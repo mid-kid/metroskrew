@@ -420,6 +420,7 @@ WINBASEAPI BOOL WINAPI SystemTimeToFileTime(const SYSTEMTIME *lpSystemTime, LPFI
     (void)lpSystemTime;
     (void)lpFileTime;
     STUB("SystemTimeToFileTime");
+    memset(lpFileTime, 0, sizeof(*lpFileTime));
     return FALSE;
 }
 
