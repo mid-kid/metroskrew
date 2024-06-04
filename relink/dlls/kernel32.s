@@ -398,7 +398,7 @@ FileTimeToSystemTime:
     die FileTimeToSystemTime
 
 .global FindResourceA
-FindResourceA:
+FindResourceA: die FindResourceA
 .ifndef NDEBUG
     mov eax, esp
     push [eax + 4 * 3]
@@ -417,7 +417,7 @@ FindResourceA:
 .endif
 
 .global LoadResource
-LoadResource:
+LoadResource: die LoadResource
     push ebp
     mov ebp, esp
 
@@ -438,7 +438,7 @@ LoadResource:
 .endif
 
 .global LockResource
-LockResource:
+LockResource: die LockResource
     push ebp
     mov ebp, esp
 
@@ -458,7 +458,7 @@ LockResource:
 .endif
 
 .global SizeofResource
-SizeofResource:
+SizeofResource: die SizeofResource
     push ebp
     mov ebp, esp
 
@@ -479,41 +479,34 @@ SizeofResource:
 .endif
 
 .global CreateFileMappingA
-CreateFileMappingA:
+CreateFileMappingA: die CreateFileMappingA
     stub CreateFileMappingA
     xor eax, eax
     ret 4 * 6
 
 .global MapViewOfFile
-MapViewOfFile:
-    die MapViewOfFile
+MapViewOfFile: die MapViewOfFile
 
 .global UnmapViewOfFile
-UnmapViewOfFile:
-    die UnmapViewOfFile
+UnmapViewOfFile: die UnmapViewOfFile
 
 .global SetFileAttributesA
-SetFileAttributesA:
-    die SetFileAttributesA
+SetFileAttributesA: die SetFileAttributesA
 
 .global OpenFileMappingA
-OpenFileMappingA:
-    die OpenFileMappingA
+OpenFileMappingA: die OpenFileMappingA
 
 .global MultiByteToWideChar
-MultiByteToWideChar:
-    die MultiByteToWideChar
+MultiByteToWideChar: die MultiByteToWideChar
 
 .global IsValidCodePage
-IsValidCodePage:
-    die IsValidCodePage
+IsValidCodePage: die IsValidCodePage
 
 .global GetACP
-GetACP:
-    die GetACP
+GetACP: die GetACP
 
 .global GetTimeZoneInformation
-GetTimeZoneInformation:
+GetTimeZoneInformation: die GetTimeZoneInformation
     stub GetTimeZoneInformation
 
     mov eax, [esp + 4]
