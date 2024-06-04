@@ -19,7 +19,8 @@ sources_c = [
   'utils.c',
   'dlls/kernel32.c',
   'dlls/user32.c',
-  'dlls/lmgr8c.c'
+  'dlls/lmgr8c.c',
+  'dlls/version.c'
 ]
 
 as = find_program('as')
