@@ -169,7 +169,14 @@ WINBASEAPI DWORD WINAPI GetModuleFileNameA(HMODULE hModule, LPSTR lpFileName, DW
     return 0;
 }
 
-WINBASEAPI HMODULE     WINAPI LoadLibraryA(LPCSTR);
+WINBASEAPI HMODULE WINAPI LoadLibraryA(LPCSTR lpLibFileName)
+{
+    (void)lpLibFileName;
+    STUB("HACK: LoadLibraryA");
+    HANDLE res = (HANDLE)-1;
+    TR("LoadLibraryA: res=%p lpLibFileName=%s", res, lpLibFileName);
+    return res;
+}
 
 WINBASEAPI BOOL WINAPI FreeLibrary(HMODULE hLibModule)
 {

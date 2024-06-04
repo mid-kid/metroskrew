@@ -660,6 +660,7 @@ GetModuleFileNameA:
     .asciz "stub: GetModuleFileNameA: %d\n"
 .endif
 
+.weak LoadLibraryA
 .global LoadLibraryA
 LoadLibraryA:
 .ifndef NDEBUG
