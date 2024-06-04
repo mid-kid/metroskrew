@@ -929,19 +929,19 @@ ReadFile: trace ReadFile
     push ebp
     mov ebp, esp
 
-    mov eax, [ebp + 4 + 4 * 5]
+    mov eax, [ebp + 4 + 4 * 5]  # lpOverlapped
     and eax, eax
     jnz 9f
 
-    mov eax, [ebp + 4 + 4 * 4]
+    mov eax, [ebp + 4 + 4 * 4]  # lpNumberOfBytesRead
     and eax, eax
     jz 1f
     mov dword ptr [eax], 0
 1:
 
-    push [ebp + 4 + 4 * 3]
-    push [ebp + 4 + 4 * 2]
-    mov eax, [ebp + 4 + 4 * 1]
+    push [ebp + 4 + 4 * 3]  # nNumberOfBytesToRead
+    push [ebp + 4 + 4 * 2]  # lpBuffer
+    mov eax, [ebp + 4 + 4 * 1]  # hFile
     dec eax
     push eax
     call read
@@ -949,7 +949,7 @@ ReadFile: trace ReadFile
     cmp eax, -1
     jz 2f
     push ebx
-    mov ebx, [ebp + 4 + 4 * 4]
+    mov ebx, [ebp + 4 + 4 * 4]  # lpNumberOfBytesRead
     and ebx, ebx
     jz 1f
     mov [ebx], eax
