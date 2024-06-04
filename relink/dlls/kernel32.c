@@ -67,10 +67,15 @@ WINBASEAPI HANDLE WINAPI GetStdHandle(DWORD nStdHandle)
     return res;
 }
 
-WINBASEAPI void        WINAPI InitializeCriticalSection(CRITICAL_SECTION *lpCrit);
-WINBASEAPI void        WINAPI DeleteCriticalSection(CRITICAL_SECTION *lpCrit);
-WINBASEAPI void        WINAPI EnterCriticalSection(CRITICAL_SECTION *lpCrit);
-WINBASEAPI void        WINAPI LeaveCriticalSection(CRITICAL_SECTION *lpCrit);
+WINBASEAPI void WINAPI InitializeCriticalSection(CRITICAL_SECTION *lpCrit)
+{ (void)lpCrit; }
+WINBASEAPI void WINAPI DeleteCriticalSection(CRITICAL_SECTION *lpCrit)
+{ (void)lpCrit; }
+WINBASEAPI void WINAPI EnterCriticalSection(CRITICAL_SECTION *lpCrit)
+{ (void)lpCrit; }
+WINBASEAPI void WINAPI LeaveCriticalSection(CRITICAL_SECTION *lpCrit)
+{ (void)lpCrit; }
+
 WINBASEAPI HANDLE      WINAPI FindFirstFileA(LPCSTR,LPWIN32_FIND_DATAA);
 
 DWORD GetFileAttributes_do(char *path)

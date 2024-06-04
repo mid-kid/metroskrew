@@ -3,26 +3,10 @@
 .include "stat.i"
 
 .global IsBadReadPtr
-IsBadReadPtr:
-    die IsBadReadPtr
+IsBadReadPtr: die IsBadReadPtr
 
 .global RtlUnwind
-RtlUnwind:
-    die RtlUnwind
-
-# Multithread locks
-.global InitializeCriticalSection
-.global DeleteCriticalSection
-.global EnterCriticalSection
-.global LeaveCriticalSection
-InitializeCriticalSection: #trace InitializeCriticalSection
-    ret 4
-DeleteCriticalSection: #trace DeleteCriticalSection
-    ret 4
-EnterCriticalSection: #trace EnterCriticalSection
-    ret 4
-LeaveCriticalSection: #trace LeaveCriticalSection
-    ret 4
+RtlUnwind: die RtlUnwind
 
 MAX_PATH = 260
 
