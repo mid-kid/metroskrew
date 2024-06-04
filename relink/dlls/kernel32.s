@@ -879,6 +879,7 @@ SetFilePointer:
 9:
     die "SetFilePointer: Only 32 bits"
 
+.weak WriteFile
 .global WriteFile
 WriteFile:
     push ebp

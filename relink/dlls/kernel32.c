@@ -235,7 +235,22 @@ WINBASEAPI DWORD WINAPI SetFilePointer(HANDLE hFile, LONG lDistanceToMove, LPLON
     return res;
 }
 
-WINBASEAPI BOOL        WINAPI WriteFile(HANDLE,LPCVOID,DWORD,LPDWORD,LPOVERLAPPED);
+WINBASEAPI BOOL WINAPI WriteFile(HANDLE hFile, LPCVOID lpBuffer, DWORD nNumberOfBytesToWrite, LPDWORD lpNumberOfBytesWritten, LPOVERLAPPED lpOverlapped)
+{
+    uintptr_t uFile = (uintptr_t)hFile;
+
+    if (lpOverlapped) {
+        DIE("WriteFile: No support for lpOverlapped");
+    }
+
+    int count = write(uFile - 1, lpBuffer, nNumberOfBytesToWrite);
+    BOOL res = count != -1;
+    if (lpNumberOfBytesWritten) *lpNumberOfBytesWritten = count != -1 ? count : 0;
+    TR("WriteFile: res=%d hFile=%p nNumberOfBytesToWrite=%ld"
+        "lpNumberOfBytesWritten=%ld", res, hFile, nNumberOfBytesToWrite,
+        lpNumberOfBytesWritten ? *lpNumberOfBytesWritten : 0);
+    return res;
+}
 
 WINBASEAPI BOOL WINAPI ReadFile(HANDLE hFile, LPVOID lpBuffer, DWORD nNumberOfBytesToRead, LPDWORD lpNumberOfBytesRead, LPOVERLAPPED lpOverlapped)
 {
