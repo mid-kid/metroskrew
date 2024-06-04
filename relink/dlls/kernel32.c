@@ -67,6 +67,7 @@ WINBASEAPI HANDLE WINAPI GetStdHandle(DWORD nStdHandle)
     return res;
 }
 
+// Assuming no multithreading
 WINBASEAPI void WINAPI InitializeCriticalSection(CRITICAL_SECTION *lpCrit)
 { (void)lpCrit; }
 WINBASEAPI void WINAPI DeleteCriticalSection(CRITICAL_SECTION *lpCrit)
@@ -150,10 +151,28 @@ WINBASEAPI BOOL WINAPI CloseHandle(HANDLE hObject)
     return res;
 }
 
-WINBASEAPI DWORD       WINAPI TlsAlloc(void);
-WINBASEAPI BOOL        WINAPI TlsFree(DWORD);
-WINBASEAPI LPVOID      WINAPI TlsGetValue(DWORD);
-WINBASEAPI BOOL        WINAPI TlsSetValue(DWORD,LPVOID);
+// Assuming no multithreading
+WINBASEAPI DWORD WINAPI TlsAlloc(void)
+{
+    return (DWORD)malloc(sizeof(LPVOID));
+}
+
+WINBASEAPI BOOL WINAPI TlsFree(DWORD dwTlsIndex)
+{
+    free((void *)dwTlsIndex);
+    return TRUE;
+}
+
+WINBASEAPI LPVOID WINAPI TlsGetValue(DWORD dwTlsIndex)
+{
+    return *(LPVOID *)dwTlsIndex;
+}
+
+WINBASEAPI BOOL WINAPI TlsSetValue(DWORD dwTlsIndex, LPVOID lpTlsValue)
+{
+    *(LPVOID *)dwTlsIndex = lpTlsValue;
+    return TRUE;
+}
 
 WINBASEAPI HMODULE WINAPI GetModuleHandleA(LPCSTR lpModuleName)
 {

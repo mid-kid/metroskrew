@@ -345,36 +345,6 @@ WaitForSingleObject:
 GetExitCodeProcess:
     die GetExitCodeProcess
 
-# Thread local storage
-# Assuming no multithreading
-.global TlsAlloc
-.global TlsFree
-.global TlsGetValue
-.global TlsSetValue
-TlsAlloc: #trace TlsAlloc
-    push ebx
-    push 4
-    call malloc
-    pop ebx
-    pop ebx
-    ret
-TlsFree: #trace TlsFree
-    push [esp + 4]
-    call free
-    pop eax
-    mov eax, 1
-    ret 4
-TlsGetValue: #trace TlsGetValue
-    mov eax, [esp + 4]
-    mov eax, [eax]
-    ret 4
-TlsSetValue: #trace TlsSetValue
-    mov eax, [esp + 4 * 1]
-    mov ebx, [esp + 4 * 2]
-    mov [eax], ebx
-    mov eax, 1
-    ret 4 * 2
-
 .global GlobalAlloc
 GlobalAlloc: #trace GlobalAlloc
     push ebp
