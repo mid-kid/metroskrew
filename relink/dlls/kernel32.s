@@ -937,6 +937,7 @@ WriteFile:
 9:
     die WriteFile
 
+.weak ReadFile
 .global ReadFile
 ReadFile: trace ReadFile
     push ebp

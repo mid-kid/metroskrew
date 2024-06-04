@@ -222,7 +222,21 @@ WINBASEAPI DWORD WINAPI GetFullPathNameA(LPCSTR lpFileName, DWORD nBufferLength,
 
 WINBASEAPI DWORD       WINAPI SetFilePointer(HANDLE,LONG,LPLONG,DWORD);
 WINBASEAPI BOOL        WINAPI WriteFile(HANDLE,LPCVOID,DWORD,LPDWORD,LPOVERLAPPED);
-WINBASEAPI BOOL        WINAPI ReadFile(HANDLE,LPVOID,DWORD,LPDWORD,LPOVERLAPPED);
+
+WINBASEAPI BOOL WINAPI ReadFile(HANDLE hFile, LPVOID lpBuffer, DWORD nNumberOfBytesToRead, LPDWORD lpNumberOfBytesRead, LPOVERLAPPED lpOverlapped)
+{
+    uintptr_t uFile = (uintptr_t)hFile;
+
+    if (lpOverlapped) DIE("ReadFile: No support for lpOverlapped");
+
+    int count = read(uFile - 1, lpBuffer, nNumberOfBytesToRead);
+    BOOL res = count != -1;
+    if (lpNumberOfBytesRead) *lpNumberOfBytesRead = count != -1 ? count : 0;
+    TR("ReadFile: res=%d hFile=%p nNumberOfBytesToRead=%ld"
+        "lpNumberOfBytesRead=%ld", res, hFile, nNumberOfBytesToRead,
+        lpNumberOfBytesRead ? *lpNumberOfBytesRead : 0);
+    return res;
+}
 
 WINBASEAPI HANDLE WINAPI CreateFileA(LPCSTR lpFileName, DWORD dwDesiredAccess, DWORD dwShareMode, LPSECURITY_ATTRIBUTES lpSecurityAttributes, DWORD dwCreationDisposition, DWORD dwFlagsAndAttributes, HANDLE hTemplateFile)
 {
@@ -296,7 +310,7 @@ WINBASEAPI DWORD WINAPI GetFileSize(HANDLE hFile, LPDWORD lpFileSizeHigh)
 {
     uintptr_t uFile = (uintptr_t)hFile;
 
-    if (lpFileSizeHigh) DIE("GetFileSize: Only 32 bits");
+    if (lpFileSizeHigh) DIE("GetFileSize: No support for lpFileSizeHigh");
 
     struct stat buf;
     if (fstat(uFile - 1, &buf) != 0) return INVALID_FILE_SIZE;
