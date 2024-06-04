@@ -265,7 +265,7 @@ WINBASEAPI DWORD WINAPI GetFullPathNameA(LPCSTR lpFileName, DWORD nBufferLength,
 
     // Figure out the file portion
     char *part = strrchr(lpBuffer, '\\');
-    if (!part) part = lpBuffer;
+    part = part ? part + 1 : lpBuffer;
     *lpFilePart = part;
 
     DB("GetFullPathNameA: '%s' = '%s' (%s)", lpFileName, lpBuffer, *lpFilePart);
