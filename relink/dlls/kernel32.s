@@ -847,6 +847,7 @@ GetFullPathNameA:
     .asciz "GetFullPathNameA: '%s' = '%s' (%s)\n"
 .endif
 
+.weak SetFilePointer
 .global SetFilePointer
 SetFilePointer:
     mov eax, [esp + 4 * 3]

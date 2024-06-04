@@ -220,14 +220,30 @@ WINBASEAPI DWORD WINAPI GetFullPathNameA(LPCSTR lpFileName, DWORD nBufferLength,
     return full_len;
 }
 
-WINBASEAPI DWORD       WINAPI SetFilePointer(HANDLE,LONG,LPLONG,DWORD);
+
+WINBASEAPI DWORD WINAPI SetFilePointer(HANDLE hFile, LONG lDistanceToMove, LPLONG lpDistanceToMoveHigh, DWORD dwMoveMethod)
+{
+    uintptr_t uFile = (uintptr_t)hFile;
+
+    if (lpDistanceToMoveHigh) {
+        DIE("SetFilePointer: No support for lpDistanceToMoveHigh");
+    }
+
+    DWORD res = lseek(uFile - 1, lDistanceToMove, dwMoveMethod);
+    TR("SetFilePointer: res=%ld hFile=%p lDistanceToMove=%ld dwMoveMethod=%ld",
+        res, hFile, lDistanceToMove, dwMoveMethod);
+    return res;
+}
+
 WINBASEAPI BOOL        WINAPI WriteFile(HANDLE,LPCVOID,DWORD,LPDWORD,LPOVERLAPPED);
 
 WINBASEAPI BOOL WINAPI ReadFile(HANDLE hFile, LPVOID lpBuffer, DWORD nNumberOfBytesToRead, LPDWORD lpNumberOfBytesRead, LPOVERLAPPED lpOverlapped)
 {
     uintptr_t uFile = (uintptr_t)hFile;
 
-    if (lpOverlapped) DIE("ReadFile: No support for lpOverlapped");
+    if (lpOverlapped) {
+        DIE("ReadFile: No support for lpOverlapped");
+    }
 
     int count = read(uFile - 1, lpBuffer, nNumberOfBytesToRead);
     BOOL res = count != -1;
@@ -310,7 +326,9 @@ WINBASEAPI DWORD WINAPI GetFileSize(HANDLE hFile, LPDWORD lpFileSizeHigh)
 {
     uintptr_t uFile = (uintptr_t)hFile;
 
-    if (lpFileSizeHigh) DIE("GetFileSize: No support for lpFileSizeHigh");
+    if (lpFileSizeHigh) {
+        DIE("GetFileSize: No support for lpFileSizeHigh");
+    }
 
     struct stat buf;
     if (fstat(uFile - 1, &buf) != 0) return INVALID_FILE_SIZE;
