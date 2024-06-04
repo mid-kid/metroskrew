@@ -317,7 +317,7 @@ WINBASEAPI BOOL WINAPI GetFileTime(HANDLE hFile, LPFILETIME lpCreationTime, LPFI
     (void)lpLastAccessTime;
     (void)lpLastWriteTime;
     STUB("GetFileTime: hFile=%p", hFile);
-    return 0;
+    return FALSE;
 }
 
 WINBASEAPI BOOL        WINAPI SetFileTime(HANDLE,const FILETIME*,const FILETIME*,const FILETIME*);
@@ -348,7 +348,13 @@ WINBASEAPI VOID WINAPI GetSystemTime(LPSYSTEMTIME lpSystemTime)
     memset(lpSystemTime, 0, sizeof(*lpSystemTime));
 }
 
-WINBASEAPI BOOL        WINAPI SystemTimeToFileTime(const SYSTEMTIME*,LPFILETIME);
+WINBASEAPI BOOL WINAPI SystemTimeToFileTime(const SYSTEMTIME *lpSystemTime, LPFILETIME lpFileTime)
+{
+    (void)lpSystemTime;
+    (void)lpFileTime;
+    return FALSE;
+}
+
 WINBASEAPI INT         WINAPI CompareFileTime(const FILETIME*,const FILETIME*);
 WINBASEAPI HGLOBAL     WINAPI GlobalReAlloc(HGLOBAL,SIZE_T,UINT) __WINE_ALLOC_SIZE(2) __WINE_DEALLOC(GlobalFree);
 WINBASEAPI UINT        WINAPI GlobalFlags(HGLOBAL);

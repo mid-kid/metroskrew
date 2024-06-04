@@ -1252,6 +1252,7 @@ GetSystemTime:
     mov word ptr [eax + 2 * 7], 0  # wMilliseconds
     ret 4
 
+.weak SystemTimeToFileTime
 .global SystemTimeToFileTime
 SystemTimeToFileTime:
     stub SystemTimeToFileTime
