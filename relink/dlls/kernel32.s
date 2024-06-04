@@ -1232,6 +1232,7 @@ RemoveDirectoryA:
 SetStdHandle:
     die SetStdHandle
 
+.weak GetSystemTime
 .global GetSystemTime
 GetSystemTime:
     stub GetSystemTime

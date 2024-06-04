@@ -298,7 +298,13 @@ WINBASEAPI BOOL        WINAPI SetEndOfFile(HANDLE);
 WINBASEAPI BOOL        WINAPI CreateDirectoryA(LPCSTR,LPSECURITY_ATTRIBUTES);
 WINBASEAPI BOOL        WINAPI RemoveDirectoryA(LPCSTR);
 WINBASEAPI BOOL        WINAPI SetStdHandle(DWORD,HANDLE);
-WINBASEAPI VOID        WINAPI GetSystemTime(LPSYSTEMTIME);
+
+WINBASEAPI VOID WINAPI GetSystemTime(LPSYSTEMTIME lpSystemTime)
+{
+    STUB("GetSystemTime");
+    memset(lpSystemTime, 0, sizeof(*lpSystemTime));
+}
+
 WINBASEAPI BOOL        WINAPI SystemTimeToFileTime(const SYSTEMTIME*,LPFILETIME);
 WINBASEAPI INT         WINAPI CompareFileTime(const FILETIME*,const FILETIME*);
 WINBASEAPI HGLOBAL     WINAPI GlobalReAlloc(HGLOBAL,SIZE_T,UINT) __WINE_ALLOC_SIZE(2) __WINE_DEALLOC(GlobalFree);
@@ -326,6 +332,7 @@ WINBASEAPI HANDLE      WINAPI OpenFileMappingA(DWORD,BOOL,LPCSTR);
 
 WINBASEAPI VOID WINAPI GetLocalTime(LPSYSTEMTIME lpSystemTime)
 {
+    STUB("GetLocalTime");
     memset(lpSystemTime, 0, sizeof(*lpSystemTime));
 }
 
