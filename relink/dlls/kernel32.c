@@ -255,7 +255,11 @@ die:
     );
 }
 
-WINBASEAPI DWORD       WINAPI GetTickCount(void);
+WINBASEAPI DWORD WINAPI GetTickCount(void)
+{
+    STUB("GetTickCount");
+    return 0;
+}
 
 WINBASEAPI BOOL WINAPI DeleteFileA(LPCSTR lpFileName)
 {

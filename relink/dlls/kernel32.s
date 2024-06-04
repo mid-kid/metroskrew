@@ -1082,6 +1082,7 @@ CreateFileA:
 1:
     .asciz "die: CreateFileA: '%s' %x %x %x %x %x %d\n"
 
+.weak GetTickCount
 .global GetTickCount
 GetTickCount:
     stub GetTickCount
