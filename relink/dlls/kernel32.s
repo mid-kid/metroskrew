@@ -1426,6 +1426,7 @@ MapViewOfFile:
 UnmapViewOfFile:
     die UnmapViewOfFile
 
+.weak GetSystemDirectoryA
 .global GetSystemDirectoryA
 GetSystemDirectoryA:
     stub GetSystemDirectoryA
