@@ -419,6 +419,7 @@ WINBASEAPI BOOL WINAPI SystemTimeToFileTime(const SYSTEMTIME *lpSystemTime, LPFI
 {
     (void)lpSystemTime;
     (void)lpFileTime;
+    STUB("SystemTimeToFileTime");
     return FALSE;
 }
 
