@@ -2,7 +2,7 @@
     sub esp, [sys_stat_sizeof]
     push esp
     push \arg
-    call \fun
+    wcall \fun
     add esp, 4 * 2
 .endm
 

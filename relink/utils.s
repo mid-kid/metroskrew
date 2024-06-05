@@ -1,4 +1,5 @@
 .intel_syntax noprefix
+.include "macros.i"
 
 .global path_dup_unx
 path_dup_unx:
@@ -13,17 +14,17 @@ path_dup_unx:
 1:
 
     push ebx
-    call strlen
+    wcall strlen
     add esp, 4
     inc eax
 
     push eax
-    call malloc
+    wcall malloc
     add esp, 4
 
     push ebx
     push eax
-    call strcpy
+    wcall strcpy
     add esp, 4 * 2
 
     mov ebx, eax
@@ -62,18 +63,18 @@ path_dos:
 .global path_join
 path_join:
     push eax  # ext
-    call strlen
+    wcall strlen
     push eax  # len_ext
     push ebx  # base
-    call strlen
+    wcall strlen
     mov [esp], eax  # len_base
     add eax, [esp + 4 * 2]  # len_ext
     add eax, 2  # '/' and '\0'
     push ebx  # base
     push eax
-    call malloc
+    wcall malloc
     mov [esp], eax  # dst
-    call strcpy
+    wcall strcpy
     pop ebx  # dst
     add esp, 4  # base
     pop eax  # len_base
@@ -81,7 +82,7 @@ path_join:
     mov byte ptr [eax], '/'
     add eax, 1
     mov [esp], eax
-    call strcpy
+    wcall strcpy
     add esp, 4 * 2
     mov eax, ebx
     ret

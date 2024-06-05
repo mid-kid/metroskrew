@@ -2,16 +2,15 @@
 .include "macros.i"
 .include "stat.i"
 
-.global IsBadReadPtr
-IsBadReadPtr: die IsBadReadPtr
+func IsBadReadPtr
+    die IsBadReadPtr
 
 .global RtlUnwind
 RtlUnwind: die RtlUnwind
 
 MAX_PATH = 260
 
-.global FindFirstFileA
-FindFirstFileA: die FindFirstFileA
+func FindFirstFileA; die FindFirstFileA
     push ebp
     mov ebp, esp
     push ebx
@@ -19,7 +18,7 @@ FindFirstFileA: die FindFirstFileA
 .ifndef NDEBUG
     push [ebp + 4 + 4 * 1]  # lpFileName
     push offset 4f
-    call printf
+    wcall printf
     add esp, 4 * 2
 .endif
 
@@ -31,7 +30,7 @@ FindFirstFileA: die FindFirstFileA
     # Check if we're trying to list an actual directory
     push 0
     push eax  # path
-    call strchr
+    wcall strchr
     add esp, 4 * 2
 
     mov ebx, -2
@@ -46,7 +45,7 @@ FindFirstFileA: die FindFirstFileA
 
     # Create hFindFile object
     push 4 * 2
-    call malloc
+    wcall malloc
     add esp, 4
     mov dword ptr [eax], 0
     pop ebx  # path
@@ -58,14 +57,14 @@ FindFirstFileA: die FindFirstFileA
     mov byte ptr [eax + ebx], 0
 
     # Create a DIR stream
-    call opendir
+    wcall opendir
     and eax, eax
     jz 8f
     push eax  # dir
 
     # Create hFindFile object
     push 4 * 2
-    call malloc
+    wcall malloc
     add esp, 4
     pop ebx  # dir
     mov [eax], ebx
@@ -86,7 +85,7 @@ FindFirstFileA: die FindFirstFileA
     push [ebp + 4 + 4 * 1]  # lpFileName
     push eax
     push offset 5f
-    call printf
+    wcall printf
     pop eax
     pop eax
 .endif
@@ -112,14 +111,14 @@ FindFirstFileA: die FindFirstFileA
     and eax, eax
     jnz 2f
     push eax
-    call closedir
+    wcall closedir
     add esp, 4
 2:
-    call free
+    wcall free
     add esp, 4
 # OS error
 8:
-    call free
+    wcall free
     add esp, 4
     mov eax, -1
     jmp 1b
@@ -128,10 +127,10 @@ FindFirstFileA: die FindFirstFileA
 9:
     push [ebp + 4 + 4 * 1]  # lpFileName
     push offset 1f
-    call printf
+    wcall printf
     add esp, 4 * 2
     push 1
-    call exit
+    wcall exit
 
 1:
     .asciz "die: FindFirstFileA: lpFileName=%s\n"
@@ -156,15 +155,14 @@ GetFileAttributes_do: die GetFileAttributes_do
     stat_pop
     ret
 
-.global FindNextFileA
-FindNextFileA: die FindNextFileA
+func FindNextFileA; die FindNextFileA
     push ebp
     mov ebp, esp
     push ebx
 
 .ifndef NDEBUG
     push offset 4f
-    call printf
+    wcall printf
     add esp, 4 * 1
 .endif
 
@@ -177,7 +175,7 @@ FindNextFileA: die FindNextFileA
     push [ebp + 4 + 4 * 1] # lpFileName
     push eax
     push offset 5f
-    call printf
+    wcall printf
     pop eax
     pop eax
 .endif
@@ -205,7 +203,7 @@ FindNextFileA_do: die FindNextFileA_do
     # Find the filename component
     push '/'
     push [eax + 4]
-    call strrchr
+    wcall strrchr
     and eax, eax
     jnz 1f
     mov eax, [esp]
@@ -219,7 +217,7 @@ FindNextFileA_do: die FindNextFileA_do
 2:
     # Read the next entry
     push [eax]
-    call readdir
+    wcall readdir
     add esp, 4
     and eax, eax
     jz 7f
@@ -234,7 +232,7 @@ FindNextFileA_do: die FindNextFileA_do
     push 4 * 11 + MAX_PATH + 14
     push 0
     push ebx
-    call memset
+    wcall memset
     add esp, 4 * 3
 
     # Create full path if we don't already have one
@@ -249,7 +247,7 @@ FindNextFileA_do: die FindNextFileA_do
     call path_join
     push eax
     call GetFileAttributes_do
-    call free
+    wcall free
     add esp, 4
 
     jmp 2f
@@ -269,7 +267,7 @@ FindNextFileA_do: die FindNextFileA_do
     mov eax, [esp + 4 * 2]  # lpFindFileData
     add eax, 4 * 11  # cFileName
     push eax
-    call strncpy
+    wcall strncpy
     add esp, 4 * 3
 
 .ifndef NDEBUG
@@ -278,7 +276,7 @@ FindNextFileA_do: die FindNextFileA_do
     add eax, 4 * 11
     push eax
     push offset 9f
-    call printf
+    wcall printf
     add esp, 4 * 3
 .endif
 
@@ -297,8 +295,7 @@ FindNextFileA_do: die FindNextFileA_do
     .asciz "FindFile: '%s' (0x%x)\n"
 .endif
 
-.global FindClose
-FindClose: die FindClose
+func FindClose; die FindClose
     mov eax, [esp + 4]  # hFindFile
     push eax
     push [eax + 4]
@@ -307,18 +304,18 @@ FindClose: die FindClose
     and eax, eax
     jz 1f
     push eax
-    call closedir
+    wcall closedir
     add esp, 4
 1:
 
-    call free
+    wcall free
     add esp, 4
-    call free
+    wcall free
 
 .ifdef TRACE
     push eax
     push offset 9f
-    call printf
+    wcall printf
     add esp, 4 * 2
 .endif
     mov eax, 1
@@ -330,23 +327,17 @@ FindClose: die FindClose
     .asciz "trace: FindClose: res=%d hFindFile=%x\n"
 .endif
 
-.global GetCommandLineA
-GetCommandLineA: die GetCommandLineA
+func GetCommandLineA; die GetCommandLineA
 
-.global CreateProcessA
-CreateProcessA: die CreateProcessA
+func CreateProcessA; die CreateProcessA
 
-.global WaitForSingleObject
-WaitForSingleObject: die WaitForSingleObject
+func WaitForSingleObject; die WaitForSingleObject
 
-.global GetExitCodeProcess
-GetExitCodeProcess: die GetExitCodeProcess
+func GetExitCodeProcess; die GetExitCodeProcess
 
-.global MoveFileA
-MoveFileA: die MoveFileA
+func MoveFileA; die MoveFileA
 
-.global FormatMessageA
-FormatMessageA: die FormatMessageA
+func FormatMessageA; die FormatMessageA
     push ebp
     mov ebp, esp
 
@@ -359,7 +350,7 @@ FormatMessageA: die FormatMessageA
     push [ebp + 4 + 4 * 2]  # lpSource
     push [ebp + 4 + 4 * 1]  # dwFlags
     push offset 9f
-    call printf
+    wcall printf
     add esp, 4 * 8
 .endif
 
@@ -372,39 +363,31 @@ FormatMessageA: die FormatMessageA
     .asciz "stub: FormatMessageA: %x %x %d %d %x %d %x\n"
 .endif
 
-.global SetFileTime
-SetFileTime: die SetFileTime
+func SetFileTime; die SetFileTime
 
-.global SetEndOfFile
-SetEndOfFile: die SetEndOfFile
+func SetEndOfFile; die SetEndOfFile
 
-.global CreateDirectoryA
-CreateDirectoryA: die CreateDirectoryA
+func CreateDirectoryA; die CreateDirectoryA
 
-.global RemoveDirectoryA
-RemoveDirectoryA: die RemoveDirectoryA
+func RemoveDirectoryA; die RemoveDirectoryA
 
-.global SetStdHandle
-SetStdHandle: die SetStdHandle
+func SetStdHandle; die SetStdHandle
 
-.global CompareFileTime
-CompareFileTime: die CompareFileTime
+func CompareFileTime; die CompareFileTime
     stub CompareFileTime
     xor eax, eax
     ret 4 * 2
 
-.global FileTimeToSystemTime
-FileTimeToSystemTime: die FileTimeToSystemTime
+func FileTimeToSystemTime; die FileTimeToSystemTime
 
-.global FindResourceA
-FindResourceA: die FindResourceA
+func FindResourceA; die FindResourceA
 .ifndef NDEBUG
     mov eax, esp
     push [eax + 4 * 3]
     push [eax + 4 * 2]
     push [eax + 4 * 1]
     push offset 1f
-    call printf
+    wcall printf
 .endif
 
     xor eax, eax
@@ -415,8 +398,7 @@ FindResourceA: die FindResourceA
     .asciz "stub: FindResourceA: %d '%s' '%s'\n"
 .endif
 
-.global LoadResource
-LoadResource: die LoadResource
+func LoadResource; die LoadResource
     push ebp
     mov ebp, esp
 
@@ -424,7 +406,7 @@ LoadResource: die LoadResource
     push [ebp + 4 + 4 * 2]
     push [ebp + 4 + 4 * 1]
     push offset 1f
-    call printf
+    wcall printf
 .endif
 
     xor eax, eax
@@ -436,15 +418,14 @@ LoadResource: die LoadResource
     .asciz "stub: LoadResource: %d %d\n"
 .endif
 
-.global LockResource
-LockResource: die LockResource
+func LockResource; die LockResource
     push ebp
     mov ebp, esp
 
 .ifndef NDEBUG
     push [ebp + 4 + 4]
     push offset 1f
-    call printf
+    wcall printf
 .endif
 
     xor eax, eax
@@ -456,8 +437,7 @@ LockResource: die LockResource
     .asciz "stub: LockResource: %d\n"
 .endif
 
-.global SizeofResource
-SizeofResource: die SizeofResource
+func SizeofResource; die SizeofResource
     push ebp
     mov ebp, esp
 
@@ -465,7 +445,7 @@ SizeofResource: die SizeofResource
     push [ebp + 4 + 4 * 2]
     push [ebp + 4 + 4 * 1]
     push offset 1f
-    call printf
+    wcall printf
 .endif
 
     xor eax, eax
@@ -477,42 +457,33 @@ SizeofResource: die SizeofResource
     .asciz "stub: SizeofResource: %d %d\n"
 .endif
 
-.global CreateFileMappingA
-CreateFileMappingA: die CreateFileMappingA
+func CreateFileMappingA; die CreateFileMappingA
     stub CreateFileMappingA
     xor eax, eax
     ret 4 * 6
 
-.global MapViewOfFile
-MapViewOfFile: die MapViewOfFile
+func MapViewOfFile; die MapViewOfFile
 
-.global UnmapViewOfFile
-UnmapViewOfFile: die UnmapViewOfFile
+func UnmapViewOfFile; die UnmapViewOfFile
 
-.global SetFileAttributesA
-SetFileAttributesA: die SetFileAttributesA
+func SetFileAttributesA; die SetFileAttributesA
 
-.global OpenFileMappingA
-OpenFileMappingA: die OpenFileMappingA
+func OpenFileMappingA; die OpenFileMappingA
 
-.global MultiByteToWideChar
-MultiByteToWideChar: die MultiByteToWideChar
+func MultiByteToWideChar; die MultiByteToWideChar
 
-.global IsValidCodePage
-IsValidCodePage: die IsValidCodePage
+func IsValidCodePage; die IsValidCodePage
 
-.global GetACP
-GetACP: die GetACP
+func GetACP; die GetACP
 
-.global GetTimeZoneInformation
-GetTimeZoneInformation: die GetTimeZoneInformation
+func GetTimeZoneInformation; die GetTimeZoneInformation
     stub GetTimeZoneInformation
 
     mov eax, [esp + 4]
     push 172
     push 0
     push eax
-    call memset
+    wcall memset
     add esp, 4 * 3
 
     xor eax, eax

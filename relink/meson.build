@@ -23,6 +23,7 @@ sources_c = [
   'dlls/version.c'
 ]
 
+c = meson.get_compiler('c')
 as = find_program('as')
 
 wine_headers = subproject('wine').get_variable('headers_dir')
@@ -39,7 +40,8 @@ as_args = [
   arch,
   '-I' + meson.current_source_dir(),
   get_option('debug') ? [] : ['--defsym', 'NDEBUG=1'],
-  get_option('trace') ? ['--defsym', 'TRACE=1'] : []
+  get_option('trace') ? ['--defsym', 'TRACE=1'] : [],
+  c.has_define('_WIN32') ? ['--defsym', '_WIN32=1'] : []
 ]
 
 bld_as = generator(as,
@@ -76,9 +78,9 @@ foreach tool, bin : tools
     name_suffix: 'exe',
     link_args: [
       arch,
-      '-Wl,-z,noexecstack',
+      '-T' + meson.current_source_dir() / ldscript,
       '-no-pie',
-      '-T' + meson.current_source_dir() / ldscript
+      c.get_supported_link_arguments('-Wl,-z,noexecstack')
     ],
     link_whole: common,
     link_depends: ldscript,

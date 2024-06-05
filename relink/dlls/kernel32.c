@@ -50,12 +50,14 @@ die:
         dwDesiredAccess, bInheritHandle, dwOptions);
 }
 
+#ifndef _WIN32
 WINBASEAPI DWORD WINAPI GetLastError(void)
 {
     DWORD res = errno;
     TR("GetLastError: res=%ld", res);
     return res;
 }
+#endif
 
 WINBASEAPI HANDLE WINAPI GetStdHandle(DWORD nStdHandle)
 {
@@ -66,6 +68,7 @@ WINBASEAPI HANDLE WINAPI GetStdHandle(DWORD nStdHandle)
     return res;
 }
 
+#ifndef _WIN32
 // Assuming no multithreading
 WINBASEAPI void WINAPI InitializeCriticalSection(CRITICAL_SECTION *lpCrit)
 { (void)lpCrit; }
@@ -75,6 +78,7 @@ WINBASEAPI void WINAPI EnterCriticalSection(CRITICAL_SECTION *lpCrit)
 { (void)lpCrit; }
 WINBASEAPI void WINAPI LeaveCriticalSection(CRITICAL_SECTION *lpCrit)
 { (void)lpCrit; }
+#endif
 
 WINBASEAPI HANDLE WINAPI FindFirstFileA(LPCSTR,LPWIN32_FIND_DATAA);
 
@@ -89,6 +93,7 @@ DWORD GetFileAttributes_do(char *path)
     return res;
 }
 
+#ifndef _WIN32
 WINBASEAPI DWORD WINAPI GetFileAttributesA(LPCSTR lpFileName)
 {
     char *path = path_dup_unx_c(lpFileName);
@@ -98,11 +103,13 @@ WINBASEAPI DWORD WINAPI GetFileAttributesA(LPCSTR lpFileName)
     free(path);
     return res;
 }
+#endif
 
 WINBASEAPI BOOL WINAPI FindNextFileA(HANDLE,LPWIN32_FIND_DATAA);
 WINBASEAPI BOOL WINAPI FindClose(HANDLE);
 WINBASEAPI LPSTR WINAPI GetCommandLineA(void);
 
+#ifndef _WIN32
 #undef GetEnvironmentStrings
 WINBASEAPI LPSTR WINAPI GetEnvironmentStrings(void)
     __attribute__((weak, alias("GetEnvironmentStringsA")));
@@ -111,6 +118,7 @@ WINBASEAPI LPSTR WINAPI GetEnvironmentStringsA(void)
 {
     return "\0";
 }
+#endif
 
 WINBASEAPI BOOL WINAPI FreeEnvironmentStringsA(LPSTR penv)
 {
@@ -118,6 +126,7 @@ WINBASEAPI BOOL WINAPI FreeEnvironmentStringsA(LPSTR penv)
     return TRUE;
 }
 
+#ifndef _WIN32
 WINBASEAPI UINT WINAPI GetCurrentDirectoryA(UINT nBufferLength, LPSTR lpBuffer)
 {
     char path[0x1000];
@@ -136,6 +145,7 @@ WINBASEAPI UINT WINAPI GetCurrentDirectoryA(UINT nBufferLength, LPSTR lpBuffer)
     DB("GetCurrentDirectoryA: %s", lpBuffer);
     return strlen(lpBuffer);
 }
+#endif
 
 WINBASEAPI BOOL WINAPI CreateProcessA(LPCSTR,LPSTR,LPSECURITY_ATTRIBUTES,LPSECURITY_ATTRIBUTES,BOOL,DWORD,LPVOID,LPCSTR,LPSTARTUPINFOA,LPPROCESS_INFORMATION);
 WINBASEAPI DWORD WINAPI WaitForSingleObject(HANDLE,DWORD);
@@ -150,6 +160,7 @@ WINBASEAPI BOOL WINAPI CloseHandle(HANDLE hObject)
     return res;
 }
 
+#ifndef _WIN32
 // Assuming no multithreading
 WINBASEAPI DWORD WINAPI TlsAlloc(void)
 {
@@ -172,6 +183,7 @@ WINBASEAPI BOOL WINAPI TlsSetValue(DWORD dwTlsIndex, LPVOID lpTlsValue)
     *(LPVOID *)dwTlsIndex = lpTlsValue;
     return TRUE;
 }
+#endif
 
 WINBASEAPI HMODULE WINAPI GetModuleHandleA(LPCSTR lpModuleName)
 {

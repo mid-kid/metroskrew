@@ -1,7 +1,7 @@
 .intel_syntax noprefix
+.include "macros.i"
 
-.global main
-main:
+func main
     mov eax, [esp + 4]
     mov [main_argc], eax
     mov eax, [esp + 8]

@@ -1,7 +1,25 @@
+.macro func name
+.ifndef _WIN32
+.global \name
+\name:
+.else
+.global _\name
+_\name:
+.endif
+.endm
+
+.macro wcall name
+.ifndef _WIN32
+    call \name
+.else
+    call _\name
+.endif
+.endm
+
 .macro stub name
 .ifndef NDEBUG
     push offset stub_str\@
-    call puts
+    wcall puts
     pop eax
     jmp stub_end\@
 stub_str\@:
@@ -13,7 +31,7 @@ stub_end\@:
 .macro trace name
 .ifdef TRACE
     push offset trace_str\@
-    call puts
+    wcall puts
     pop eax
     jmp trace_end\@
 trace_str\@:
@@ -24,9 +42,9 @@ trace_end\@:
 
 .macro die name
     push offset die_str\@
-    call puts
+    wcall puts
     push 1
-    call exit
+    wcall exit
 die_str\@:
     .asciz "die: \name"
 .endm

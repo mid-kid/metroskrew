@@ -8,6 +8,10 @@ build := build
 all: $(build)/build.ninja
 	$(MESON) compile -C $(build)
 
+.PHONY: windows
+windows: $(build)/opt.windows/build.ninja
+	$(MESON) compile -C $(build)/opt.windows
+
 .PHONY: release
 release: $(build)/opt.release/build.ninja
 	$(MESON) compile -C $(build)/opt.release
@@ -18,12 +22,15 @@ trace: $(build)/opt.trace/build.ninja
 
 .PHONY: setup
 setup: $(build)/build.ninja
+setup: $(build)/opt.windows/build.ninja
 setup: $(build)/opt.release/build.ninja
 setup: $(build)/opt.trace/build.ninja
 
 .PHONY: clean
 clean:
 	! test -f $(build)/build.ninja || $(MESON) compile -C $(build) --clean
+	! test -f $(build)/opt.windows/build.ninja || \
+		$(MESON) compile -C $(build)/opt.windows --clean
 	! test -f $(build)/opt.release/build.ninja || \
 		$(MESON) compile -C $(build)/opt.release --clean
 	! test -f $(build)/opt.trace/build.ninja || \
@@ -35,6 +42,10 @@ distclean:
 
 $(build)/build.ninja:
 	$(MESON) setup --cross-file meson/$(CROSS).ini $(build)
+
+$(build)/opt.windows/build.ninja:
+	@mkdir -p $(build)
+	$(MESON) setup --cross-file meson/i686-w64-mingw32.ini $(build)/opt.windows
 
 $(build)/opt.release/build.ninja:
 	@mkdir -p $(build)

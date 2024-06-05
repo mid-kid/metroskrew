@@ -6,7 +6,7 @@ RegOpenKeyExA:
 .ifndef NDEBUG
     push [esp + 4 * 2]
     push offset 9f
-    call printf
+    wcall printf
     add esp, 4 * 2
 .endif
 

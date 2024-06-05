@@ -13,7 +13,7 @@ struct rsrc_strings {
     UINT id;
     uint16_t *data;
 };
-extern struct rsrc_strings pe_rsrc_strings[];
+extern struct rsrc_strings pe_rsrc_strings[] __asm__("pe_rsrc_strings");
 
 WINUSERAPI INT WINAPI LoadStringA(HINSTANCE hInstance, UINT uID, LPSTR lpBuffer, INT cchBufferMax)
 {
