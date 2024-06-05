@@ -30,6 +30,7 @@ wine_headers = subproject('wine').get_variable('headers_dir')
 
 c_args = [
   arch,
+  '-fno-PIC',
   '-I' + wine_headers,
   '-U_FILE_OFFSET_BITS',
   get_option('debug') ? [] : ['-DNDEBUG'],
