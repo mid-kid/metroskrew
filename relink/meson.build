@@ -45,6 +45,12 @@ as_args = [
   c.has_define('_WIN32') ? ['--defsym', '_WIN32=1'] : []
 ]
 
+link_args = [
+  arch,
+  '-no-pie',
+  c.get_supported_link_arguments('-Wl,-z,noexecstack')
+]
+
 bld_as = generator(as,
   arguments: [
     as_args,
@@ -78,10 +84,8 @@ foreach tool, bin : tools
     objects: prog,
     name_suffix: 'exe',
     link_args: [
-      arch,
       '-T' + meson.current_source_dir() / ldscript,
-      '-no-pie',
-      c.get_supported_link_arguments('-Wl,-z,noexecstack')
+      link_args
     ],
     link_whole: common,
     link_depends: ldscript,
