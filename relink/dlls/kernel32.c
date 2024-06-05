@@ -164,7 +164,9 @@ WINBASEAPI BOOL WINAPI CloseHandle(HANDLE hObject)
 // Assuming no multithreading
 WINBASEAPI DWORD WINAPI TlsAlloc(void)
 {
-    return (DWORD)malloc(sizeof(LPVOID));
+    LPVOID *mem = malloc(sizeof(LPVOID));
+    *mem = 0;
+    return (DWORD)mem;
 }
 
 WINBASEAPI BOOL WINAPI TlsFree(DWORD dwTlsIndex)
