@@ -171,7 +171,7 @@ WINBASEAPI DWORD WINAPI TlsAlloc(void)
 
 WINBASEAPI BOOL WINAPI TlsFree(DWORD dwTlsIndex)
 {
-    free((void *)dwTlsIndex);
+    free((LPVOID *)dwTlsIndex);
     return TRUE;
 }
 
