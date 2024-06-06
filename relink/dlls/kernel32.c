@@ -118,13 +118,13 @@ WINBASEAPI LPSTR WINAPI GetEnvironmentStringsA(void)
 {
     return "\0";
 }
-#endif
 
 WINBASEAPI BOOL WINAPI FreeEnvironmentStringsA(LPSTR penv)
 {
     (void)penv;
     return TRUE;
 }
+#endif
 
 #ifndef _WIN32
 WINBASEAPI UINT WINAPI GetCurrentDirectoryA(UINT nBufferLength, LPSTR lpBuffer)

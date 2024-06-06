@@ -2,11 +2,9 @@
 .include "macros.i"
 .include "stat.i"
 
-func IsBadReadPtr
-    die IsBadReadPtr
+func IsBadReadPtr; die IsBadReadPtr
 
-.global RtlUnwind
-RtlUnwind: die RtlUnwind
+func RtlUnwind; die RtlUnwind
 
 MAX_PATH = 260
 

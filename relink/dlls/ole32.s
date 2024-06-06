@@ -1,26 +1,18 @@
 .intel_syntax noprefix
 .include "macros.i"
 
-.global CoInitialize
-CoInitialize:
+func CoInitialize
     stub CoInitialize
     xor eax, eax
     ret 4
 
-.global CoUninitialize
-CoUninitialize:
-    die CoUninitialize
+func CoUninitialize; die CoUninitialize
 
-.global CoCreateInstance
-CoCreateInstance:
+func CoCreateInstance
     stub CoCreateInstance
     mov eax, 0x80000000
     ret 4 * 5
 
-.global CoTaskMemAlloc
-CoTaskMemAlloc:
-    die CoTaskMemAlloc
+func CoTaskMemAlloc; die CoTaskMemAlloc
 
-.global CoTaskMemFree
-CoTaskMemFree:
-    die CoTaskMemFree
+func CoTaskMemFree; die CoTaskMemFree

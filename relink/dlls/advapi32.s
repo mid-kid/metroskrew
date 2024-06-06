@@ -1,8 +1,7 @@
 .intel_syntax noprefix
 .include "macros.i"
 
-.global RegOpenKeyExA
-RegOpenKeyExA:
+func RegOpenKeyExA
 .ifndef NDEBUG
     push [esp + 4 * 2]
     push offset 9f
@@ -18,10 +17,6 @@ RegOpenKeyExA:
     .asciz "stub: RegOpenKeyExA: %s\n"
 .endif
 
-.global RegQueryValueExA
-RegQueryValueExA:
-    die RegQueryValueExA
+func RegQueryValueExA; die RegQueryValueExA
 
-.global RegCloseKey
-RegCloseKey:
-    die RegCloseKey
+func RegCloseKey; die RegCloseKey
