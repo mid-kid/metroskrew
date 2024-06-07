@@ -4,6 +4,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+struct {
+    bool win;
+} opt;
+
 struct pe_file {
     FILE *f;
     unsigned long header_off;
@@ -592,7 +596,8 @@ unsigned dump_do_import(struct dump_import *dump, char *binfile, unsigned long p
         char *name = strchr(dump->name, '@');
         if (name) *name = '\0';
 
-        printf(".long %s # %s\n", dump->name, dump->dllname);
+        printf(".long %s%s # %s\n", opt.win ? "_" : "",
+            dump->name, dump->dllname);
         free(dump->name);
         size = 4;
     } else {
@@ -671,10 +676,10 @@ int dump_asm(struct pe_file *file, char *binfile)
         printf("\n"
             ".global pe_%s_addr\n"
             "pe_%s_addr = 0x%lx\n"
-            ".section .pe_%s, \"%s%s%s\"\n",
+            ".section .%s%s, \"%s%s%s\"\n",
             name,
             name, sec.address,
-            name,
+            opt.win ? "" : "pe_", name,
             sec.r ? "a" : "", sec.w ? "w" : "", sec.x ? "x" : ""
         );
 
@@ -767,6 +772,18 @@ int dump_asm(struct pe_file *file, char *binfile)
 
 int main(int argc, char *argv[])
 {
+    while (argc > 1) {
+        if (*argv[1] != '-') {
+            break;
+        } else if (strcmp(argv[1], "--") == 0) {
+            argv++; argc--;
+            break;
+        } else if (strcmp(argv[1], "--win") == 0) {
+            opt.win = true;
+        }
+        argv++; argc--;
+    }
+
     if (argc < 2) {
         fprintf(stderr, "Usage: %s <file>\n", argv[0]);
         return EXIT_FAILURE;

@@ -4,6 +4,7 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 
+#ifndef _WIN32
 // WINE headers, used for the sake of type-checking definitions
 #include <stdarg.h>
 #include "windef.h"
@@ -13,13 +14,22 @@
 #include "wincon.h"
 #include "winnls.h"
 #include "timezoneapi.h"
+#else
+#include <windows.h>
+#define ALIAS(name, num) \
+    __asm__(".global _" name "; .set _" name ", _" name "@" #num)
+#endif
 
 // Local headers
 #include "utils.h"
 
 // winbase.h
 
+#ifndef _WIN32
 WINBASEAPI VOID DECLSPEC_NORETURN WINAPI ExitProcess(DWORD uExitCode)
+#else
+WINBASEAPI VOID DECLSPEC_NORETURN WINAPI ExitProcess(UINT uExitCode)
+#endif
 {
     TR("ExitProcess: uExitCode=%lu", uExitCode);
     exit(uExitCode);
@@ -57,6 +67,8 @@ WINBASEAPI DWORD WINAPI GetLastError(void)
     TR("GetLastError: res=%ld", res);
     return res;
 }
+#else
+ALIAS("GetLastError", 0);
 #endif
 
 WINBASEAPI HANDLE WINAPI GetStdHandle(DWORD nStdHandle)
@@ -78,6 +90,11 @@ WINBASEAPI void WINAPI EnterCriticalSection(CRITICAL_SECTION *lpCrit)
 { (void)lpCrit; }
 WINBASEAPI void WINAPI LeaveCriticalSection(CRITICAL_SECTION *lpCrit)
 { (void)lpCrit; }
+#else
+ALIAS("InitializeCriticalSection", 4);
+ALIAS("DeleteCriticalSection", 4);
+ALIAS("EnterCriticalSection", 4);
+ALIAS("LeaveCriticalSection", 4);
 #endif
 
 WINBASEAPI HANDLE WINAPI FindFirstFileA(LPCSTR,LPWIN32_FIND_DATAA);
@@ -103,6 +120,8 @@ WINBASEAPI DWORD WINAPI GetFileAttributesA(LPCSTR lpFileName)
     free(path);
     return res;
 }
+#else
+ALIAS("GetFileAttributesA", 4);
 #endif
 
 WINBASEAPI BOOL WINAPI FindNextFileA(HANDLE,LPWIN32_FIND_DATAA);
@@ -124,6 +143,9 @@ WINBASEAPI BOOL WINAPI FreeEnvironmentStringsA(LPSTR penv)
     (void)penv;
     return TRUE;
 }
+#else
+ALIAS("GetEnvironmentStrings", 0);
+ALIAS("FreeEnvironmentStringsA", 4);
 #endif
 
 #ifndef _WIN32
@@ -145,6 +167,8 @@ WINBASEAPI UINT WINAPI GetCurrentDirectoryA(UINT nBufferLength, LPSTR lpBuffer)
     DB("GetCurrentDirectoryA: %s", lpBuffer);
     return strlen(lpBuffer);
 }
+#else
+ALIAS("GetCurrentDirectoryA", 8);
 #endif
 
 WINBASEAPI BOOL WINAPI CreateProcessA(LPCSTR,LPSTR,LPSECURITY_ATTRIBUTES,LPSECURITY_ATTRIBUTES,BOOL,DWORD,LPVOID,LPCSTR,LPSTARTUPINFOA,LPPROCESS_INFORMATION);
@@ -185,6 +209,11 @@ WINBASEAPI BOOL WINAPI TlsSetValue(DWORD dwTlsIndex, LPVOID lpTlsValue)
     *(LPVOID *)dwTlsIndex = lpTlsValue;
     return TRUE;
 }
+#else
+ALIAS("TlsAlloc", 0);
+ALIAS("TlsFree", 4);
+ALIAS("TlsGetValue", 4);
+ALIAS("TlsSetValue", 8);
 #endif
 
 WINBASEAPI HMODULE WINAPI GetModuleHandleA(LPCSTR lpModuleName)
@@ -389,7 +418,7 @@ WINBASEAPI BOOL WINAPI DeleteFileA(LPCSTR lpFileName)
 }
 
 WINBASEAPI BOOL WINAPI MoveFileA(LPCSTR,LPCSTR);
-WINBASEAPI DWORD WINAPI FormatMessageA(DWORD,LPCVOID,DWORD,DWORD,LPSTR,DWORD,__ms_va_list*);
+WINBASEAPI DWORD WINAPI FormatMessageA(DWORD,LPCVOID,DWORD,DWORD,LPSTR,DWORD,va_list*);
 
 WINBASEAPI BOOL WINAPI GetFileTime(HANDLE hFile, LPFILETIME lpCreationTime, LPFILETIME lpLastAccessTime, LPFILETIME lpLastWriteTime)
 {
@@ -438,7 +467,11 @@ WINBASEAPI BOOL WINAPI SystemTimeToFileTime(const SYSTEMTIME *lpSystemTime, LPFI
     return FALSE;
 }
 
+#ifndef _WIN32
 WINBASEAPI INT WINAPI CompareFileTime(const FILETIME*,const FILETIME*);
+#else
+WINBASEAPI LONG WINAPI CompareFileTime(const FILETIME*,const FILETIME*);
+#endif
 
 WINBASEAPI HGLOBAL WINAPI GlobalReAlloc(HGLOBAL hMem, SIZE_T dwBytes, UINT uFlags)
 {
@@ -523,7 +556,11 @@ WINBASEAPI BOOL WINAPI SetConsoleCtrlHandler(PHANDLER_ROUTINE HandlerRoutine, BO
 
 // wincon.h
 
+#ifndef _WIN32
 WINBASEAPI BOOL WINAPI GetConsoleScreenBufferInfo(HANDLE hConsole, LPCONSOLE_SCREEN_BUFFER_INFO lpConsoleScreenBufferInfo)
+#else
+WINBASEAPI BOOL WINAPI GetConsoleScreenBufferInfo(HANDLE hConsole, PCONSOLE_SCREEN_BUFFER_INFO lpConsoleScreenBufferInfo)
+#endif
 {
     (void)hConsole;
     (void)lpConsoleScreenBufferInfo;
