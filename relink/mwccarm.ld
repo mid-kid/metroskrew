@@ -1,6 +1,8 @@
+__image_base__ = 0x08000000;
+INSERT BEFORE .text
 SECTIONS {
-    .pe_text pe_text_addr : { *(.patch_pe_text) }
     /DISCARD/ : { *(.pe_text) }
+    .pe_text pe_text_addr : { *(.patch_pe_text) }
 
     .pe_exc pe_exc_addr : { *(.pe_exc) }
     .pe_rdata pe_rdata_addr : { *(.pe_rdata) }

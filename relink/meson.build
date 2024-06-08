@@ -89,7 +89,7 @@ foreach tool, bin : tools
     objects: prog,
     name_suffix: 'exe',
     link_args: [
-      is_windows ? [] : '-T' + meson.current_source_dir() / ldscript,
+      '-T' + meson.current_source_dir() / ldscript,
       link_args
     ],
     link_whole: common,

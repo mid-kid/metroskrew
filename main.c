@@ -676,10 +676,10 @@ int dump_asm(struct pe_file *file, char *binfile)
         printf("\n"
             ".global pe_%s_addr\n"
             "pe_%s_addr = 0x%lx\n"
-            ".section .%s%s, \"%s%s%s\"\n",
+            ".section .pe_%s, \"%s%s%s\"\n",
             name,
             name, sec.address,
-            opt.win ? "" : "pe_", name,
+            name,
             sec.r ? "a" : "", sec.w ? "w" : "", sec.x ? "x" : ""
         );
 
