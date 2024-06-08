@@ -389,6 +389,10 @@ WINBASEAPI HANDLE WINAPI CreateFileA(LPCSTR lpFileName, DWORD dwDesiredAccess, D
     default: goto die;
     }
 
+#ifdef _WIN32
+    flags |= O_BINARY;
+#endif
+
     char *path = path_dup_unx_c(lpFileName);
     HANDLE res = (HANDLE)(open(path, flags, 0666) + 1);
     DB("CreateFileA: res=%p lpFileName=%s", res, path);
