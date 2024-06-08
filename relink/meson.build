@@ -33,7 +33,7 @@ is_windows = c.has_define('_WIN32')
 c_args = [
   arch,
   '-fno-PIC',
-  is_windows ? [] : '-I' + wine_headers,
+  '-I' + wine_headers,
   '-U_FILE_OFFSET_BITS',
   get_option('debug') ? [] : '-DNDEBUG',
   get_option('trace') ? '-DTRACE' : []

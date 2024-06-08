@@ -4,7 +4,6 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 
-#ifndef _WIN32
 // WINE headers, used for the sake of type-checking definitions
 #include <stdarg.h>
 #include "windef.h"
@@ -14,22 +13,15 @@
 #include "wincon.h"
 #include "winnls.h"
 #include "timezoneapi.h"
-#else
-#include <windows.h>
 #define ALIAS(name, num) \
     __asm__(".global _" name "; .set _" name ", _" name "@" #num)
-#endif
 
 // Local headers
 #include "utils.h"
 
 // winbase.h
 
-#ifndef _WIN32
 WINBASEAPI VOID DECLSPEC_NORETURN WINAPI ExitProcess(DWORD uExitCode)
-#else
-WINBASEAPI VOID DECLSPEC_NORETURN WINAPI ExitProcess(UINT uExitCode)
-#endif
 {
     TR("ExitProcess: uExitCode=%lu", uExitCode);
     exit(uExitCode);
@@ -471,11 +463,7 @@ WINBASEAPI BOOL WINAPI SystemTimeToFileTime(const SYSTEMTIME *lpSystemTime, LPFI
     return FALSE;
 }
 
-#ifndef _WIN32
 WINBASEAPI INT WINAPI CompareFileTime(const FILETIME*,const FILETIME*);
-#else
-WINBASEAPI LONG WINAPI CompareFileTime(const FILETIME*,const FILETIME*);
-#endif
 
 WINBASEAPI HGLOBAL WINAPI GlobalReAlloc(HGLOBAL hMem, SIZE_T dwBytes, UINT uFlags)
 {
@@ -560,11 +548,7 @@ WINBASEAPI BOOL WINAPI SetConsoleCtrlHandler(PHANDLER_ROUTINE HandlerRoutine, BO
 
 // wincon.h
 
-#ifndef _WIN32
 WINBASEAPI BOOL WINAPI GetConsoleScreenBufferInfo(HANDLE hConsole, LPCONSOLE_SCREEN_BUFFER_INFO lpConsoleScreenBufferInfo)
-#else
-WINBASEAPI BOOL WINAPI GetConsoleScreenBufferInfo(HANDLE hConsole, PCONSOLE_SCREEN_BUFFER_INFO lpConsoleScreenBufferInfo)
-#endif
 {
     (void)hConsole;
     (void)lpConsoleScreenBufferInfo;
