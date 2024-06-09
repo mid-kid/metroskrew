@@ -4,7 +4,7 @@
 pe_text:
 
 text_off = 0x400
-text_len = 0x5a200
+text_len = 0x5a1f0
 
 addr_argc = pe_text + 0x2a05a + 2
 addr_argv = pe_text + 0x2a054 + 2

@@ -688,8 +688,7 @@ int dump_asm(struct pe_file *file, char *binfile)
             (!opt.win && bss) ? ", @nobits" : ""
         );
 
-        unsigned long size = sec.dsize;
-        if (sec.vsize > sec.dsize) size = sec.vsize;
+        unsigned long size = sec.vsize;
 
         unsigned long pos = 0;
         unsigned long last_pos = 0;
