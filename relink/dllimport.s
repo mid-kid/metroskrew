@@ -1,5 +1,11 @@
 .intel_syntax noprefix
 
+# This file references the exact stdcall symbols for windows libraries.
+# It causes the linker to find the right object files in the libraries,
+#  causing any references to symbols without the `@` number to fall back
+#  to the original implementations if not available.
+# Only used for windows builds.
+
 .macro import name, num
 .set _\name, _\name\()@\num
 .endm
