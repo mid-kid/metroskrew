@@ -56,6 +56,11 @@ link_args = [
   ])
 ]
 
+if is_windows
+  sources_s += 'dllimport.s'
+  link_args += ['-lversion', '-lws2_32']
+endif
+
 bld_as = generator(as,
   arguments: [
     as_args,
@@ -83,16 +88,21 @@ foreach tool, bin : tools
     prog_src, tool + '_patch.s',
     extra_args: '-I' + meson.project_source_root())
 
-  ldscript = tool + '.ld'
+  ldscript = meson.current_source_dir() / tool + '.ld'
+  dllimport = meson.current_source_dir() / 'dllimport.ld'
 
   executable(tool,
     objects: prog,
     name_suffix: 'exe',
     link_args: [
-      '-T' + meson.current_source_dir() / ldscript,
+      '-T' + ldscript,
+      is_windows ? '-T' + dllimport : [],
       link_args
     ],
     link_whole: common,
-    link_depends: ldscript,
+    link_depends: [
+      ldscript,
+      is_windows ? dllimport : []
+    ],
     install: true)
 endforeach

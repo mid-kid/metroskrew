@@ -3,78 +3,63 @@
 
 .global _WS2_32.dll_3
 _WS2_32.dll_3:
-.global closesocket
-closesocket: die closesocket
+func closesocket; die closesocket
 
 .global _WS2_32.dll_4
 _WS2_32.dll_4:
-.global connect
-connect: die connect
+func connect; die connect
 
 .global _WS2_32.dll_9
 _WS2_32.dll_9:
-.global htons
-htons: die htons
+func htons; die htons
 
 .global _WS2_32.dll_b
 _WS2_32.dll_b:
-.global inet_addr
-inet_addr: die inet_addr
+func inet_addr; die inet_addr
 
 .global _WS2_32.dll_c
 _WS2_32.dll_c:
-.global inet_ntoa
-inet_ntoa: die inet_ntoa
+func inet_ntoa; die inet_ntoa
 
 .global _WS2_32.dll_f
 _WS2_32.dll_f:
-.global ntohs
-ntohs: die ntohs
+func ntohs; die ntohs
 
 .global _WS2_32.dll_10
 _WS2_32.dll_10:
-.global recv
-recv: die recv
+func recv; die recv
 
 .global _WS2_32.dll_12
 _WS2_32.dll_12:
-.global select
-select: die select
+func select; die select
 
 .global _WS2_32.dll_13
 _WS2_32.dll_13:
-.global send
-send: die send
+func send; die send
 
 .global _WS2_32.dll_16
 _WS2_32.dll_16:
-.global shutdown
-shutdown: die shutdown
+func shutdown; die shutdown
 
 .global _WS2_32.dll_17
 _WS2_32.dll_17:
-.global socket
-socket: die socket
+func socket; die socket
 
 .global _WS2_32.dll_6f
 _WS2_32.dll_6f:
-.global WSAGetLastError
-WSAGetLastError: die WSAGetLastError
+func WSAGetLastError; die WSAGetLastError
 
 .global _WS2_32.dll_73
 _WS2_32.dll_73:
-.global WSAStartup
-WSAStartup: die WSAStartup
+func WSAStartup; die WSAStartup
 
 .global _WS2_32.dll_74
 _WS2_32.dll_74:
-.global WSACleanup
-WSACleanup:
+func WSACleanup
     # Nothing to do, really
     xor eax, eax
     ret
 
 .global _WS2_32.dll_97
 _WS2_32.dll_97:
-.global __WSAFDIsSet
-__WSAFDIsSet: die __WSAFDIsSet
+func __WSAFDIsSet; die __WSAFDIsSet
