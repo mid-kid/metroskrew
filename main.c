@@ -670,17 +670,22 @@ int dump_asm(struct pe_file *file, char *binfile)
             return EXIT_FAILURE;
         }
 
+        bool bss = strcmp(sec.name, ".bss") == 0;
+
         char *name = sec.name;
         if (*name == '.') name++;
 
         printf("\n"
             ".global pe_%s_addr\n"
             "pe_%s_addr = 0x%lx\n"
-            ".section .pe_%s, \"%s%s%s\"\n",
+            ".section .pe_%s, \"%s%s%s%s\"%s\n",
             name,
             name, sec.address,
             name,
-            sec.r ? "a" : "", sec.w ? "w" : "", sec.x ? "x" : ""
+            sec.r ? "a" : "", sec.w ? "w" : (opt.win ? "r" : ""),
+            sec.x ? "x" : "",
+            (opt.win && bss) ? "b" : "",
+            (!opt.win && bss) ? ", @nobits" : ""
         );
 
         unsigned long size = sec.dsize;
