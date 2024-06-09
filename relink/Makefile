@@ -1,8 +1,8 @@
 CFLAGS := -g $(CFLAGS)
 ASFLAGS := -g -I .. $(ASFLAGS)
 LDFLAGS := -g -Wl,-z,noexecstack -no-pie
-TARGET_ARCH := -m32 -march=i386
-TARGET_MACH := --32 -march=i386
+TARGET_ARCH := -m32 -march=i586
+TARGET_MACH := --32 -march=i586
 
 tools := mwccarm mwasmarm
 

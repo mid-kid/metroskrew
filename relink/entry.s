@@ -7,7 +7,14 @@ main:
     mov eax, [esp + 8]
     mov [main_argv], eax
 
+    # Set up the FPU to reflect the default state in windows
+    # Usually it's set to a different value due to the startfiles used
+    #  in modern compilers, but this application needs lower precision.
+    fldcw [cw]
+
     jmp dword ptr [_pe_start]
+
+cw: .short 0x027f
 _pe_start: .long pe_start
 
 .bss
