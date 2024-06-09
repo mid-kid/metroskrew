@@ -57,8 +57,6 @@ WINBASEAPI DWORD WINAPI GetLastError(void)
     TR("GetLastError: res=%ld", res);
     return res;
 }
-#else
-ALIAS("GetLastError", 0);
 #endif
 
 WINBASEAPI HANDLE WINAPI GetStdHandle(DWORD nStdHandle)
@@ -80,11 +78,6 @@ WINBASEAPI void WINAPI EnterCriticalSection(CRITICAL_SECTION *lpCrit)
 { (void)lpCrit; }
 WINBASEAPI void WINAPI LeaveCriticalSection(CRITICAL_SECTION *lpCrit)
 { (void)lpCrit; }
-#else
-ALIAS("InitializeCriticalSection", 4);
-ALIAS("DeleteCriticalSection", 4);
-ALIAS("EnterCriticalSection", 4);
-ALIAS("LeaveCriticalSection", 4);
 #endif
 
 WINBASEAPI HANDLE WINAPI FindFirstFileA(LPCSTR,LPWIN32_FIND_DATAA);
@@ -110,8 +103,6 @@ WINBASEAPI DWORD WINAPI GetFileAttributesA(LPCSTR lpFileName)
     free(path);
     return res;
 }
-#else
-ALIAS("GetFileAttributesA", 4);
 #endif
 
 WINBASEAPI BOOL WINAPI FindNextFileA(HANDLE,LPWIN32_FIND_DATAA);
@@ -133,9 +124,6 @@ WINBASEAPI BOOL WINAPI FreeEnvironmentStringsA(LPSTR penv)
     (void)penv;
     return TRUE;
 }
-#else
-ALIAS("GetEnvironmentStrings", 0);
-ALIAS("FreeEnvironmentStringsA", 4);
 #endif
 
 #ifndef _WIN32
@@ -157,8 +145,6 @@ WINBASEAPI UINT WINAPI GetCurrentDirectoryA(UINT nBufferLength, LPSTR lpBuffer)
     DB("GetCurrentDirectoryA: %s", lpBuffer);
     return strlen(lpBuffer);
 }
-#else
-ALIAS("GetCurrentDirectoryA", 8);
 #endif
 
 WINBASEAPI BOOL WINAPI CreateProcessA(LPCSTR,LPSTR,LPSECURITY_ATTRIBUTES,LPSECURITY_ATTRIBUTES,BOOL,DWORD,LPVOID,LPCSTR,LPSTARTUPINFOA,LPPROCESS_INFORMATION);
@@ -199,11 +185,6 @@ WINBASEAPI BOOL WINAPI TlsSetValue(DWORD dwTlsIndex, LPVOID lpTlsValue)
     *(LPVOID *)dwTlsIndex = lpTlsValue;
     return TRUE;
 }
-#else
-ALIAS("TlsAlloc", 0);
-ALIAS("TlsFree", 4);
-ALIAS("TlsGetValue", 4);
-ALIAS("TlsSetValue", 8);
 #endif
 
 WINBASEAPI HMODULE WINAPI GetModuleHandleA(LPCSTR lpModuleName)
