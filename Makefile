@@ -39,13 +39,15 @@ clean:
 .PHONY: distclean
 distclean:
 	rm -rf $(build)
+	$(MESON) subprojects purge --confirm
 
 $(build)/build.ninja:
 	$(MESON) setup --cross-file meson/$(CROSS).ini $(build)
 
 $(build)/opt.windows/build.ninja:
 	@mkdir -p $(build)
-	$(MESON) setup --cross-file meson/i686-w64-mingw32.ini $(build)/opt.windows
+	$(MESON) setup --cross-file meson/i686-w64-mingw32.ini $(build)/opt.windows \
+		-Dtrace=true
 
 $(build)/opt.release/build.ninja:
 	@mkdir -p $(build)

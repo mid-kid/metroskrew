@@ -19,7 +19,8 @@ WINUSERAPI INT WINAPI LoadStringA(HINSTANCE hInstance, UINT uID, LPSTR lpBuffer,
 {
     // Make sure it's not trying to grab strings from a different instance
     // -1 is the HACK value returned from LoadLibraryA
-    if (hInstance != (HINSTANCE)0 && hInstance != (HINSTANCE)-1) goto die;
+    if (hInstance != (HINSTANCE)0 && hInstance != (HINSTANCE)-1 &&
+        hInstance != (HINSTANCE)0x00400000) goto die;
 
     // Find the set of 16 strings
     uint16_t *str = NULL;

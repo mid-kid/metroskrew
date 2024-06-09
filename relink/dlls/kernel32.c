@@ -13,8 +13,6 @@
 #include "wincon.h"
 #include "winnls.h"
 #include "timezoneapi.h"
-#define ALIAS(name, num) \
-    __asm__(".global _" name "; .set _" name ", _" name "@" #num)
 
 // Local headers
 #include "utils.h"
@@ -306,7 +304,6 @@ WINBASEAPI DWORD WINAPI GetFullPathNameA(LPCSTR lpFileName, DWORD nBufferLength,
     DB("GetFullPathNameA: '%s' = '%s' (%s)", lpFileName, lpBuffer, *lpFilePart);
     return full_len;
 }
-
 
 WINBASEAPI DWORD WINAPI SetFilePointer(HANDLE hFile, LONG lDistanceToMove, LPLONG lpDistanceToMoveHigh, DWORD dwMoveMethod)
 {

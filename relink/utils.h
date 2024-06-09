@@ -19,4 +19,7 @@
 
 #define DIE(msg, ...) { printf("die: " msg "\n", ##__VA_ARGS__);exit(1); }
 
+#define ALIAS(name, num) \
+    __asm__(".global _" name "; .set _" name ", _" name "@" #num)
+
 char *path_dup_unx_c(const char *path);
