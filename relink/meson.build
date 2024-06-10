@@ -26,14 +26,14 @@ sources_c = [
 c = meson.get_compiler('c')
 as = find_program('as')
 
-wine_headers = subproject('wine').get_variable('headers_inc_dir')
+win_headers = subproject('wine').get_variable('headers_args')
 
 is_windows = c.has_define('_WIN32')
 
 c_args = [
   arch,
+  win_headers,
   '-fno-PIC',
-  '-I' + wine_headers,
   '-U_FILE_OFFSET_BITS',
   get_option('debug') ? [] : '-DNDEBUG',
   get_option('trace') ? '-DTRACE' : []
