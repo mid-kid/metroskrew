@@ -14,5 +14,9 @@ headers_args = [
   '-D__stdcall=__attribute__((__stdcall__)) __attribute__((__force_align_arg_pointer__))',
   '-D__declspec(x)=__declspec_##x',
   '-D__declspec_dllimport=',
-  '-D__declspec_noreturn=__attribute__((noreturn))'
+  '-D__declspec_noreturn=__attribute__((noreturn))',
+  '-Wno-expansion-to-defined'
 ]
+
+headers_dep = declare_dependency(
+  compile_args: headers_args)
