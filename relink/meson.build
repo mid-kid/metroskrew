@@ -26,13 +26,12 @@ sources_c = [
 c = meson.get_compiler('c')
 as = find_program('as')
 
-win_headers = subproject('wine').get_variable('headers_args')
+win_headers = subproject('wine').get_variable('headers_dep_lean')
 
 is_windows = c.has_define('_WIN32')
 
 c_args = [
   arch,
-  win_headers,
   '-fno-PIC',
   '-U_FILE_OFFSET_BITS',
   get_option('debug') ? [] : '-DNDEBUG',
@@ -75,7 +74,8 @@ bld_as = generator(as,
 common = static_library('common',
   sources_c,
   objects: bld_as.process(sources_s),
-  c_args: c_args)
+  c_args: c_args,
+  dependencies: win_headers)
 
 foreach tool, bin : tools
   prog_src = custom_target(

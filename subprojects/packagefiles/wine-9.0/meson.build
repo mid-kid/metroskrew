@@ -1,8 +1,16 @@
-project('wine',
-  version: '9.0')
+project('wine', 'c',
+  version: '9.0',
+  default_options: ['warning_level=1'])
 
-headers_inc_dir = meson.project_source_root() / 'include'
+bison = find_program('bison', native: true,
+  required: get_option('with_widl'))
+flex = find_program('flex', native: true,
+  required: get_option('with_widl'))
 
-headers_args = [
-  '-I' + headers_inc_dir
-]
+has_widl = bison.found() and flex.found()
+
+if has_widl
+  subdir('tools/widl')
+endif
+
+subdir('include')
