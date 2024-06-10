@@ -26,7 +26,7 @@ sources_c = [
 c = meson.get_compiler('c')
 as = find_program('as')
 
-wine_headers = subproject('wine').get_variable('headers_dir')
+wine_headers = subproject('wine').get_variable('headers_inc_dir')
 
 is_windows = c.has_define('_WIN32')
 
