@@ -21,10 +21,39 @@ trace: $(build)/opt.trace/build.ninja
 	$(MESON) compile -C $(build)/opt.trace
 
 .PHONY: setup
-setup: $(build)/build.ninja
-setup: $(build)/opt.windows/build.ninja
-setup: $(build)/opt.release/build.ninja
-setup: $(build)/opt.trace/build.ninja
+.NOTPARALLEL: setup
+setup: setup_all setup_windows setup_release setup_trace
+
+.PHONY: setup_all
+setup_all: $(build)/build.ninja
+
+.PHONY: setup_windows
+setup_windows: $(build)/opt.windows/build.ninja
+
+.PHONY: setup_release
+setup_release: $(build)/opt.release/build.ninja
+
+.PHONY: setup_trace
+setup_trace: $(build)/opt.trace/build.ninja
+
+.PHONY: test
+test: setup .WAIT test_all test_windows test_release test_trace
+
+.PHONY: test_all
+test_all: $(build)/build.ninja
+	$(MESON) test -C $(build)
+
+.PHONY: test_windows
+test_windows: $(build)/opt.windows/build.ninja
+	$(MESON) test -C $(build)/opt.windows
+
+.PHONY: test_release
+test_release: $(build)/opt.release/build.ninja
+	$(MESON) test -C $(build)/opt.release
+
+.PHONY: test_trace
+test_trace: $(build)/opt.trace/build.nunja
+	$(MESON) test -C $(build)/opt.trace
 
 .PHONY: clean
 clean:

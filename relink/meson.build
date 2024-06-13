@@ -77,6 +77,7 @@ common = static_library('common',
   c_args: c_args,
   dependencies: win_headers)
 
+tools_relink = {}
 foreach tool, bin : tools
   prog_src = custom_target(
     command: [exedump, is_windows ? '--win' : [], '@INPUT@'],
@@ -84,15 +85,15 @@ foreach tool, bin : tools
     output: tool + '.s',
     capture: true,
     build_by_default: true)
-  prog = bld_as.process(
+  prog_obj = bld_as.process(
     prog_src, tool + '_patch.s',
     extra_args: '-I' + meson.project_source_root())
 
   ldscript = meson.current_source_dir() / tool + '.ld'
   dllimport = meson.current_source_dir() / 'dllimport.ld'
 
-  executable(tool,
-    objects: prog,
+  prog = executable(tool,
+    objects: prog_obj,
     name_suffix: 'exe',
     link_args: [
       '-T' + ldscript,
@@ -105,4 +106,5 @@ foreach tool, bin : tools
       is_windows ? dllimport : []
     ],
     install: true)
+  tools_relink += {tool: prog}
 endforeach

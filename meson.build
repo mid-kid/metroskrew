@@ -9,3 +9,4 @@ tools = {
 }
 
 subdir('relink')
+subdir('test')
