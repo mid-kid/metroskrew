@@ -52,7 +52,7 @@ test_release: $(build)/opt.release/build.ninja
 	$(MESON) test -C $(build)/opt.release
 
 .PHONY: test_trace
-test_trace: $(build)/opt.trace/build.nunja
+test_trace: $(build)/opt.trace/build.ninja
 	$(MESON) test -C $(build)/opt.trace
 
 .PHONY: clean
