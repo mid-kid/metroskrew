@@ -10,7 +10,7 @@ mwccarm() {
 }
 
 case "$1" in
-    switch_float_bug)
+    basic_c|switch_float_bug)
         mwccarm -c -o "$1.o" "$SRC/$1.c"
         cmp "$1.o" "$SRC/res/$1.o"
         ;;
