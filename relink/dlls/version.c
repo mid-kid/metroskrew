@@ -12,12 +12,13 @@ WINBASEAPI DWORD WINAPI GetFileVersionInfoSizeA(LPCSTR lptstrFilename, LPDWORD l
 {
     (void)lptstrFilename;
     if (lpdwHandle) *lpdwHandle = 0;
-    DWORD res = 1;
+    DWORD res = 0;
     STUB("GetFileVersionInfoSizeA: res=%ld lptstrFilename='%s'",
         res, lptstrFilename);
     return res;
 }
 
+#if 0
 WINBASEAPI BOOL WINAPI GetFileVersionInfoA(LPCSTR lptstrFilename, DWORD dwHandle, DWORD dwLen, LPVOID lpData)
 {
     (void)lptstrFilename;
@@ -57,3 +58,4 @@ WINBASEAPI BOOL WINAPI VerQueryValueA(LPCVOID pBlock, LPCSTR lpSubBlock, LPVOID 
     TR("VerQueryValueA: res=%d lpSubBlock='%s'", res, lpSubBlock);
     return res;
 }
+#endif
