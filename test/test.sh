@@ -24,4 +24,6 @@ case "$1" in
     basic_s)
         mwasmarm -c -o "$1.o" "$SRC/$1.s"
         ;;
+
+    *) exit 1 ;;
 esac
