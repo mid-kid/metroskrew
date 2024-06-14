@@ -435,7 +435,6 @@ WINBASEAPI VOID WINAPI GetSystemTime(LPSYSTEMTIME lpSystemTime)
 WINBASEAPI BOOL WINAPI SystemTimeToFileTime(const SYSTEMTIME *lpSystemTime, LPFILETIME lpFileTime)
 {
     (void)lpSystemTime;
-    (void)lpFileTime;
     STUB("SystemTimeToFileTime");
     memset(lpFileTime, 0, sizeof(*lpFileTime));
     return FALSE;
@@ -542,4 +541,9 @@ WINBASEAPI UINT WINAPI GetACP(void);
 
 // timezoneapi.h
 
-WINBASEAPI DWORD WINAPI GetTimeZoneInformation(LPTIME_ZONE_INFORMATION);
+WINBASEAPI DWORD WINAPI GetTimeZoneInformation(LPTIME_ZONE_INFORMATION lpTimeZoneInformation)
+{
+    STUB("GetTimeZoneInformation");
+    memset(lpTimeZoneInformation, 0, sizeof(*lpTimeZoneInformation));
+    return TIME_ZONE_ID_INVALID;
+}
