@@ -1,5 +1,3 @@
-__image_base__ = 0x08000000;
-INSERT BEFORE .text
 SECTIONS {
     /DISCARD/ : { *(.pe_text) }
     .pe_text pe_text_addr : { *(.patch_pe_text) }

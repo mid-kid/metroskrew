@@ -49,15 +49,17 @@ as_args = [
 link_args = [
   arch,
   '-no-pie',
-  c.get_supported_link_arguments([
-    '-Wl,-z,noexecstack',
-    '-Wl,--enable-stdcall-fixup'
-  ])
+  c.get_supported_link_arguments('-Wl,-z,noexecstack')
 ]
 
 if is_windows
   sources_s += 'dllimport.s'
   link_args += ['-lversion', '-lws2_32']
+  link_args += [
+    '-Wl,--enable-stdcall-fixup',
+    '-Wl,--image-base,0x00400000',
+    '-Wl,--section-alignment,0x1000'
+  ]
 endif
 
 bld_as = generator(as,
