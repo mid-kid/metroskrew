@@ -1,4 +1,4 @@
-int func(int param)
+int _(int param)
 {
     switch (param) {
     case 10:
