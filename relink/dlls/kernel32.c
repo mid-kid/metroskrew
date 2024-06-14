@@ -97,7 +97,7 @@ struct findfile {
     char *path;
 };
 
-BOOL FindNextFilaA_do(struct findfile *findfile, LPWIN32_FIND_DATAA lpFindFileData)
+BOOL FindNextFileA_do(struct findfile *findfile, LPWIN32_FIND_DATAA lpFindFileData)
 {
     for (;;) {
         char *full;
@@ -124,12 +124,12 @@ BOOL FindNextFilaA_do(struct findfile *findfile, LPWIN32_FIND_DATAA lpFindFileDa
         if (attrs == INVALID_FILE_ATTRIBUTES) {
             free(full);
             if (errno == ENOENT) continue;
-            else DIE("FindNextFilaA_do: unexpected errno: %d", errno);
+            else DIE("FindNextFileA_do: unexpected errno: %d", errno);
         }
 
         // Get filename component
-        char *file = strchr(full, '/');
-        if (!file) file = full;
+        char *file = strrchr(full, '/');
+        file = file ? file + 1 : full;
         size_t len_file = strlen(file);
         if (len_file > MAX_PATH - 1) len_file = MAX_PATH - 1;
 
@@ -139,7 +139,7 @@ BOOL FindNextFilaA_do(struct findfile *findfile, LPWIN32_FIND_DATAA lpFindFileDa
         memcpy(lpFindFileData->cFileName, file, len_file);
         lpFindFileData->cFileName[len_file] = '\0';
 
-        DB("FindNextFilaA_do: '%s' (0x%lx)", file, attrs);
+        DB("FindNextFileA_do: '%s' (0x%lx)", file, attrs);
         free(full);
         return TRUE;
     }
@@ -149,30 +149,33 @@ WINBASEAPI HANDLE WINAPI FindFirstFileA(LPCSTR lpFileName, LPWIN32_FIND_DATAA lp
 {
     STUB("FindFirstFileA: only filename and attributes: '%s'", lpFileName);
     HANDLE res = INVALID_HANDLE_VALUE;
+#ifdef TRACE
+    char *path = path_dup_unx_c(lpFileName);
+#endif
 
     DIR *dir = NULL;
 
     // Check if we're listing a directory
-    char *path = path_dup_unx_c(lpFileName);
-    char *path_end = strchr(path, '\0');
-    if (path_end[-2] == '/' && path_end[-1] == '*') {
-        path_end[-2] = '\0';
+    char *dir_path = path_dup_unx_c(lpFileName);
+    size_t len_path = strlen(dir_path);
+    if (dir_path[len_path - 2] == '/' && dir_path[len_path - 1] == '*') {
+        dir_path[len_path - 2] = '\0';
 
         // Open directory
-        DIR *dir = opendir(path);
+        dir = opendir(dir_path);
         if (!dir) {
-            free(path);
+            free(dir_path);
             goto end;
         }
     }
 
     // Create findfile object
     struct findfile *findfile = malloc(sizeof(struct findfile));
-    findfile->path = path;
+    findfile->path = dir_path;
     findfile->dir = dir;
 
     // Find the first file
-    if (!FindNextFilaA_do(findfile, lpFindFileData)) {
+    if (!FindNextFileA_do(findfile, lpFindFileData)) {
         if (findfile->dir) closedir(findfile->dir);
         if (findfile->path) free(findfile->path);
         free(findfile);
@@ -182,6 +185,9 @@ WINBASEAPI HANDLE WINAPI FindFirstFileA(LPCSTR lpFileName, LPWIN32_FIND_DATAA lp
     res = (HANDLE)findfile;
 end:
     TR("FindFirstFileA: res=%p lpFileName='%s'", res, path);
+#ifdef TRACE
+    free(path);
+#endif
     return res;
 }
 
@@ -202,8 +208,8 @@ WINBASEAPI BOOL WINAPI FindNextFileA(HANDLE hFindFile, LPWIN32_FIND_DATAA lpFind
     STUB("FindNextFileA: only filename and attributes");
     struct findfile *findfile = (struct findfile *)hFindFile;
 
-    BOOL res = FindNextFilaA_do(findfile, lpFindFileData);
-    TR("FindNextFilaA: res=%d hFindFile=%p", res, hFindFile);
+    BOOL res = FindNextFileA_do(findfile, lpFindFileData);
+    TR("FindNextFileA: res=%d hFindFile=%p", res, hFindFile);
     return res;
 }
 

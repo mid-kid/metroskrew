@@ -2,6 +2,7 @@ tests = [
   'basic_c',
   'basic_s',
   'include',
+  'include_dir',
   'switch_float_bug'
 ]
 
