@@ -15,15 +15,19 @@ mwasmarm() {
     wine "$MWASMARM" "$@"
 }
 
+test_cc() {
+    name="$1"; shift
+    mwccarm "$@" -c -o "$name.o" "$SRC/$name.c"
+    cmp "$name.o" "$SRC/res/$name.o"
+}
+test_as() {
+    name="$1"; shift
+    mwasmarm -c -o "$name.o" "$SRC/$name.s"
+}
+
 case "$1" in
-    basic_c|switch_float_bug)
-        mwccarm -c -o "$1.o" "$SRC/$1.c"
-        cmp "$1.o" "$SRC/res/$1.o"
-        ;;
-
-    basic_s)
-        mwasmarm -c -o "$1.o" "$SRC/$1.s"
-        ;;
-
+    basic_c) test_cc "$1" ;;
+    basic_s) test_as "$1" ;;
+    switch_float_bug) test_cc "$1" ;;
     *) exit 1 ;;
 esac
