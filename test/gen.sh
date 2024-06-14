@@ -6,5 +6,8 @@ BIN="${BIN:-../bins}"
 # basic_c
 wine "$BIN/mwccarm.exe" -c -o res/basic_c.o basic_c.c
 
+# include
+wine "$BIN/mwccarm.exe" -gccinc -c -o res/include.o include.c
+
 # switch_float_bug
 wine "$BIN/mwccarm.exe" -c -o res/switch_float_bug.o switch_float_bug.c

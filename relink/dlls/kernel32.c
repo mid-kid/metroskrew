@@ -2,6 +2,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <dirent.h>
 #include <sys/stat.h>
 
 // WINE headers, used for the sake of type-checking definitions
@@ -80,8 +81,6 @@ WINBASEAPI void WINAPI LeaveCriticalSection(CRITICAL_SECTION *lpCrit)
 { (void)lpCrit; }
 #endif
 
-WINBASEAPI HANDLE WINAPI FindFirstFileA(LPCSTR,LPWIN32_FIND_DATAA);
-
 DWORD GetFileAttributes_do(char *path)
 {
     struct stat buf;
@@ -90,6 +89,99 @@ DWORD GetFileAttributes_do(char *path)
     DWORD res = 0;
     res |= (buf.st_mode & S_IFMT) == S_IFDIR ?
         FILE_ATTRIBUTE_DIRECTORY : FILE_ATTRIBUTE_ARCHIVE;
+    return res;
+}
+
+struct findfile {
+    DIR *dir;
+    char *path;
+};
+
+BOOL FindNextFilaA_do(struct findfile *findfile, LPWIN32_FIND_DATAA lpFindFileData)
+{
+    for (;;) {
+        char *full;
+        if (findfile->dir) {
+            struct dirent *buf = readdir(findfile->dir);
+            if (!buf) return FALSE;
+
+            // Join path
+            size_t len_path = strlen(findfile->path);
+            size_t len_file = strlen(buf->d_name);
+            full = malloc(len_path + 1 + len_file + 1);
+            memcpy(full, findfile->path, len_path);
+            full[len_path] = '/';
+            memcpy(full + len_path + 1, buf->d_name, len_file);
+            full[len_path + 1 + len_file] = '\0';
+        } else {
+            if (!findfile->path) return FALSE;
+            full = findfile->path;
+            findfile->path = NULL;
+        }
+
+        // If the file was removed between opendir() and now, skip it
+        DWORD attrs = GetFileAttributes_do(full);
+        if (attrs == INVALID_FILE_ATTRIBUTES) {
+            free(full);
+            if (errno == ENOENT) continue;
+            else DIE("FindNextFilaA_do: unexpected errno: %d", errno);
+        }
+
+        // Get filename component
+        char *file = strchr(full, '/');
+        if (!file) file = full;
+        size_t len_file = strlen(file);
+        if (len_file > MAX_PATH - 1) len_file = MAX_PATH - 1;
+
+        // Initialize WIN32_FIND_DATAA
+        memset(lpFindFileData, 0, sizeof(*lpFindFileData));
+        lpFindFileData->dwFileAttributes = attrs;
+        memcpy(lpFindFileData->cFileName, file, len_file);
+        lpFindFileData->cFileName[len_file] = '\0';
+
+        DB("FindNextFilaA_do: '%s' (0x%lx)", file, attrs);
+        free(full);
+        return TRUE;
+    }
+}
+
+WINBASEAPI HANDLE WINAPI FindFirstFileA(LPCSTR lpFileName, LPWIN32_FIND_DATAA lpFindFileData)
+{
+    STUB("FindFirstFileA: only filename and attributes: '%s'", lpFileName);
+    HANDLE res = INVALID_HANDLE_VALUE;
+
+    DIR *dir = NULL;
+
+    // Check if we're listing a directory
+    char *path = path_dup_unx_c(lpFileName);
+    char *path_end = strchr(path, '\0');
+    if (path_end[-2] == '/' && path_end[-1] == '*') {
+        path_end[-2] = '\0';
+
+        // Open directory
+        DIR *dir = opendir(path);
+        if (!dir) {
+            free(path);
+            goto end;
+        }
+    }
+
+    // Create findfile object
+    struct findfile *findfile = malloc(sizeof(struct findfile));
+    findfile->path = path;
+    findfile->dir = dir;
+
+    // Find the first file
+    if (!FindNextFilaA_do(findfile, lpFindFileData)) {
+        if (findfile->dir) closedir(findfile->dir);
+        if (findfile->path) free(findfile->path);
+        free(findfile);
+        goto end;
+    }
+
+    res = (HANDLE)findfile;
+end:
+    TR("FindFirstFileA: res=%p lpFileName='%s'", res, path);
     return res;
 }
 
@@ -105,8 +197,29 @@ WINBASEAPI DWORD WINAPI GetFileAttributesA(LPCSTR lpFileName)
 }
 #endif
 
-WINBASEAPI BOOL WINAPI FindNextFileA(HANDLE,LPWIN32_FIND_DATAA);
-WINBASEAPI BOOL WINAPI FindClose(HANDLE);
+WINBASEAPI BOOL WINAPI FindNextFileA(HANDLE hFindFile, LPWIN32_FIND_DATAA lpFindFileData)
+{
+    STUB("FindNextFileA: only filename and attributes");
+    struct findfile *findfile = (struct findfile *)hFindFile;
+
+    BOOL res = FindNextFilaA_do(findfile, lpFindFileData);
+    TR("FindNextFilaA: res=%d hFindFile=%p", res, hFindFile);
+    return res;
+}
+
+WINBASEAPI BOOL WINAPI FindClose(HANDLE hFindFile)
+{
+    struct findfile *findfile = (struct findfile *)hFindFile;
+
+    if (findfile->dir) closedir(findfile->dir);
+    if (findfile->path) free(findfile->path);
+    free(findfile);
+
+    BOOL res = TRUE;
+    TR("FindClose: res=%d hFindFile=%p", res, hFindFile);
+    return res;
+}
+
 WINBASEAPI LPSTR WINAPI GetCommandLineA(void);
 
 #ifndef _WIN32
@@ -190,7 +303,7 @@ WINBASEAPI BOOL WINAPI TlsSetValue(DWORD dwTlsIndex, LPVOID lpTlsValue)
 WINBASEAPI HMODULE WINAPI GetModuleHandleA(LPCSTR lpModuleName)
 {
     (void)lpModuleName;
-    STUB("GetModuleHandleA: %s", lpModuleName);
+    STUB("GetModuleHandleA: lpModuleName=%s", lpModuleName);
     return NULL;
 }
 
@@ -480,7 +593,22 @@ WINBASEAPI HRSRC WINAPI FindResourceA(HMODULE,LPCSTR,LPCSTR);
 WINBASEAPI HGLOBAL WINAPI LoadResource(HMODULE,HRSRC);
 WINBASEAPI LPVOID WINAPI LockResource(HGLOBAL);
 WINBASEAPI DWORD WINAPI SizeofResource(HMODULE,HRSRC);
-WINBASEAPI HANDLE WINAPI CreateFileMappingA(HANDLE,LPSECURITY_ATTRIBUTES,DWORD,DWORD,DWORD,LPCSTR);
+
+WINBASEAPI HANDLE WINAPI CreateFileMappingA(HANDLE hFile, LPSECURITY_ATTRIBUTES lpFileMappingAttributes, DWORD flProtect, DWORD dwMaximumSizeHigh, DWORD dwMaximumSizeLow, LPCSTR lpName)
+{
+    (void)hFile;
+    (void)lpFileMappingAttributes;
+    (void)flProtect;
+    (void)dwMaximumSizeHigh;
+    (void)dwMaximumSizeLow;
+    (void)lpName;
+    STUB("CreateFileMappingA: hFile=%p flProtext=%lx dwMaximumSizeHigh=%ld"
+        " dwMaximumSizeLow=%ld lpName='%s'",
+        hFile, flProtect, dwMaximumSizeHigh,
+        dwMaximumSizeLow, lpName ? lpName : "");
+    return NULL;
+}
+
 WINBASEAPI LPVOID WINAPI MapViewOfFile(HANDLE,DWORD,DWORD,DWORD,SIZE_T);
 WINBASEAPI BOOL WINAPI UnmapViewOfFile(LPCVOID);
 

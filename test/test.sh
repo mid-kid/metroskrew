@@ -1,5 +1,5 @@
 #!/bin/sh
-set -eux
+set -eu
 
 SRC="${SRC:-.}"
 
@@ -28,6 +28,7 @@ test_as() {
 case "$1" in
     basic_c) test_cc "$1" ;;
     basic_s) test_as "$1" ;;
+    include) test_cc "$1" -gccinc ;;
     switch_float_bug) test_cc "$1" ;;
     *) exit 1 ;;
 esac
