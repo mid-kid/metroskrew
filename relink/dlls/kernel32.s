@@ -149,3 +149,5 @@ func MultiByteToWideChar; die MultiByteToWideChar
 func IsValidCodePage; die IsValidCodePage
 
 func GetACP; die GetACP
+
+func LocalFileTimeToFileTime; die LocalFileTimeToFileTime

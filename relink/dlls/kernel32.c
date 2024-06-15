@@ -643,6 +643,8 @@ VOID WINAPI GetLocalTime(LPSYSTEMTIME lpSystemTime)
     memset(lpSystemTime, 0, sizeof(*lpSystemTime));
 }
 
+WINBASEAPI BOOL        WINAPI LocalFileTimeToFileTime(const FILETIME*,LPFILETIME);
+
 // winnt.h
 
 NTSYSAPI void NTAPI RtlUnwind(void*,void*,struct _EXCEPTION_RECORD*,void*);

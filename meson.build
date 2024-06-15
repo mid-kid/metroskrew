@@ -5,7 +5,8 @@ exedump = executable('main', 'main.c', native: true)
 
 tools = {
   'mwccarm': files('bins/mwccarm.exe'),
-  'mwasmarm': files('bins/mwasmarm.exe')
+  'mwasmarm': files('bins/mwasmarm.exe'),
+  'mwldarm': files('bins/mwldarm.exe')
 }
 
 subdir('relink')
