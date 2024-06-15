@@ -194,10 +194,10 @@ end:
 #ifndef _WIN32
 DWORD WINAPI GetFileAttributesA(LPCSTR lpFileName)
 {
+    STUB("GetFileAttributes: only presence and directory: '%s'", lpFileName);
     char *path = path_dup_unx_c(lpFileName);
-    STUB("GetFileAttributes: only presence and directory: %s", path);
     DWORD res = GetFileAttributes_do(path);
-    DB("GetFileAttributesA: res=%lx lpFileName=%s", res, path);
+    DB("GetFileAttributesA: res=%lx lpFileName='%s'", res, path);
     free(path);
     return res;
 }
@@ -261,7 +261,7 @@ UINT WINAPI GetCurrentDirectoryA(UINT nBufferLength, LPSTR lpBuffer)
     for (char *c = path; *c; c++) *p++ = *c == '/' ? '\\' : *c;
     *p++ = '\0';
 
-    DB("GetCurrentDirectoryA: %s", lpBuffer);
+    DB("GetCurrentDirectoryA: '%s'", lpBuffer);
     return strlen(lpBuffer);
 }
 #endif
@@ -309,7 +309,7 @@ BOOL WINAPI TlsSetValue(DWORD dwTlsIndex, LPVOID lpTlsValue)
 HMODULE WINAPI GetModuleHandleA(LPCSTR lpModuleName)
 {
     (void)lpModuleName;
-    STUB("GetModuleHandleA: lpModuleName=%s", lpModuleName);
+    STUB("GetModuleHandleA: lpModuleName='%s'", lpModuleName);
     return NULL;
 }
 
@@ -327,7 +327,7 @@ HMODULE WINAPI LoadLibraryA(LPCSTR lpLibFileName)
     (void)lpLibFileName;
     STUB("HACK: LoadLibraryA");
     HANDLE res = (HANDLE)-1;
-    TR("LoadLibraryA: res=%p lpLibFileName=%s", res, lpLibFileName);
+    TR("LoadLibraryA: res=%p lpLibFileName='%s'", res, lpLibFileName);
     return res;
 }
 
@@ -484,7 +484,7 @@ HANDLE WINAPI CreateFileA(LPCSTR lpFileName, DWORD dwDesiredAccess, DWORD dwShar
 
     char *path = path_dup_unx_c(lpFileName);
     HANDLE res = (HANDLE)(open(path, flags, 0666) + 1);
-    DB("CreateFileA: res=%p lpFileName=%s", res, path);
+    DB("CreateFileA: res=%p lpFileName='%s'", res, path);
     free(path);
     return res;
 
@@ -505,7 +505,7 @@ BOOL WINAPI DeleteFileA(LPCSTR lpFileName)
 {
     char *path = path_dup_unx_c(lpFileName);
     BOOL res = unlink(path) == 0;
-    DB("DeleteFileA: res=%d lpFileName=%s", res, path);
+    DB("DeleteFileA: res=%d lpFileName='%s'", res, path);
     free(path);
     return res;
 }
