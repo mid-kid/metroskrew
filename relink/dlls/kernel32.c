@@ -39,7 +39,6 @@ BOOL WINAPI DuplicateHandle(HANDLE hSourceProcessHandle, HANDLE hSourceHandle, H
 {
     uintptr_t uSourceHandle = (uintptr_t)hSourceHandle;
 
-    // TODO: Actually duplicate non-stdio handles
     if (uSourceHandle < 1 || uSourceHandle > 3) goto die;
 
     *lpTargetHandle = hSourceHandle;
