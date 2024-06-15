@@ -15,7 +15,7 @@ struct rsrc_strings {
 };
 extern struct rsrc_strings pe_rsrc_strings[] __asm__("pe_rsrc_strings");
 
-WINUSERAPI INT WINAPI LoadStringA(HINSTANCE hInstance, UINT uID, LPSTR lpBuffer, INT cchBufferMax)
+INT WINAPI LoadStringA(HINSTANCE hInstance, UINT uID, LPSTR lpBuffer, INT cchBufferMax)
 {
     // Make sure it's not trying to grab strings from a different instance
     // -1 is the HACK value returned from LoadLibraryA

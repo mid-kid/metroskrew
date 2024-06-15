@@ -20,21 +20,21 @@
 
 // winbase.h
 
-WINBASEAPI VOID DECLSPEC_NORETURN WINAPI ExitProcess(DWORD uExitCode)
+VOID DECLSPEC_NORETURN WINAPI ExitProcess(DWORD uExitCode)
 {
     TR("ExitProcess: uExitCode=%lu", uExitCode);
     exit(uExitCode);
 }
 
-WINBASEAPI BOOL WINAPI IsBadReadPtr(LPCVOID,UINT_PTR);
+BOOL WINAPI IsBadReadPtr(LPCVOID,UINT_PTR);
 
-WINBASEAPI HANDLE WINAPI GetCurrentProcess(void)
+HANDLE WINAPI GetCurrentProcess(void)
 {
     TR("GetCurrentProcess");
     return (HANDLE)-1;
 }
 
-WINBASEAPI BOOL WINAPI DuplicateHandle(HANDLE hSourceProcessHandle, HANDLE hSourceHandle, HANDLE hTargetProcessHandle, HANDLE *lpTargetHandle, DWORD dwDesiredAccess, BOOL bInheritHandle, DWORD dwOptions)
+BOOL WINAPI DuplicateHandle(HANDLE hSourceProcessHandle, HANDLE hSourceHandle, HANDLE hTargetProcessHandle, HANDLE *lpTargetHandle, DWORD dwDesiredAccess, BOOL bInheritHandle, DWORD dwOptions)
 {
     uintptr_t uSourceHandle = (uintptr_t)hSourceHandle;
 
@@ -52,7 +52,7 @@ die:
 }
 
 #ifndef _WIN32
-WINBASEAPI DWORD WINAPI GetLastError(void)
+DWORD WINAPI GetLastError(void)
 {
     DWORD res = errno;
     TR("GetLastError: res=%ld", res);
@@ -60,7 +60,7 @@ WINBASEAPI DWORD WINAPI GetLastError(void)
 }
 #endif
 
-WINBASEAPI HANDLE WINAPI GetStdHandle(DWORD nStdHandle)
+HANDLE WINAPI GetStdHandle(DWORD nStdHandle)
 {
     DWORD num = -nStdHandle - 10;
     if (num > 2) return INVALID_HANDLE_VALUE;
@@ -71,13 +71,13 @@ WINBASEAPI HANDLE WINAPI GetStdHandle(DWORD nStdHandle)
 
 #ifndef _WIN32
 // Assuming no multithreading
-WINBASEAPI void WINAPI InitializeCriticalSection(CRITICAL_SECTION *lpCrit)
+void WINAPI InitializeCriticalSection(CRITICAL_SECTION *lpCrit)
 { (void)lpCrit; }
-WINBASEAPI void WINAPI DeleteCriticalSection(CRITICAL_SECTION *lpCrit)
+void WINAPI DeleteCriticalSection(CRITICAL_SECTION *lpCrit)
 { (void)lpCrit; }
-WINBASEAPI void WINAPI EnterCriticalSection(CRITICAL_SECTION *lpCrit)
+void WINAPI EnterCriticalSection(CRITICAL_SECTION *lpCrit)
 { (void)lpCrit; }
-WINBASEAPI void WINAPI LeaveCriticalSection(CRITICAL_SECTION *lpCrit)
+void WINAPI LeaveCriticalSection(CRITICAL_SECTION *lpCrit)
 { (void)lpCrit; }
 #endif
 
@@ -145,7 +145,7 @@ BOOL FindNextFileA_do(struct findfile *findfile, LPWIN32_FIND_DATAA lpFindFileDa
     }
 }
 
-WINBASEAPI HANDLE WINAPI FindFirstFileA(LPCSTR lpFileName, LPWIN32_FIND_DATAA lpFindFileData)
+HANDLE WINAPI FindFirstFileA(LPCSTR lpFileName, LPWIN32_FIND_DATAA lpFindFileData)
 {
     STUB("FindFirstFileA: only filename and attributes: '%s'", lpFileName);
     HANDLE res = INVALID_HANDLE_VALUE;
@@ -192,7 +192,7 @@ end:
 }
 
 #ifndef _WIN32
-WINBASEAPI DWORD WINAPI GetFileAttributesA(LPCSTR lpFileName)
+DWORD WINAPI GetFileAttributesA(LPCSTR lpFileName)
 {
     char *path = path_dup_unx_c(lpFileName);
     STUB("GetFileAttributes: only presence and directory: %s", path);
@@ -203,7 +203,7 @@ WINBASEAPI DWORD WINAPI GetFileAttributesA(LPCSTR lpFileName)
 }
 #endif
 
-WINBASEAPI BOOL WINAPI FindNextFileA(HANDLE hFindFile, LPWIN32_FIND_DATAA lpFindFileData)
+BOOL WINAPI FindNextFileA(HANDLE hFindFile, LPWIN32_FIND_DATAA lpFindFileData)
 {
     STUB("FindNextFileA: only filename and attributes");
     struct findfile *findfile = (struct findfile *)hFindFile;
@@ -213,7 +213,7 @@ WINBASEAPI BOOL WINAPI FindNextFileA(HANDLE hFindFile, LPWIN32_FIND_DATAA lpFind
     return res;
 }
 
-WINBASEAPI BOOL WINAPI FindClose(HANDLE hFindFile)
+BOOL WINAPI FindClose(HANDLE hFindFile)
 {
     struct findfile *findfile = (struct findfile *)hFindFile;
 
@@ -226,19 +226,19 @@ WINBASEAPI BOOL WINAPI FindClose(HANDLE hFindFile)
     return res;
 }
 
-WINBASEAPI LPSTR WINAPI GetCommandLineA(void);
+LPSTR WINAPI GetCommandLineA(void);
 
 #ifndef _WIN32
 #undef GetEnvironmentStrings
-WINBASEAPI LPSTR WINAPI GetEnvironmentStrings(void)
+LPSTR WINAPI GetEnvironmentStrings(void)
     __attribute__((weak, alias("GetEnvironmentStringsA")));
 
-WINBASEAPI LPSTR WINAPI GetEnvironmentStringsA(void)
+LPSTR WINAPI GetEnvironmentStringsA(void)
 {
     return "\0";
 }
 
-WINBASEAPI BOOL WINAPI FreeEnvironmentStringsA(LPSTR penv)
+BOOL WINAPI FreeEnvironmentStringsA(LPSTR penv)
 {
     (void)penv;
     return TRUE;
@@ -246,7 +246,7 @@ WINBASEAPI BOOL WINAPI FreeEnvironmentStringsA(LPSTR penv)
 #endif
 
 #ifndef _WIN32
-WINBASEAPI UINT WINAPI GetCurrentDirectoryA(UINT nBufferLength, LPSTR lpBuffer)
+UINT WINAPI GetCurrentDirectoryA(UINT nBufferLength, LPSTR lpBuffer)
 {
     char path[0x1000];
     if (!getcwd(path, sizeof(path))) return 0;
@@ -266,11 +266,11 @@ WINBASEAPI UINT WINAPI GetCurrentDirectoryA(UINT nBufferLength, LPSTR lpBuffer)
 }
 #endif
 
-WINBASEAPI BOOL WINAPI CreateProcessA(LPCSTR,LPSTR,LPSECURITY_ATTRIBUTES,LPSECURITY_ATTRIBUTES,BOOL,DWORD,LPVOID,LPCSTR,LPSTARTUPINFOA,LPPROCESS_INFORMATION);
-WINBASEAPI DWORD WINAPI WaitForSingleObject(HANDLE,DWORD);
-WINBASEAPI BOOL WINAPI GetExitCodeProcess(HANDLE,LPDWORD);
+BOOL WINAPI CreateProcessA(LPCSTR,LPSTR,LPSECURITY_ATTRIBUTES,LPSECURITY_ATTRIBUTES,BOOL,DWORD,LPVOID,LPCSTR,LPSTARTUPINFOA,LPPROCESS_INFORMATION);
+DWORD WINAPI WaitForSingleObject(HANDLE,DWORD);
+BOOL WINAPI GetExitCodeProcess(HANDLE,LPDWORD);
 
-WINBASEAPI BOOL WINAPI CloseHandle(HANDLE hObject)
+BOOL WINAPI CloseHandle(HANDLE hObject)
 {
     uintptr_t uObject = (uintptr_t)hObject;
     BOOL res = TRUE;
@@ -281,39 +281,39 @@ WINBASEAPI BOOL WINAPI CloseHandle(HANDLE hObject)
 
 #ifndef _WIN32
 // Assuming no multithreading
-WINBASEAPI DWORD WINAPI TlsAlloc(void)
+DWORD WINAPI TlsAlloc(void)
 {
     LPVOID *mem = malloc(sizeof(LPVOID));
     *mem = 0;
     return (DWORD)mem;
 }
 
-WINBASEAPI BOOL WINAPI TlsFree(DWORD dwTlsIndex)
+BOOL WINAPI TlsFree(DWORD dwTlsIndex)
 {
     free((LPVOID *)dwTlsIndex);
     return TRUE;
 }
 
-WINBASEAPI LPVOID WINAPI TlsGetValue(DWORD dwTlsIndex)
+LPVOID WINAPI TlsGetValue(DWORD dwTlsIndex)
 {
     return *(LPVOID *)dwTlsIndex;
 }
 
-WINBASEAPI BOOL WINAPI TlsSetValue(DWORD dwTlsIndex, LPVOID lpTlsValue)
+BOOL WINAPI TlsSetValue(DWORD dwTlsIndex, LPVOID lpTlsValue)
 {
     *(LPVOID *)dwTlsIndex = lpTlsValue;
     return TRUE;
 }
 #endif
 
-WINBASEAPI HMODULE WINAPI GetModuleHandleA(LPCSTR lpModuleName)
+HMODULE WINAPI GetModuleHandleA(LPCSTR lpModuleName)
 {
     (void)lpModuleName;
     STUB("GetModuleHandleA: lpModuleName=%s", lpModuleName);
     return NULL;
 }
 
-WINBASEAPI DWORD WINAPI GetModuleFileNameA(HMODULE hModule, LPSTR lpFileName, DWORD nSize)
+DWORD WINAPI GetModuleFileNameA(HMODULE hModule, LPSTR lpFileName, DWORD nSize)
 {
     (void)hModule;
     (void)lpFileName;
@@ -322,7 +322,7 @@ WINBASEAPI DWORD WINAPI GetModuleFileNameA(HMODULE hModule, LPSTR lpFileName, DW
     return 0;
 }
 
-WINBASEAPI HMODULE WINAPI LoadLibraryA(LPCSTR lpLibFileName)
+HMODULE WINAPI LoadLibraryA(LPCSTR lpLibFileName)
 {
     (void)lpLibFileName;
     STUB("HACK: LoadLibraryA");
@@ -331,7 +331,7 @@ WINBASEAPI HMODULE WINAPI LoadLibraryA(LPCSTR lpLibFileName)
     return res;
 }
 
-WINBASEAPI BOOL WINAPI FreeLibrary(HMODULE hLibModule)
+BOOL WINAPI FreeLibrary(HMODULE hLibModule)
 {
     (void)hLibModule;
     STUB("HACK: FreeLibrary");
@@ -346,7 +346,7 @@ struct alloc {
     char data[];
 };
 
-WINBASEAPI HGLOBAL WINAPI GlobalAlloc(UINT uFlags, SIZE_T dwBytes)
+HGLOBAL WINAPI GlobalAlloc(UINT uFlags, SIZE_T dwBytes)
 {
     struct alloc *alloc = malloc(sizeof(struct alloc) + dwBytes);
     alloc->size = dwBytes;
@@ -369,13 +369,13 @@ WINBASEAPI HGLOBAL WINAPI GlobalAlloc(UINT uFlags, SIZE_T dwBytes)
     return alloc->data;
 }
 
-WINBASEAPI HGLOBAL WINAPI GlobalFree(HGLOBAL hMem)
+HGLOBAL WINAPI GlobalFree(HGLOBAL hMem)
 {
     free((struct alloc *)hMem - 1);
     return NULL;
 }
 
-WINBASEAPI DWORD WINAPI GetFullPathNameA(LPCSTR lpFileName, DWORD nBufferLength, LPSTR lpBuffer, LPSTR *lpFilePart)
+DWORD WINAPI GetFullPathNameA(LPCSTR lpFileName, DWORD nBufferLength, LPSTR lpBuffer, LPSTR *lpFilePart)
 {
     DWORD res = 0;
 
@@ -405,7 +405,7 @@ WINBASEAPI DWORD WINAPI GetFullPathNameA(LPCSTR lpFileName, DWORD nBufferLength,
     return full_len;
 }
 
-WINBASEAPI DWORD WINAPI SetFilePointer(HANDLE hFile, LONG lDistanceToMove, LPLONG lpDistanceToMoveHigh, DWORD dwMoveMethod)
+DWORD WINAPI SetFilePointer(HANDLE hFile, LONG lDistanceToMove, LPLONG lpDistanceToMoveHigh, DWORD dwMoveMethod)
 {
     uintptr_t uFile = (uintptr_t)hFile;
 
@@ -419,7 +419,7 @@ WINBASEAPI DWORD WINAPI SetFilePointer(HANDLE hFile, LONG lDistanceToMove, LPLON
     return res;
 }
 
-WINBASEAPI BOOL WINAPI WriteFile(HANDLE hFile, LPCVOID lpBuffer, DWORD nNumberOfBytesToWrite, LPDWORD lpNumberOfBytesWritten, LPOVERLAPPED lpOverlapped)
+BOOL WINAPI WriteFile(HANDLE hFile, LPCVOID lpBuffer, DWORD nNumberOfBytesToWrite, LPDWORD lpNumberOfBytesWritten, LPOVERLAPPED lpOverlapped)
 {
     uintptr_t uFile = (uintptr_t)hFile;
 
@@ -436,7 +436,7 @@ WINBASEAPI BOOL WINAPI WriteFile(HANDLE hFile, LPCVOID lpBuffer, DWORD nNumberOf
     return res;
 }
 
-WINBASEAPI BOOL WINAPI ReadFile(HANDLE hFile, LPVOID lpBuffer, DWORD nNumberOfBytesToRead, LPDWORD lpNumberOfBytesRead, LPOVERLAPPED lpOverlapped)
+BOOL WINAPI ReadFile(HANDLE hFile, LPVOID lpBuffer, DWORD nNumberOfBytesToRead, LPDWORD lpNumberOfBytesRead, LPOVERLAPPED lpOverlapped)
 {
     uintptr_t uFile = (uintptr_t)hFile;
 
@@ -453,7 +453,7 @@ WINBASEAPI BOOL WINAPI ReadFile(HANDLE hFile, LPVOID lpBuffer, DWORD nNumberOfBy
     return res;
 }
 
-WINBASEAPI HANDLE WINAPI CreateFileA(LPCSTR lpFileName, DWORD dwDesiredAccess, DWORD dwShareMode, LPSECURITY_ATTRIBUTES lpSecurityAttributes, DWORD dwCreationDisposition, DWORD dwFlagsAndAttributes, HANDLE hTemplateFile)
+HANDLE WINAPI CreateFileA(LPCSTR lpFileName, DWORD dwDesiredAccess, DWORD dwShareMode, LPSECURITY_ATTRIBUTES lpSecurityAttributes, DWORD dwCreationDisposition, DWORD dwFlagsAndAttributes, HANDLE hTemplateFile)
 {
     // Cover for unsupported functionality
     //if (dwShareMode) goto die; // Ignored, can't action on this
@@ -495,13 +495,13 @@ die:
     );
 }
 
-WINBASEAPI DWORD WINAPI GetTickCount(void)
+DWORD WINAPI GetTickCount(void)
 {
     STUB("GetTickCount");
     return 0;
 }
 
-WINBASEAPI BOOL WINAPI DeleteFileA(LPCSTR lpFileName)
+BOOL WINAPI DeleteFileA(LPCSTR lpFileName)
 {
     char *path = path_dup_unx_c(lpFileName);
     BOOL res = unlink(path) == 0;
@@ -510,10 +510,10 @@ WINBASEAPI BOOL WINAPI DeleteFileA(LPCSTR lpFileName)
     return res;
 }
 
-WINBASEAPI BOOL WINAPI MoveFileA(LPCSTR,LPCSTR);
-WINBASEAPI DWORD WINAPI FormatMessageA(DWORD,LPCVOID,DWORD,DWORD,LPSTR,DWORD,va_list*);
+BOOL WINAPI MoveFileA(LPCSTR,LPCSTR);
+DWORD WINAPI FormatMessageA(DWORD,LPCVOID,DWORD,DWORD,LPSTR,DWORD,va_list*);
 
-WINBASEAPI BOOL WINAPI GetFileTime(HANDLE hFile, LPFILETIME lpCreationTime, LPFILETIME lpLastAccessTime, LPFILETIME lpLastWriteTime)
+BOOL WINAPI GetFileTime(HANDLE hFile, LPFILETIME lpCreationTime, LPFILETIME lpLastAccessTime, LPFILETIME lpLastWriteTime)
 {
     (void)hFile;
     (void)lpCreationTime;
@@ -523,9 +523,9 @@ WINBASEAPI BOOL WINAPI GetFileTime(HANDLE hFile, LPFILETIME lpCreationTime, LPFI
     return FALSE;
 }
 
-WINBASEAPI BOOL WINAPI SetFileTime(HANDLE,const FILETIME*,const FILETIME*,const FILETIME*);
+BOOL WINAPI SetFileTime(HANDLE,const FILETIME*,const FILETIME*,const FILETIME*);
 
-WINBASEAPI DWORD WINAPI GetFileSize(HANDLE hFile, LPDWORD lpFileSizeHigh)
+DWORD WINAPI GetFileSize(HANDLE hFile, LPDWORD lpFileSizeHigh)
 {
     uintptr_t uFile = (uintptr_t)hFile;
 
@@ -540,18 +540,18 @@ WINBASEAPI DWORD WINAPI GetFileSize(HANDLE hFile, LPDWORD lpFileSizeHigh)
     return res;
 }
 
-WINBASEAPI BOOL WINAPI SetEndOfFile(HANDLE);
-WINBASEAPI BOOL WINAPI CreateDirectoryA(LPCSTR,LPSECURITY_ATTRIBUTES);
-WINBASEAPI BOOL WINAPI RemoveDirectoryA(LPCSTR);
-WINBASEAPI BOOL WINAPI SetStdHandle(DWORD,HANDLE);
+BOOL WINAPI SetEndOfFile(HANDLE);
+BOOL WINAPI CreateDirectoryA(LPCSTR,LPSECURITY_ATTRIBUTES);
+BOOL WINAPI RemoveDirectoryA(LPCSTR);
+BOOL WINAPI SetStdHandle(DWORD,HANDLE);
 
-WINBASEAPI VOID WINAPI GetSystemTime(LPSYSTEMTIME lpSystemTime)
+VOID WINAPI GetSystemTime(LPSYSTEMTIME lpSystemTime)
 {
     STUB("GetSystemTime");
     memset(lpSystemTime, 0, sizeof(*lpSystemTime));
 }
 
-WINBASEAPI BOOL WINAPI SystemTimeToFileTime(const SYSTEMTIME *lpSystemTime, LPFILETIME lpFileTime)
+BOOL WINAPI SystemTimeToFileTime(const SYSTEMTIME *lpSystemTime, LPFILETIME lpFileTime)
 {
     (void)lpSystemTime;
     STUB("SystemTimeToFileTime");
@@ -559,9 +559,9 @@ WINBASEAPI BOOL WINAPI SystemTimeToFileTime(const SYSTEMTIME *lpSystemTime, LPFI
     return FALSE;
 }
 
-WINBASEAPI INT WINAPI CompareFileTime(const FILETIME*,const FILETIME*);
+INT WINAPI CompareFileTime(const FILETIME*,const FILETIME*);
 
-WINBASEAPI HGLOBAL WINAPI GlobalReAlloc(HGLOBAL hMem, SIZE_T dwBytes, UINT uFlags)
+HGLOBAL WINAPI GlobalReAlloc(HGLOBAL hMem, SIZE_T dwBytes, UINT uFlags)
 {
     struct alloc *alloc = realloc((struct alloc *)hMem - 1,
         sizeof(struct alloc) + dwBytes);
@@ -589,18 +589,18 @@ WINBASEAPI HGLOBAL WINAPI GlobalReAlloc(HGLOBAL hMem, SIZE_T dwBytes, UINT uFlag
     return alloc->data;
 }
 
-WINBASEAPI UINT WINAPI GlobalFlags(HGLOBAL hMem)
+UINT WINAPI GlobalFlags(HGLOBAL hMem)
 {
     return ((struct alloc *)hMem - 1)->flags;
 }
 
-WINBASEAPI BOOL WINAPI FileTimeToSystemTime(const FILETIME*,LPSYSTEMTIME);
-WINBASEAPI HRSRC WINAPI FindResourceA(HMODULE,LPCSTR,LPCSTR);
-WINBASEAPI HGLOBAL WINAPI LoadResource(HMODULE,HRSRC);
-WINBASEAPI LPVOID WINAPI LockResource(HGLOBAL);
-WINBASEAPI DWORD WINAPI SizeofResource(HMODULE,HRSRC);
+BOOL WINAPI FileTimeToSystemTime(const FILETIME*,LPSYSTEMTIME);
+HRSRC WINAPI FindResourceA(HMODULE,LPCSTR,LPCSTR);
+HGLOBAL WINAPI LoadResource(HMODULE,HRSRC);
+LPVOID WINAPI LockResource(HGLOBAL);
+DWORD WINAPI SizeofResource(HMODULE,HRSRC);
 
-WINBASEAPI HANDLE WINAPI CreateFileMappingA(HANDLE hFile, LPSECURITY_ATTRIBUTES lpFileMappingAttributes, DWORD flProtect, DWORD dwMaximumSizeHigh, DWORD dwMaximumSizeLow, LPCSTR lpName)
+HANDLE WINAPI CreateFileMappingA(HANDLE hFile, LPSECURITY_ATTRIBUTES lpFileMappingAttributes, DWORD flProtect, DWORD dwMaximumSizeHigh, DWORD dwMaximumSizeLow, LPCSTR lpName)
 {
     (void)hFile;
     (void)lpFileMappingAttributes;
@@ -615,10 +615,10 @@ WINBASEAPI HANDLE WINAPI CreateFileMappingA(HANDLE hFile, LPSECURITY_ATTRIBUTES 
     return NULL;
 }
 
-WINBASEAPI LPVOID WINAPI MapViewOfFile(HANDLE,DWORD,DWORD,DWORD,SIZE_T);
-WINBASEAPI BOOL WINAPI UnmapViewOfFile(LPCVOID);
+LPVOID WINAPI MapViewOfFile(HANDLE,DWORD,DWORD,DWORD,SIZE_T);
+BOOL WINAPI UnmapViewOfFile(LPCVOID);
 
-WINBASEAPI UINT WINAPI GetSystemDirectoryA(LPSTR lpBuffer, UINT uSize)
+UINT WINAPI GetSystemDirectoryA(LPSTR lpBuffer, UINT uSize)
 {
     (void)lpBuffer;
     (void)uSize;
@@ -626,7 +626,7 @@ WINBASEAPI UINT WINAPI GetSystemDirectoryA(LPSTR lpBuffer, UINT uSize)
     return 0;
 }
 
-WINBASEAPI UINT WINAPI GetWindowsDirectoryA(LPSTR lpBuffer, UINT uSize)
+UINT WINAPI GetWindowsDirectoryA(LPSTR lpBuffer, UINT uSize)
 {
     (void)lpBuffer;
     (void)uSize;
@@ -634,10 +634,10 @@ WINBASEAPI UINT WINAPI GetWindowsDirectoryA(LPSTR lpBuffer, UINT uSize)
     return 0;
 }
 
-WINBASEAPI BOOL WINAPI SetFileAttributesA(LPCSTR,DWORD);
-WINBASEAPI HANDLE WINAPI OpenFileMappingA(DWORD,BOOL,LPCSTR);
+BOOL WINAPI SetFileAttributesA(LPCSTR,DWORD);
+HANDLE WINAPI OpenFileMappingA(DWORD,BOOL,LPCSTR);
 
-WINBASEAPI VOID WINAPI GetLocalTime(LPSYSTEMTIME lpSystemTime)
+VOID WINAPI GetLocalTime(LPSYSTEMTIME lpSystemTime)
 {
     STUB("GetLocalTime");
     memset(lpSystemTime, 0, sizeof(*lpSystemTime));
@@ -649,7 +649,7 @@ NTSYSAPI void NTAPI RtlUnwind(void*,void*,struct _EXCEPTION_RECORD*,void*);
 
 // consoleapi.h
 
-WINBASEAPI BOOL WINAPI SetConsoleCtrlHandler(PHANDLER_ROUTINE HandlerRoutine, BOOL Add)
+BOOL WINAPI SetConsoleCtrlHandler(PHANDLER_ROUTINE HandlerRoutine, BOOL Add)
 {
     (void)HandlerRoutine;
     (void)Add;
@@ -659,7 +659,7 @@ WINBASEAPI BOOL WINAPI SetConsoleCtrlHandler(PHANDLER_ROUTINE HandlerRoutine, BO
 
 // wincon.h
 
-WINBASEAPI BOOL WINAPI GetConsoleScreenBufferInfo(HANDLE hConsole, LPCONSOLE_SCREEN_BUFFER_INFO lpConsoleScreenBufferInfo)
+BOOL WINAPI GetConsoleScreenBufferInfo(HANDLE hConsole, LPCONSOLE_SCREEN_BUFFER_INFO lpConsoleScreenBufferInfo)
 {
     (void)hConsole;
     (void)lpConsoleScreenBufferInfo;
@@ -669,13 +669,13 @@ WINBASEAPI BOOL WINAPI GetConsoleScreenBufferInfo(HANDLE hConsole, LPCONSOLE_SCR
 
 // winnls.h
 
-WINBASEAPI INT WINAPI MultiByteToWideChar(UINT,DWORD,LPCSTR,INT,LPWSTR,INT);
-WINBASEAPI BOOL WINAPI IsValidCodePage(UINT);
-WINBASEAPI UINT WINAPI GetACP(void);
+INT WINAPI MultiByteToWideChar(UINT,DWORD,LPCSTR,INT,LPWSTR,INT);
+BOOL WINAPI IsValidCodePage(UINT);
+UINT WINAPI GetACP(void);
 
 // timezoneapi.h
 
-WINBASEAPI DWORD WINAPI GetTimeZoneInformation(LPTIME_ZONE_INFORMATION lpTimeZoneInformation)
+DWORD WINAPI GetTimeZoneInformation(LPTIME_ZONE_INFORMATION lpTimeZoneInformation)
 {
     STUB("GetTimeZoneInformation");
     memset(lpTimeZoneInformation, 0, sizeof(*lpTimeZoneInformation));

@@ -8,7 +8,7 @@
 // Local headers
 #include "utils.h"
 
-WINBASEAPI DWORD WINAPI GetFileVersionInfoSizeA(LPCSTR lptstrFilename, LPDWORD lpdwHandle)
+DWORD WINAPI GetFileVersionInfoSizeA(LPCSTR lptstrFilename, LPDWORD lpdwHandle)
 {
     (void)lptstrFilename;
     if (lpdwHandle) *lpdwHandle = 0;
@@ -19,7 +19,7 @@ WINBASEAPI DWORD WINAPI GetFileVersionInfoSizeA(LPCSTR lptstrFilename, LPDWORD l
 }
 
 #if 0
-WINBASEAPI BOOL WINAPI GetFileVersionInfoA(LPCSTR lptstrFilename, DWORD dwHandle, DWORD dwLen, LPVOID lpData)
+BOOL WINAPI GetFileVersionInfoA(LPCSTR lptstrFilename, DWORD dwHandle, DWORD dwLen, LPVOID lpData)
 {
     (void)lptstrFilename;
     (void)dwHandle;
@@ -31,7 +31,7 @@ WINBASEAPI BOOL WINAPI GetFileVersionInfoA(LPCSTR lptstrFilename, DWORD dwHandle
     return res;
 }
 
-WINBASEAPI BOOL WINAPI VerQueryValueA(LPCVOID pBlock, LPCSTR lpSubBlock, LPVOID *lplpBuffer, PUINT puLen)
+BOOL WINAPI VerQueryValueA(LPCVOID pBlock, LPCSTR lpSubBlock, LPVOID *lplpBuffer, PUINT puLen)
 {
     (void)pBlock;
 
