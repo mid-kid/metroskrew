@@ -16,6 +16,14 @@ _\name:
 .endif
 .endm
 
+.macro wjmp name
+.ifndef _WIN32
+    jmp \name
+.else
+    jmp _\name
+.endif
+.endm
+
 .macro stub name
 .ifndef NDEBUG
     push offset stub_str\@
