@@ -45,7 +45,7 @@ INT WINAPI LoadStringA(HINSTANCE hInstance, UINT uID, LPSTR lpBuffer, INT cchBuf
     for (INT x = res; x; x--) *dst++ = *str++;
     *dst++ = '\0';
 
-    TR("LoadStringA: res=%d hInstance=%p uID=%d lpBuffer='%s'",
+    TRACE("LoadStringA: res=%d hInstance=%p uID=%d lpBuffer='%s'",
         res, hInstance, uID, lpBuffer);
     return res;
 

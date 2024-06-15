@@ -3,17 +3,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#ifdef TRACE
-#define TR(msg, ...) printf("trace: " msg "\n", ##__VA_ARGS__)
+#ifdef ETRACE
+#define TRACE(msg, ...) printf("trace: " msg "\n", ##__VA_ARGS__)
 #else
-#define TR(msg, ...)
+#define TRACE(msg, ...)
 #endif
 
 #ifndef NDEBUG
-#define DB(msg, ...) printf(msg "\n", ##__VA_ARGS__)
+#define DEBUG(msg, ...) printf(msg "\n", ##__VA_ARGS__)
 #define STUB(msg, ...) printf("stub: " msg "\n", ##__VA_ARGS__)
 #else
-#define DB(msg, ...)
+#define DEBUG(msg, ...)
 #define STUB(msg, ...)
 #endif
 

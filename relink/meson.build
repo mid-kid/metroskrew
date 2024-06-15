@@ -35,14 +35,14 @@ c_args = [
   '-fno-PIC',
   '-U_FILE_OFFSET_BITS',
   get_option('debug') ? [] : '-DNDEBUG',
-  get_option('trace') ? '-DTRACE' : []
+  get_option('trace') ? '-DETRACE' : []
 ]
 
 as_args = [
   arch,
   '-I' + meson.current_source_dir(),
   get_option('debug') ? [] : ['--defsym', 'NDEBUG=1'],
-  get_option('trace') ? ['--defsym', 'TRACE=1'] : [],
+  get_option('trace') ? ['--defsym', 'ETRACE=1'] : [],
   is_windows ? ['--defsym', '_WIN32=1'] : []
 ]
 
