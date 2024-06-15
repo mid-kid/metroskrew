@@ -286,9 +286,9 @@ bool pe_read_import_table(struct pe_file *file, struct pe_import *out)
 
     unsigned long addr_num = 0;
     unsigned long name_num = 0;
-    unsigned long *imp_addr = malloc(1);
-    unsigned long *dllname_addr = malloc(1);
-    unsigned long *name_addr = malloc(1);
+    unsigned long *imp_addr = NULL;
+    unsigned long *dllname_addr = NULL;
+    unsigned long *name_addr = NULL;
 
     unsigned char *desc = header;
     while (header + size >= desc + 0x14) {
