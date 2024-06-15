@@ -1,5 +1,6 @@
 
 // WINE headers, used for the sake of type-checking definitions
+#define WINBASEAPI
 #include <stdarg.h>
 #include "windef.h"
 #include "winbase.h"
