@@ -1,7 +1,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-char *path_dup_unx_c(const char *path)
+char *path_dup_unx(const char *path)
 {
     const char *o = path;
     if (o[0] == 'Z' && o[1] == ':' && o[2] == '\\') o += 2;

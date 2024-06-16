@@ -22,4 +22,4 @@
 #define ALIAS(name, num) \
     __asm__(".global _" name "; .set _" name ", _" name "@" #num)
 
-char *path_dup_unx_c(const char *path);
+char *path_dup_unx(const char *path);

@@ -150,13 +150,13 @@ HANDLE WINAPI FindFirstFileA(LPCSTR lpFileName, LPWIN32_FIND_DATAA lpFindFileDat
     STUB("FindFirstFileA: only filename and attributes: '%s'", lpFileName);
     HANDLE res = INVALID_HANDLE_VALUE;
 #ifdef TRACE
-    char *path = path_dup_unx_c(lpFileName);
+    char *path = path_dup_unx(lpFileName);
 #endif
 
     DIR *dir = NULL;
 
     // Check if we're listing a directory
-    char *dir_path = path_dup_unx_c(lpFileName);
+    char *dir_path = path_dup_unx(lpFileName);
     size_t len_path = strlen(dir_path);
     if (dir_path[len_path - 2] == '/' && dir_path[len_path - 1] == '*') {
         dir_path[len_path - 2] = '\0';
@@ -195,7 +195,7 @@ end:
 DWORD WINAPI GetFileAttributesA(LPCSTR lpFileName)
 {
     STUB("GetFileAttributes: only presence and directory: '%s'", lpFileName);
-    char *path = path_dup_unx_c(lpFileName);
+    char *path = path_dup_unx(lpFileName);
     DWORD res = GetFileAttributes_do(path);
     DEBUG("GetFileAttributesA: res=%lx lpFileName='%s'", res, path);
     free(path);
@@ -482,7 +482,7 @@ HANDLE WINAPI CreateFileA(LPCSTR lpFileName, DWORD dwDesiredAccess, DWORD dwShar
     flags |= O_BINARY;
 #endif
 
-    char *path = path_dup_unx_c(lpFileName);
+    char *path = path_dup_unx(lpFileName);
     HANDLE res = (HANDLE)(open(path, flags, 0666) + 1);
     DEBUG("CreateFileA: res=%p lpFileName='%s'", res, path);
     free(path);
@@ -503,7 +503,7 @@ DWORD WINAPI GetTickCount(void)
 
 BOOL WINAPI DeleteFileA(LPCSTR lpFileName)
 {
-    char *path = path_dup_unx_c(lpFileName);
+    char *path = path_dup_unx(lpFileName);
     BOOL res = unlink(path) == 0;
     DEBUG("DeleteFileA: res=%d lpFileName='%s'", res, path);
     free(path);
