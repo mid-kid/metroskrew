@@ -1,6 +1,5 @@
 .intel_syntax noprefix
 .include "macros.i"
-.include "stat.i"
 
 func IsBadReadPtr; die IsBadReadPtr
 

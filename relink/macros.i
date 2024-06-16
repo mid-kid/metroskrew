@@ -36,18 +36,6 @@ stub_end\@:
 .endif
 .endm
 
-.macro trace name
-.ifdef TRACE
-    push offset trace_str\@
-    wcall puts
-    pop eax
-    jmp trace_end\@
-trace_str\@:
-    .asciz "trace: \name"
-trace_end\@:
-.endif
-.endm
-
 .macro die name
     push offset die_str\@
     wcall puts

@@ -6,7 +6,6 @@ arch = '-march=i586'
 
 sources_s = [
   'entry.s',
-  'utils.s',
   'dlls/advapi32.s',
   'dlls/kernel32.s',
   'dlls/user32.s',
@@ -15,7 +14,6 @@ sources_s = [
   'dlls/ole32.s'
 ]
 sources_c = [
-  'sysdeps.c',
   'utils.c',
   'dlls/kernel32.c',
   'dlls/user32.c',
