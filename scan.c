@@ -17,12 +17,12 @@ struct file {
 };
 
 struct scan {
-    int offset;
+    int off;
     size_t size;
     unsigned char *data;
 };
-#define DEF_SCAN(_offset, ...) {\
-    .offset = _offset, \
+#define DEF_SCAN(_off, ...) {\
+    .off = _off, \
     .data = (unsigned char *)&((unsigned char[]){__VA_ARGS__}), \
     .size = sizeof((unsigned char[]){__VA_ARGS__})}
 #define END_SCAN {}
@@ -37,9 +37,8 @@ uint32_t read_u32(const unsigned char *mem)
     return mem[0] << 0 | mem[1] << 8 | mem[2] << 16 | mem[3] << 24;
 }
 
-const unsigned char *scan(const struct file *binary, const struct scan *scan)
+const unsigned char *scan(const struct file *binary, const struct scan *scan, size_t off)
 {
-    size_t off = 0;
     for (;;) {
         const struct scan *cur = scan;
 
@@ -51,13 +50,13 @@ const unsigned char *scan(const struct file *binary, const struct scan *scan)
         off = pos - binary->data;
 
         // Make sure the base offset makes sense
-        size_t scan_base = off - cur->offset;
+        size_t scan_base = off - cur->off;
         off++;
         if (scan_base > binary->size) continue;
 
         // Verify that the rest of the scan regions match
         while ((++cur)->data) {
-            size_t scan_off = scan_base + cur->offset;
+            size_t scan_off = scan_base + cur->off;
             if (scan_off > binary->size) break;
             if (scan_off + cur->size > binary->size) break;
             if (memcmp(binary->data + scan_off, cur->data, cur->size) != 0) break;
@@ -80,17 +79,19 @@ unsigned find_fs(const struct file *binary, const struct loc **res)
     unsigned found = 0;
     *res = loc;
 
-    static const char code[] = {
-        0x64, 0xa1, 0x00, 0x00, 0x00, 0x00,       // mov eax, fs:[0]
-        0x50,                                     // push eax
-        0x64, 0x89, 0x25, 0x00, 0x00, 0x00, 0x00  // mov fs:[0], esp
+    const struct scan code[] = {
+        DEF_SCAN(0,
+            0x64, 0xa1, 0x00, 0x00, 0x00, 0x00,       // mov eax, fs:[0]
+            0x50,                                     // push eax
+            0x64, 0x89, 0x25, 0x00, 0x00, 0x00, 0x00  // mov fs:[0], esp
+        ),
+        END_SCAN
     };
 
     // Find the chunks
     size_t off = 0;
     while (found < 3) {
-        unsigned char *pos =
-            memmem(binary->data + off, binary->size - off, code, sizeof(code));
+        const unsigned char *pos = scan(binary, code, off);
         if (!pos) return found;
         off = pos - binary->data;
         loc[found].start = off;
@@ -123,15 +124,6 @@ unsigned find_init(const struct file *binary, const struct loc **res)
             0xe8                           // call unk
         ),
         // Verify the instructions for all the parameters we're extracting
-        DEF_SCAN(-10,
-            0xe8  // call init_args
-        ),
-        DEF_SCAN(-5,
-            0xe8  // call init_envp
-        ),
-        DEF_SCAN(29,
-            0xe8  // call main
-        ),
         DEF_SCAN(11,
             0xff, 0x35  // push dword ptr [envp]
         ),
@@ -141,27 +133,69 @@ unsigned find_init(const struct file *binary, const struct loc **res)
         DEF_SCAN(23,
             0xff, 0x35  // push dword ptr [argc]
         ),
+        DEF_SCAN(-10,
+            0xe8  // call init_args
+        ),
+        DEF_SCAN(-5,
+            0xe8  // call init_envp
+        ),
+        DEF_SCAN(29,
+            0xe8  // call main
+        ),
         END_SCAN
     };
 
-    const unsigned char *pos = scan(binary, code);
+    const unsigned char *pos = scan(binary, code, 0);
+    if (!pos) return 0;
+    size_t off = pos - binary->data;
 
     static struct loc loc[] = {
-        {.name = "init_args"},
-        {.name = "init_envp"},
-        {.name = "main"},
         {.name = "envp"},
         {.name = "argv"},
-        {.name = "argc"}
+        {.name = "argc"},
+        {.name = "init_args"},
+        {.name = "init_envp"},
+        {.name = "main"}
     };
 
-    if (!pos) return 0;
-    loc[0].start = read_u32(pos - 10 + 1);
-    loc[1].start = read_u32(pos - 5 + 1);
-    loc[2].start = read_u32(pos + 29 + 1);
-    loc[3].start = read_u32(pos + 11 + 2);
-    loc[4].start = read_u32(pos + 17 + 2);
-    loc[5].start = read_u32(pos + 23 + 2);
+    loc[0].start = read_u32(pos + code[1].off + code[1].size);
+    loc[1].start = read_u32(pos + code[2].off + code[2].size);
+    loc[2].start = read_u32(pos + code[3].off + code[3].size);
+
+    const unsigned char *end;
+    static const unsigned char end_init_args[] = {
+        0x89, 0xf2,       // mov edx, esi
+        0x2b, 0x55, 0xec  // sub edx, dword ptr [ebp - 0x14]
+    };
+    static const unsigned char end_init_envp[] = {
+        0x5b,  // pop ebx
+        0xc3   // ret
+    };
+
+    loc[3].start = read_u32(pos + code[4].off + code[4].size) +
+        off + code[4].off + 5;
+    loc[3].end = 0;
+    end = memmem(binary->data + loc[3].start, binary->size - loc[3].start,
+        end_init_args, sizeof(end_init_args));
+    if (end) {
+        loc[3].end = end - binary->data + sizeof(end_init_args) + 11;
+    }
+
+    loc[4].start = read_u32(pos + code[5].off + code[5].size) +
+        off + code[5].off + 5;
+    loc[4].end = 0;
+    end = memmem(binary->data + loc[4].start, binary->size - loc[4].start,
+        end_init_envp, sizeof(end_init_envp));
+    if (end) {
+        size_t off = end - binary->data + sizeof(end_init_envp);
+        while (off < binary->size && binary->data[off] == 0x90) off++;
+        loc[4].end = off;
+    }
+
+    loc[5].start = read_u32(pos + code[6].off + code[6].size) +
+        off + code[6].off + 5;
+    loc[5].end = 0;  // Not relevant for now
+
     *res = loc;
     return 6;
 }
