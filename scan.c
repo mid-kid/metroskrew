@@ -145,10 +145,6 @@ unsigned find_init(const struct file *binary, const struct loc **res)
         END_SCAN
     };
 
-    const unsigned char *pos = scan(binary, code, 0);
-    if (!pos) return 0;
-    size_t off = pos - binary->data;
-
     static struct loc loc[] = {
         {.name = "envp"},
         {.name = "argv"},
@@ -157,6 +153,10 @@ unsigned find_init(const struct file *binary, const struct loc **res)
         {.name = "init_envp"},
         {.name = "main"}
     };
+
+    const unsigned char *pos = scan(binary, code, 0);
+    if (!pos) return 0;
+    size_t off = pos - binary->data;
 
     loc[0].start = read_u32(pos + code[1].off + code[1].size);
     loc[1].start = read_u32(pos + code[2].off + code[2].size);
@@ -200,10 +200,56 @@ unsigned find_init(const struct file *binary, const struct loc **res)
     return 6;
 }
 
+unsigned find_getenv(const struct file *binary, const struct loc **res)
+{
+    // Find the getenv() function
+
+    const struct scan code[] = {
+        DEF_SCAN(0,
+            0x31, 0xc0,       // xor eax, eax
+            0x56,             // push esi
+            0x57,             // push edi
+            0x83, 0xec, 0x04  // sub esp, 4
+        ),
+        END_SCAN
+    };
+
+    static struct loc loc[] = {
+        {.name = "getenv"}
+    };
+
+    const unsigned char *pos = scan(binary, code, 0);
+    if (!pos) return 0;
+    size_t off = pos - binary->data;
+
+    const unsigned char *end;
+    static const unsigned char end_code[] = {
+        0x31, 0xc0,        // xor eax, eax
+        0x83, 0xc4, 0x04,  // add esp, 4
+        0x5f,              // pop edi
+        0x5e,              // pop esi
+        0xc3               // ret
+    };
+
+    loc[0].start = off;
+    loc[0].end = 0;
+    end = memmem(binary->data + loc[0].start, binary->size - loc[0].start,
+        end_code, sizeof(end_code));
+    if (end) {
+        size_t off = end - binary->data + sizeof(end_code);
+        while (off < binary->size && binary->data[off] == 0x90) off++;
+        loc[0].end = off;
+    }
+
+    *res = loc;
+    return 1;
+}
+
 typedef unsigned (*funcs_t)(const struct file *, const struct loc **);
 static const funcs_t funcs[] = {
     find_fs,
     find_init,
+    find_getenv,
     NULL
 };
 
