@@ -5,6 +5,11 @@
 #include <string.h>
 #include <stdint.h>
 
+struct {
+    char *out;
+    char *incbin;
+} opt;
+
 struct loc {
     char *name;
     size_t start;
@@ -261,7 +266,7 @@ int sort_loc(const void *_p1, const void *_p2)
     return p1->start - p2->start;
 }
 
-int scan_bin(FILE *out, const struct file *binary)
+int scan_bin(FILE *out, const struct file *binary, const char *incbin)
 {
     struct loc *patches = NULL;
     unsigned patches_len = 0;
@@ -277,6 +282,14 @@ int scan_bin(FILE *out, const struct file *binary)
 
     qsort(patches, patches_len, sizeof(*patches), sort_loc);
 
+    // Generate header
+    fprintf(out,
+        ".macro incbin off, len\n"
+        ".incbin \"%s\", \\off, \\len\n"
+        ".endm\n",
+        incbin
+    );
+
     for (unsigned i = 0; i < patches_len; i++) {
         const struct loc *loc = patches + i;
         fprintf(out, "\n");
@@ -287,6 +300,10 @@ int scan_bin(FILE *out, const struct file *binary)
             fprintf(out, "addr_%s = 0x%lx\n", loc->name, loc->start);
         }
     }
+
+    fprintf(out, "\n"
+        ".include \"patch.i\"\n"
+    );
 
     return EXIT_SUCCESS;
 }
@@ -320,24 +337,55 @@ struct file *file_read(const char *name)
     return file;
 }
 
+char *main_progname;
+
+void main_usage(void)
+{
+    fprintf(stderr, "Usage: %s <file>\n", main_progname);
+}
+
 int main(int argc, char *argv[])
 {
-    if (argc <= 2) {
-        fprintf(stderr, "Usage: %s <out> <file>\n", argv[0]);
+    while (argc > 1) {
+        if (*argv[1] != '-') {
+            break;
+        } else if (strcmp(argv[1], "--") == 0) {
+            argv++; argc--;
+            break;
+        } else if (strcmp(argv[1], "-o") == 0) {
+            if (argc <= 1) { main_usage(); return EXIT_FAILURE; }
+            opt.out = argv[2];
+            argv++; argc--;
+        } else if (strcmp(argv[1], "--incbin") == 0) {
+            if (argc <= 1) { main_usage(); return EXIT_FAILURE; }
+            opt.incbin = argv[2];
+            argv++; argc--;
+        }
+        argv++; argc--;
+    }
+
+    if (argc <= 1) {
+        main_usage();
         return EXIT_FAILURE;
     }
 
-    FILE *out = fopen(argv[1], "wb");
-    if (!out) {
+    struct file *binary = file_read(argv[1]);
+    if (!binary) {
         fprintf(stderr, "Failed to open file: %s\n", argv[1]);
         return EXIT_FAILURE;
     }
 
-    struct file *binary = file_read(argv[2]);
-    if (!binary) {
-        fprintf(stderr, "Failed to open file: %s\n", argv[2]);
-        return EXIT_FAILURE;
+    FILE *out = stdout;
+    if (opt.out) {
+        out = fopen(opt.out, "w");
+        if (!out) {
+            fprintf(stderr, "Failed to open file: %s\n", opt.out);
+            return EXIT_FAILURE;
+        }
     }
 
-    return scan_bin(out, binary);
+    char *incbin = argv[1];
+    if (opt.incbin) incbin = opt.incbin;
+
+    return scan_bin(out, binary, incbin);
 }

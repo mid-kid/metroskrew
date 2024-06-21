@@ -537,7 +537,7 @@ bool dump_find_export(struct pe_file *file, unsigned long addr, struct pe_export
     return false;
 }
 
-unsigned dump_do_export(FILE *out, struct dump_export *dump, char *incbin, unsigned long pos)
+unsigned dump_do_export(FILE *out, struct dump_export *dump, const char *incbin, unsigned long pos)
 {
     (void)incbin;
     (void)pos;
@@ -588,7 +588,7 @@ bool dump_find_import(struct pe_file *file, unsigned long addr, struct pe_import
     return false;
 }
 
-unsigned dump_do_import(FILE *out, struct dump_import *dump, char *incbin, unsigned long pos)
+unsigned dump_do_import(FILE *out, struct dump_import *dump, const char *incbin, unsigned long pos)
 {
     (void)incbin;
     (void)pos;
@@ -630,7 +630,7 @@ bool dump_find_rsrc_string(struct pe_file *file, unsigned long addr, struct pe_r
     return false;
 }
 
-unsigned dump_do_rsrc_string(FILE *out, struct dump_rsrc_string *dump, char *incbin, unsigned long pos)
+unsigned dump_do_rsrc_string(FILE *out, struct dump_rsrc_string *dump, const char *incbin, unsigned long pos)
 {
     (void)incbin;
     (void)pos;
@@ -642,7 +642,7 @@ unsigned dump_do_rsrc_string(FILE *out, struct dump_rsrc_string *dump, char *inc
     return dump->size;
 }
 
-int dump_asm(FILE *out, struct pe_file *file, char *incbin)
+int dump_asm(FILE *out, struct pe_file *file, const char *incbin)
 {
     struct pe_export exports;
     if (!pe_read_export_table(file, &exports)) {
@@ -820,7 +820,7 @@ int main(int argc, char *argv[])
 
     FILE *out = stdout;
     if (opt.out) {
-        out = fopen(opt.out, "wb");
+        out = fopen(opt.out, "w");
         if (!out) {
             fprintf(stderr, "Failed to open file: %s\n", opt.out);
             return EXIT_FAILURE;
