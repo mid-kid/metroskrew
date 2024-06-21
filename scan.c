@@ -95,7 +95,7 @@ unsigned find_fs(const struct file *binary, const struct loc **res)
         if (!pos) return found;
         off = pos - binary->data;
         loc[found].start = off;
-        loc[found].end = off + sizeof(code);
+        loc[found].end = off + code[0].size;
         found++;
         off++;
     }
