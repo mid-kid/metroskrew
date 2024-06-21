@@ -7,7 +7,7 @@
 #include "winver.h"
 
 // Local headers
-#include "utils.h"
+#include "_utils.h"
 
 DWORD WINAPI GetFileVersionInfoSizeA(LPCSTR lptstrFilename, LPDWORD lpdwHandle)
 {

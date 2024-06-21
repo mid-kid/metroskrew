@@ -8,7 +8,7 @@
 #include "winuser.h"
 
 // Local headers
-#include "utils.h"
+#include "_utils.h"
 
 struct rsrc_strings {
     UINT id;

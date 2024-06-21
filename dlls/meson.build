@@ -5,16 +5,16 @@ arch = '-march=i586'
 sources_s = [
   'advapi32.s',
   'kernel32.s',
+  'ole32.s',
   'user32.s',
   'version.s',
-  'ws2_32.s',
-  'ole32.s'
+  'ws2_32.s'
 ]
 sources_c = [
-  'utils.c',
+  '_utils.c',
   'kernel32.c',
-  'user32.c',
   'lmgr8c.c',
+  'user32.c',
   'version.c'
 ]
 
