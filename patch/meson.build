@@ -1,5 +1,7 @@
 fs = import('fs')
 
+exescan = executable('scan', 'scan.c', native: true, build_by_default: false)
+
 tools_patch_gen = {}
 foreach tool, bin : tools
   patch = custom_target(
