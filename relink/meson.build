@@ -46,7 +46,7 @@ foreach tool, bin : tools
       '-I' + meson.project_source_root()
     ])
 
-  ldscript = meson.current_source_dir() / tool + '.ld'
+  ldscript = meson.current_source_dir() / 'link.ld'
   dllimport = meson.current_source_dir() / 'dllimport.ld'
 
   prog = executable(tool,

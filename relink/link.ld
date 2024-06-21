@@ -9,6 +9,6 @@ SECTIONS {
     .pe_CRT pe_CRT_addr : { *(.pe_CRT) }
     .pe_idata pe_idata_addr : { *(.pe_idata) }
     .pe_bss pe_bss_addr : { *(.pe_bss) }
-    .pe_reloc pe_reloc_addr : { *(.pe_reloc) }
+    /DISCARD/ : { *(.pe_edata) *(.pe_reloc) }
 }
 INSERT BEFORE .text
