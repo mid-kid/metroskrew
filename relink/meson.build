@@ -20,7 +20,6 @@ sources_c = [
 ]
 
 c = meson.get_compiler('c')
-as = find_program('as')
 
 win_headers = subproject('wine').get_variable('headers_dep_lean')
 
@@ -58,20 +57,10 @@ if is_windows
   ]
 endif
 
-bld_as = generator(as,
-  arguments: [
-    as_args,
-    '@EXTRA_ARGS@',
-    '--MD', '@OUTPUT@.d',
-    '-o', '@OUTPUT@',
-    '@INPUT@'
-  ],
-  output: '@PLAINNAME@.o',
-  depfile: '@PLAINNAME@.o.d')
-
 common = static_library('common',
   sources_c,
-  objects: bld_as.process(sources_s),
+  objects: as_gen.process(sources_s,
+    extra_args: as_args),
   c_args: c_args,
   dependencies: win_headers,
   build_by_default: false)
@@ -79,12 +68,23 @@ common = static_library('common',
 tools_relink = {}
 foreach tool, bin : tools
   prog_src = custom_target(
-    command: [exedump, is_windows ? '--win' : [], '-o', '@OUTPUT@', '@INPUT@'],
+    command: [exedump,
+      is_windows ? '--win' : [],
+      '-o', '@OUTPUT@', '@INPUT@'
+    ],
     input: bin,
     output: tool + '.s')
-  prog_obj = bld_as.process(
-    prog_src, tool + '_patch.s',
-    extra_args: '-I' + meson.project_source_root())
+  # Work around meson <1.5.0 bug
+  prog_patch = custom_target(
+    command: ['cp', '@INPUT@', '@OUTPUT@'],
+    output: tool + '_patch.s',
+    input: tools_patch[tool])
+  prog_obj = as_gen.process(prog_src, prog_patch,
+    extra_args: [
+      as_args,
+      '-I' + patch_inc,
+      '-I' + meson.project_source_root()
+    ])
 
   ldscript = meson.current_source_dir() / tool + '.ld'
   dllimport = meson.current_source_dir() / 'dllimport.ld'

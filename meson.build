@@ -10,10 +10,22 @@ tools = {
   'mwldarm': files('bins/mwldarm.exe')
 }
 
+as = find_program('as')
+as_gen = generator(as,
+  arguments: [
+    '@EXTRA_ARGS@',
+    '--MD', '@OUTPUT@.d',
+    '-o', '@OUTPUT@',
+    '@INPUT@'
+  ],
+  output: '@PLAINNAME@.o',
+  depfile: '@PLAINNAME@.o.d')
+
 custom_target(
   output: 'scan.i',
   input: tools['mwccarm'],
   command: [exescan, '@OUTPUT@', '@INPUT@'])
 
+subdir('patch')
 subdir('relink')
 subdir('test')
