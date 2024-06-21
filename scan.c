@@ -346,6 +346,8 @@ void main_usage(void)
 
 int main(int argc, char *argv[])
 {
+    main_progname = argv[0];
+
     while (argc > 1) {
         if (*argv[1] != '-') {
             break;
