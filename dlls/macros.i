@@ -1,5 +1,5 @@
 # vim:ft=asm:
-.include "port.i"
+.include "_port.i"
 
 .macro stub name
 .ifndef NDEBUG

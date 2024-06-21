@@ -2,7 +2,7 @@
 # This file is included from a generated patch.s
 # It's in charge of applying the patches, given the offsets supplied within
 #  the generated file.
-.include "port.i"
+.include "_port.i"
 
 .intel_syntax noprefix
 
