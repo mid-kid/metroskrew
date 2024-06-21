@@ -14,6 +14,9 @@ mwccarm() {
 mwasmarm() {
     wine "$MWASMARM" "$@"
 }
+mwldarm() {
+    wine "$MWLDARM" "$@"
+}
 
 test_cc() {
     name="$1"; shift
