@@ -1,30 +1,25 @@
 .include "macros.i"
 
-patch = 0
-patch.end = 0
-.macro patch, name
-.fill patch.end - (. - pe_text), 1, 0x90
-incbin (text_off + patch.end), (\name - patch.end)
-patch = \name
-patch.end = \name\().end
+patch = pe_text_off
+patch.end = pe_text_off
+.macro patch, code, name
+.fill patch.end - pe_text_off + pe_text - (.), 1, 0x90
+incbin patch.end, (\code - patch.end)
+patch = \code
+patch.end = \code\().end
     \name
 .endm
 .macro patch_end
-.fill patch.end - (. - pe_text), 1, 0x90
-incbin (text_off + patch.end), (text_len - patch.end)
+.fill patch.end - pe_text_off + pe_text - (.), 1, 0x90
+incbin patch.end, (pe_text_off + pe_text_len - patch.end)
 .endm
 
-.macro patch_fs_1
+.macro patch_fs
     xor eax, eax
     push eax
 .endm
 
-.macro patch_fs_2
-    xor eax, eax
-    push eax
-.endm
-
-.macro patch_init_args
+.macro patch_init_args_old
     push ebx
     mov eax, [main_argc]
     mov ebx, [addr_argc]
@@ -33,6 +28,14 @@ incbin (text_off + patch.end), (text_len - patch.end)
     mov ebx, [addr_argv]
     mov [ebx], eax
     pop ebx
+    ret
+.endm
+
+.macro patch_init_args
+    mov eax, [main_argc]
+    mov [addr_argc], eax
+    mov eax, [main_argv]
+    mov [addr_argv], eax
     ret
 .endm
 
