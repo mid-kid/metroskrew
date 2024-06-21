@@ -1,12 +1,7 @@
 .intel_syntax noprefix
+.include "macros.i"
 
-.ifndef _WIN32
-.global main
-main:
-.else
-.global _main
-_main:
-.endif
+func main
     mov eax, [esp + 4]
     mov [main_argc], eax
     mov eax, [esp + 8]

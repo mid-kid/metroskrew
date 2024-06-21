@@ -40,3 +40,5 @@ common = static_library('common',
   c_args: c_args,
   dependencies: win_headers,
   build_by_default: false)
+
+common_inc = meson.current_source_dir()

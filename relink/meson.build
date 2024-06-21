@@ -7,7 +7,8 @@ c_args = [
 ]
 
 as_args = [
-  as_args_base
+  as_args_base,
+  '-I' + common_inc
 ]
 
 link_args = [

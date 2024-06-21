@@ -2,6 +2,7 @@
 # This file is included from a generated patch.s
 # It's in charge of applying the patches, given the offsets supplied within
 #  the generated file.
+.include "macros.i"
 
 .intel_syntax noprefix
 
@@ -49,7 +50,7 @@ incbin patch.end, (pe_text_off + pe_text_len - patch.end)
 .endm
 
 .macro patch_getenv
-    jmp getenv
+    wjmp getenv
 .endm
 
 # The actual code
