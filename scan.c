@@ -253,21 +253,36 @@ static const funcs_t funcs[] = {
     NULL
 };
 
+int sort_loc(const void *_p1, const void *_p2)
+{
+    const struct loc *p1 = _p1, *p2 = _p2;
+    return p1->start - p2->start;
+}
+
 int scan_bin(FILE *out, const struct file *binary)
 {
+    struct loc *patches = NULL;
+    unsigned patches_len = 0;
+
     funcs_t func;
     for (const funcs_t *p = funcs; (func = *p); p++) {
-        const struct loc *patches;
-        unsigned len = func(binary, &patches);
-        for (unsigned i = 0; i < len; i++) {
-            const struct loc *loc = patches + i;
-            fprintf(out, "\n");
-            if (loc->end) {
-                fprintf(out, "code_%s = 0x%lx\n", loc->name, loc->start);
-                fprintf(out, "code_%s.end = 0x%lx\n", loc->name, loc->end);
-            } else {
-                fprintf(out, "addr_%s = 0x%lx\n", loc->name, loc->start);
-            }
+        const struct loc *patches_cur;
+        unsigned len = func(binary, &patches_cur);
+        patches = realloc(patches, sizeof(*patches) * (patches_len + len));
+        memcpy(patches + patches_len, patches_cur, sizeof(*patches) * len);
+        patches_len += len;
+    }
+
+    qsort(patches, patches_len, sizeof(*patches), sort_loc);
+
+    for (unsigned i = 0; i < patches_len; i++) {
+        const struct loc *loc = patches + i;
+        fprintf(out, "\n");
+        if (loc->end) {
+            fprintf(out, "code_%s = 0x%lx\n", loc->name, loc->start);
+            fprintf(out, "code_%s.end = 0x%lx\n", loc->name, loc->end);
+        } else {
+            fprintf(out, "addr_%s = 0x%lx\n", loc->name, loc->start);
         }
     }
 
