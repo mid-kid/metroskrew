@@ -13,15 +13,16 @@ foreach tool, bin : tools
   tools_patch_gen += {tool: patch}
 endforeach
 
-patch_dir = 'gen'
+patch_dir = meson.current_source_dir() / 'gen'
 
 tools_patch = {}
 foreach tool, bin : tools
-  if fs.exists(patch_dir / tool + '_patch.s')
-    patch = files(patch_dir / tool + '_patch.s')
-  else
-    patch = tools_patch_gen[tool]
+  patch_file = patch_dir / tool + '_patch.s'
+  if not fs.exists(patch_file)
+    run_command(['install', '-d', fs.parent(patch_file)], check: true)
+    run_command(['touch', patch_file], check: true)
   endif
+  patch = files(patch_file)
   tools_patch += {tool: patch}
 endforeach
 
