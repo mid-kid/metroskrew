@@ -1,3 +1,5 @@
+# vim:ft=asm:
+
 .macro func name
 .ifndef _WIN32
 .global \name

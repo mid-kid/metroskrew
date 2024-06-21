@@ -1,3 +1,9 @@
+# vim:ft=asm:
+# This file is included from a generated patch.s
+# It's in charge of applying the patches, given the offsets supplied within
+#  the generated file.
+
+.intel_syntax noprefix
 .include "macros.i"
 
 patch = pe_text_off
@@ -46,3 +52,13 @@ incbin patch.end, (pe_text_off + pe_text_len - patch.end)
 .macro patch_getenv
     wjmp getenv
 .endm
+
+# The actual code
+.section .patch_pe_text, "ax"
+pe_text:
+    patch code_fs_1, patch_fs
+    patch code_fs_2, patch_fs
+    patch code_init_args, patch_init_args
+    patch code_init_envp, patch_init_envp
+    patch code_getenv, patch_getenv
+    patch_end

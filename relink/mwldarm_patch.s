@@ -1,12 +1,6 @@
-.intel_syntax noprefix
-.include "patch.i"
-
 .macro incbin off, len
 .incbin "bins/mwldarm.exe", \off, \len
 .endm
-
-.section .patch_pe_text, "ax"
-pe_text:
 
 pe_text_off = 0x400
 pe_text_len = 0x6ac35
@@ -37,9 +31,4 @@ addr_argc = 0x4aaa28
 
 addr_argv = 0x4abb10
 
-patch code_fs_1, patch_fs
-patch code_fs_2, patch_fs
-patch code_init_args, patch_init_args
-patch code_init_envp, patch_init_envp
-patch code_getenv, patch_getenv
-patch_end
+.include "patch.i"
