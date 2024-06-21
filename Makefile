@@ -55,6 +55,10 @@ test_release: $(build)/opt.release/build.ninja
 test_trace: $(build)/opt.trace/build.ninja
 	$(MESON) test -C $(build)/opt.trace
 
+.PHONY: patchgen
+patchgen: $(build)/build.ninja
+	$(MESON) compile -C $(build) patchgen
+
 .PHONY: clean
 clean:
 	! test -f $(build)/build.ninja || $(MESON) compile -C $(build) --clean

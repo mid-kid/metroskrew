@@ -25,4 +25,12 @@ foreach tool, bin : tools
   tools_patch += {tool: patch}
 endforeach
 
+run_target('patchgen',
+  command: ['install',
+    '-Dt', meson.current_source_dir() / patch_dir,
+    tools_patch_gen['mwccarm'],
+    tools_patch_gen['mwasmarm'],
+    tools_patch_gen['mwldarm']
+  ])
+
 patch_inc = meson.current_source_dir()
