@@ -1,4 +1,4 @@
 .intel_syntax noprefix
-.include "macros.i"
+.include "_macros.i"
 
 func MessageBoxA; die MessageBoxA

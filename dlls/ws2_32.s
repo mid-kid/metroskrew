@@ -1,5 +1,5 @@
 .intel_syntax noprefix
-.include "macros.i"
+.include "_macros.i"
 
 .global _WS2_32.dll_3
 _WS2_32.dll_3:

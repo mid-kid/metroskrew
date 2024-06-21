@@ -1,10 +1,8 @@
 .intel_syntax noprefix
-.include "macros.i"
+.include "_macros.i"
 
 .weak GetFileVersionInfoA
-.global GetFileVersionInfoA
-GetFileVersionInfoA: die GetFileVersionInfoA
+func GetFileVersionInfoA; die GetFileVersionInfoA
 
 .weak VerQueryValueA
-.global VerQueryValueA
-VerQueryValueA: die VerQueryValueA
+func VerQueryValueA; die VerQueryValueA
