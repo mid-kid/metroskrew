@@ -79,10 +79,9 @@ common = static_library('common',
 tools_relink = {}
 foreach tool, bin : tools
   prog_src = custom_target(
-    command: [exedump, is_windows ? '--win' : [], '@INPUT@'],
+    command: [exedump, is_windows ? '--win' : [], '-o', '@OUTPUT@', '@INPUT@'],
     input: bin,
-    output: tool + '.s',
-    capture: true)
+    output: tool + '.s')
   prog_obj = bld_as.process(
     prog_src, tool + '_patch.s',
     extra_args: '-I' + meson.project_source_root())

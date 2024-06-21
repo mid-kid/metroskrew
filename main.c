@@ -5,6 +5,8 @@
 #include <string.h>
 
 struct {
+    char *out;
+    char *incbin;
     bool win;
 } opt;
 
@@ -535,19 +537,19 @@ bool dump_find_export(struct pe_file *file, unsigned long addr, struct pe_export
     return false;
 }
 
-unsigned dump_do_export(struct dump_export *dump, char *binfile, unsigned long pos)
+unsigned dump_do_export(FILE *out, struct dump_export *dump, char *incbin, unsigned long pos)
 {
-    (void)binfile;
+    (void)incbin;
     (void)pos;
 
-    printf(".global _%s_%x\n", dump->dllname, dump->num);
-    printf("_%s_%x:\n", dump->dllname, dump->num);
+    fprintf(out, ".global _%s_%x\n", dump->dllname, dump->num);
+    fprintf(out, "_%s_%x:\n", dump->dllname, dump->num);
     if (dump->name) {
         char *name = strchr(dump->name, '@');
         if (name) *name = '\0';
 
-        printf(".global %s\n", dump->name);
-        printf("%s:\n", dump->name);
+        fprintf(out, ".global %s\n", dump->name);
+        fprintf(out, "%s:\n", dump->name);
         free(dump->name);
     }
     free(dump->dllname);
@@ -586,9 +588,9 @@ bool dump_find_import(struct pe_file *file, unsigned long addr, struct pe_import
     return false;
 }
 
-unsigned dump_do_import(struct dump_import *dump, char *binfile, unsigned long pos)
+unsigned dump_do_import(FILE *out, struct dump_import *dump, char *incbin, unsigned long pos)
 {
-    (void)binfile;
+    (void)incbin;
     (void)pos;
     unsigned size = 0;
 
@@ -596,12 +598,12 @@ unsigned dump_do_import(struct dump_import *dump, char *binfile, unsigned long p
         char *name = strchr(dump->name, '@');
         if (name) *name = '\0';
 
-        printf(".long %s%s # %s\n", opt.win ? "_" : "",
+        fprintf(out, ".long %s%s # %s\n", opt.win ? "_" : "",
             dump->name, dump->dllname);
         free(dump->name);
         size = 4;
     } else {
-        printf(".long _%s_%x\n", dump->dllname, dump->num);
+        fprintf(out, ".long _%s_%x\n", dump->dllname, dump->num);
         size = 4;
     }
     free(dump->dllname);
@@ -628,19 +630,19 @@ bool dump_find_rsrc_string(struct pe_file *file, unsigned long addr, struct pe_r
     return false;
 }
 
-unsigned dump_do_rsrc_string(struct dump_rsrc_string *dump, char *binfile, unsigned long pos)
+unsigned dump_do_rsrc_string(FILE *out, struct dump_rsrc_string *dump, char *incbin, unsigned long pos)
 {
-    (void)binfile;
+    (void)incbin;
     (void)pos;
 
-    printf(".global pe_rsrc_strings_%ld\n"
+    fprintf(out, ".global pe_rsrc_strings_%ld\n"
         "pe_rsrc_strings_%ld:\n"
         "    .incbin \"%s\", 0x%lx, 0x%lx\n",
-        dump->id, dump->id, binfile, pos, dump->size);
+        dump->id, dump->id, incbin, pos, dump->size);
     return dump->size;
 }
 
-int dump_asm(struct pe_file *file, char *binfile)
+int dump_asm(FILE *out, struct pe_file *file, char *incbin)
 {
     struct pe_export exports;
     if (!pe_read_export_table(file, &exports)) {
@@ -660,8 +662,8 @@ int dump_asm(struct pe_file *file, char *binfile)
         return EXIT_FAILURE;
     }
 
-    printf(".global pe_start\n");
-    printf("pe_start = 0x%lx\n", pe_get_entrypoint(file));
+    fprintf(out, ".global pe_start\n");
+    fprintf(out, "pe_start = 0x%lx\n", pe_get_entrypoint(file));
 
     for (unsigned x = 0; x < pe_get_sections_num(file); x++) {
         struct pe_section sec;
@@ -675,7 +677,7 @@ int dump_asm(struct pe_file *file, char *binfile)
         char *name = sec.name;
         if (*name == '.') name++;
 
-        printf("\n"
+        fprintf(out, "\n"
             ".global pe_%s_addr\n"
             "pe_%s_addr = 0x%lx\n"
             ".section .pe_%s, \"%s%s%s%s\"%s\n",
@@ -725,27 +727,27 @@ int dump_asm(struct pe_file *file, char *binfile)
             if (last_pos == pos) {
                 // nothing!
             } else if (pos <= sec.dsize) {
-                printf(".incbin \"%s\", 0x%lx, 0x%lx\n", binfile,
+                fprintf(out, ".incbin \"%s\", 0x%lx, 0x%lx\n", incbin,
                     sec.offset + last_pos, pos - last_pos);
             } else if (last_pos < sec.dsize) {
-                printf(".incbin \"%s\", 0x%lx, 0x%lx\n", binfile,
+                fprintf(out, ".incbin \"%s\", 0x%lx, 0x%lx\n", incbin,
                     sec.offset + last_pos, sec.dsize - last_pos);
-                printf(".zero 0x%lx\n", pos - sec.dsize);
+                fprintf(out, ".zero 0x%lx\n", pos - sec.dsize);
             } else {
-                printf(".zero 0x%lx\n", pos - last_pos);
+                fprintf(out, ".zero 0x%lx\n", pos - last_pos);
             }
             last_pos = pos;
 
             if (found_export) {
-                pos += dump_do_export(&dump_export, binfile,
+                pos += dump_do_export(out, &dump_export, incbin,
                     sec.offset + last_pos);
             }
             if (found_import) {
-                pos += dump_do_import(&dump_import, binfile,
+                pos += dump_do_import(out, &dump_import, incbin,
                     sec.offset + last_pos);
             }
             if (found_rsrc_string) {
-                pos += dump_do_rsrc_string(&dump_rsrc_string, binfile,
+                pos += dump_do_rsrc_string(out, &dump_rsrc_string, incbin,
                     sec.offset + last_pos);
             }
 
@@ -757,16 +759,16 @@ int dump_asm(struct pe_file *file, char *binfile)
         }
     }
 
-    printf("\n"
+    fprintf(out, "\n"
         ".section .pe_rsrc_strings, \"a\"\n"
         ".global pe_rsrc_strings\n"
         "pe_rsrc_strings:\n"
     );
     for (unsigned x = 0; x < rsrc_strings.num; x++) {
         unsigned long id = rsrc_strings.id[x];
-        printf("    .long %ld, pe_rsrc_strings_%ld\n", id, id);
+        fprintf(out, "    .long %ld, pe_rsrc_strings_%ld\n", id, id);
     }
-    printf("    .long 0\n");
+    fprintf(out, "    .long 0\n");
 
     pe_free_export_table(&exports);
     pe_free_import_table(&imports);
@@ -774,14 +776,31 @@ int dump_asm(struct pe_file *file, char *binfile)
     return EXIT_SUCCESS;
 }
 
+char *main_progname;
+
+void main_usage(void)
+{
+    fprintf(stderr, "Usage: %s <file>\n", main_progname);
+}
+
 int main(int argc, char *argv[])
 {
+    main_progname = argv[0];
+
     while (argc > 1) {
         if (*argv[1] != '-') {
             break;
         } else if (strcmp(argv[1], "--") == 0) {
             argv++; argc--;
             break;
+        } else if (strcmp(argv[1], "-o") == 0) {
+            if (argc <= 1) { main_usage(); return EXIT_FAILURE; }
+            opt.out = argv[2];
+            argv++; argc--;
+        } else if (strcmp(argv[1], "--incbin") == 0) {
+            if (argc <= 1) { main_usage(); return EXIT_FAILURE; }
+            opt.incbin = argv[2];
+            argv++; argc--;
         } else if (strcmp(argv[1], "--win") == 0) {
             opt.win = true;
         }
@@ -789,15 +808,27 @@ int main(int argc, char *argv[])
     }
 
     if (argc <= 1) {
-        fprintf(stderr, "Usage: %s <file>\n", argv[0]);
+        main_usage();
         return EXIT_FAILURE;
     }
 
     struct pe_file *file = pe_open(argv[1]);
     if (!file) {
-        fprintf(stderr, "Failed to open file\n");
+        fprintf(stderr, "Failed to open file: %s\n", argv[1]);
         return EXIT_FAILURE;
     }
 
-    return dump_asm(file, argv[1]);
+    FILE *out = stdout;
+    if (opt.out) {
+        out = fopen(opt.out, "wb");
+        if (!out) {
+            fprintf(stderr, "Failed to open file: %s\n", opt.out);
+            return EXIT_FAILURE;
+        }
+    }
+
+    char *incbin = argv[1];
+    if (opt.incbin) incbin = opt.incbin;
+
+    return dump_asm(out, file, incbin);
 }
