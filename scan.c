@@ -271,6 +271,7 @@ int scan_bin(FILE *out, const struct file *binary, const char *incbin)
     struct loc *patches = NULL;
     unsigned patches_len = 0;
 
+    // Find and sort all locations
     funcs_t func;
     for (const funcs_t *p = funcs; (func = *p); p++) {
         const struct loc *patches_cur;
@@ -279,7 +280,6 @@ int scan_bin(FILE *out, const struct file *binary, const char *incbin)
         memcpy(patches + patches_len, patches_cur, sizeof(*patches) * len);
         patches_len += len;
     }
-
     qsort(patches, patches_len, sizeof(*patches), sort_loc);
 
     // Generate header
@@ -290,6 +290,29 @@ int scan_bin(FILE *out, const struct file *binary, const char *incbin)
         incbin
     );
 
+    // pe_text_off and pe_text_len need to be defined here, since .fill
+    //  requires constant values...
+    const struct scan text_code[] = {
+        DEF_SCAN(0,
+            '.', 't', 'e', 'x', 't', 0, 0, 0
+        ),
+        DEF_SCAN(36,
+            0x20, 0x00, 0x00, 0x60
+        ),
+        END_SCAN
+    };
+    const unsigned char *text_pos = scan(binary, text_code, 0);
+    if (text_pos) {
+        uint32_t pe_text_off = read_u32(text_pos + 20);
+        uint32_t pe_text_len = read_u32(text_pos + 8);
+        fprintf(out, "\n"
+            "pe_text_off = 0x%x\n"
+            "pe_text_len = 0x%x\n",
+            pe_text_off, pe_text_len
+        );
+    }
+
+    // Print out all the scan results
     for (unsigned i = 0; i < patches_len; i++) {
         const struct loc *loc = patches + i;
         fprintf(out, "\n");
@@ -301,6 +324,7 @@ int scan_bin(FILE *out, const struct file *binary, const char *incbin)
         }
     }
 
+    // Generate footer
     fprintf(out, "\n"
         ".include \"patch.i\"\n"
     );
