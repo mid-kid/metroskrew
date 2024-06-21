@@ -4,7 +4,6 @@
 #  the generated file.
 
 .intel_syntax noprefix
-.include "macros.i"
 
 patch = pe_text_off
 patch.end = pe_text_off
@@ -50,7 +49,7 @@ incbin patch.end, (pe_text_off + pe_text_len - patch.end)
 .endm
 
 .macro patch_getenv
-    wjmp getenv
+    jmp getenv
 .endm
 
 # The actual code

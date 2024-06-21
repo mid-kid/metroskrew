@@ -9,7 +9,7 @@ tests = [
 
 # test() requires a cross-compiled target in its argument list
 #  in order to set MESON_EXE_WRAPPER.
-dummy = static_library('dummy', objects: 'test.sh')
+dummy = static_library('dummy', objects: 'test.sh', build_by_default: false)
 
 foreach name : tests
   test(name, files('test.sh'),

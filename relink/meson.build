@@ -1,44 +1,13 @@
-assert(host_machine.cpu_family() == 'x86',
-  'This project can only be built for 32-bit x86')
-arch = '-march=i586'
-
 sources_s = [
-  'entry.s',
-  'dlls/advapi32.s',
-  'dlls/kernel32.s',
-  'dlls/user32.s',
-  'dlls/version.s',
-  'dlls/ws2_32.s',
-  'dlls/ole32.s'
+  'entry.s'
 ]
-sources_c = [
-  'utils.c',
-  'dlls/kernel32.c',
-  'dlls/user32.c',
-  'dlls/lmgr8c.c',
-  'dlls/version.c'
-]
-
-c = meson.get_compiler('c')
-
-win_headers = subproject('wine').get_variable('headers_dep_lean')
-
-is_windows = c.has_define('_WIN32')
 
 c_args = [
-  arch,
-  '-fno-PIC',
-  '-U_FILE_OFFSET_BITS',
-  get_option('debug') ? [] : '-DNDEBUG',
-  get_option('trace') ? '-DETRACE' : []
+  c_args_base
 ]
 
 as_args = [
-  arch,
-  '-I' + meson.current_source_dir(),
-  get_option('debug') ? [] : ['--defsym', 'NDEBUG=1'],
-  get_option('trace') ? ['--defsym', 'ETRACE=1'] : [],
-  is_windows ? ['--defsym', '_WIN32=1'] : []
+  as_args_base
 ]
 
 link_args = [
@@ -57,13 +26,8 @@ if is_windows
   ]
 endif
 
-common = static_library('common',
-  sources_c,
-  objects: as_gen.process(sources_s,
-    extra_args: as_args),
-  c_args: c_args,
-  dependencies: win_headers,
-  build_by_default: false)
+relink_common = as_gen.process(sources_s,
+  extra_args: as_args)
 
 tools_relink = {}
 foreach tool, bin : tools
@@ -74,12 +38,7 @@ foreach tool, bin : tools
     ],
     input: bin,
     output: tool + '.s')
-  # Work around meson <1.5.0 bug
-  prog_patch = custom_target(
-    command: ['cp', '@INPUT@', '@OUTPUT@'],
-    output: tool + '_patch.s',
-    input: tools_patch[tool])
-  prog_obj = as_gen.process(prog_src, prog_patch,
+  prog_obj = as_gen.process(prog_src, tools_patch[tool],
     extra_args: [
       as_args,
       '-I' + patch_inc,
@@ -90,8 +49,9 @@ foreach tool, bin : tools
   dllimport = meson.current_source_dir() / 'dllimport.ld'
 
   prog = executable(tool,
-    objects: prog_obj,
+    objects: [relink_common, prog_obj],
     name_suffix: 'exe',
+    c_args: c_args,
     link_args: [
       '-T' + ldscript,
       is_windows ? '-T' + dllimport : [],
