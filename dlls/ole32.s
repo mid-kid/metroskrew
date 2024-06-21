@@ -14,5 +14,4 @@ func CoCreateInstance
     ret 4 * 5
 
 func CoTaskMemAlloc; die CoTaskMemAlloc
-
 func CoTaskMemFree; die CoTaskMemFree

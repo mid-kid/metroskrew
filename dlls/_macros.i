@@ -1,6 +1,11 @@
 # vim:ft=asm:
 .include "_port.i"
 
+.macro alias name, func
+.global \name
+.set \name, \func
+.endm
+
 .macro stub name
 .ifndef NDEBUG
     push offset stub_str\@
