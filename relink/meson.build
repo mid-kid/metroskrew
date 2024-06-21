@@ -1,5 +1,3 @@
-fs = import('fs')
-
 assert(host_machine.cpu_family() == 'x86',
   'This project can only be built for 32-bit x86')
 arch = '-march=i586'
@@ -75,7 +73,8 @@ common = static_library('common',
   sources_c,
   objects: bld_as.process(sources_s),
   c_args: c_args,
-  dependencies: win_headers)
+  dependencies: win_headers,
+  build_by_default: false)
 
 tools_relink = {}
 foreach tool, bin : tools
@@ -83,8 +82,7 @@ foreach tool, bin : tools
     command: [exedump, is_windows ? '--win' : [], '@INPUT@'],
     input: bin,
     output: tool + '.s',
-    capture: true,
-    build_by_default: true)
+    capture: true)
   prog_obj = bld_as.process(
     prog_src, tool + '_patch.s',
     extra_args: '-I' + meson.project_source_root())
