@@ -11,20 +11,35 @@ pe_text:
 pe_text_off = 0x400
 pe_text_len = 0x5a1f0
 
-addr_argc = pe_text + 0x2a05a + 2
-addr_argv = pe_text + 0x2a054 + 2
-addr_argp = pe_text + 0x2a04e + 2
+code_fs_1 = 0x2a3df
+code_fs_1.end = 0x2a3ed
 
-patch_fs_1 = pe_text_off + 0x29fdf
-patch_fs_1.end = pe_text_off + 0x29fed
-patch patch_fs_1, patch_fs
+code_fs_2 = 0x2a409
+code_fs_2.end = 0x2a417
 
-patch_fs_2 = pe_text_off + 0x2a009
-patch_fs_2.end = pe_text_off + 0x2a017
-patch patch_fs_2, patch_fs
+code_fs_3 = 0x30116
+code_fs_3.end = 0x30124
 
-patch_init_args = pe_text_off + 0x30770
-patch_init_args.end = pe_text_off + 0x30a60
-patch patch_init_args, patch_init_args_old
+code_init_args = 0x30b70
+code_init_args.end = 0x30e60
 
+code_init_envp = 0x31050
+code_init_envp.end = 0x31070
+
+code_getenv = 0x310f0
+code_getenv.end = 0x31140
+
+addr_main = 0x31350
+
+addr_envp = 0xc2496c
+
+addr_argc = 0xc25d60
+
+addr_argv = 0xc26d00
+
+patch code_fs_1, patch_fs
+patch code_fs_2, patch_fs
+patch code_init_args, patch_init_args
+patch code_init_envp, patch_init_envp
+patch code_getenv, patch_getenv
 patch_end

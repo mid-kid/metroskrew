@@ -120,26 +120,28 @@ unsigned find_init(const struct file *binary, const struct loc **res)
     const struct scan code[] = {
         // Sentinel code
         DEF_SCAN(0,
-            0x68, 0x00, 0x00, 0x60, 0x00,  // push 0x600000
-            0xe8                           // call unk
+            0x85, 0xc0,  // test eax, eax
+            0x75, 0x08,  // jne +10
+            0x6a, 0xff,  // push -1
+            0xe8,  // call unk
         ),
         // Verify the instructions for all the parameters we're extracting
-        DEF_SCAN(11,
+        DEF_SCAN(33,
             0xff, 0x35  // push dword ptr [envp]
         ),
-        DEF_SCAN(17,
+        DEF_SCAN(39,
             0xff, 0x35  // push dword ptr [argv]
         ),
-        DEF_SCAN(23,
+        DEF_SCAN(45,
             0xff, 0x35  // push dword ptr [argc]
         ),
-        DEF_SCAN(-10,
+        DEF_SCAN(12,
             0xe8  // call init_args
         ),
-        DEF_SCAN(-5,
+        DEF_SCAN(17,
             0xe8  // call init_envp
         ),
-        DEF_SCAN(29,
+        DEF_SCAN(51,
             0xe8  // call main
         ),
         END_SCAN
