@@ -1,1 +1,2 @@
+option('bins', type: 'string', value: 'bins')
 option('trace', type: 'boolean', value: false)

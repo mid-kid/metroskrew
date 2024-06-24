@@ -33,10 +33,11 @@ as_args_base = [
 
 exedump = executable('dump', 'dump.c', native: true, build_by_default: false)
 
+bins = get_option('bins')
 tools = {
-  'mwccarm': files('bins/mwccarm.exe'),
-  'mwasmarm': files('bins/mwasmarm.exe'),
-  'mwldarm': files('bins/mwldarm.exe')
+  'mwccarm': files(bins / 'mwccarm.exe'),
+  'mwasmarm': files(bins / 'mwasmarm.exe'),
+  'mwldarm': files(bins / 'mwldarm.exe')
 }
 
 subdir('dlls')
