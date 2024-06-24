@@ -1,3 +1,5 @@
+exedump = executable('dump', 'dump.c', native: true, build_by_default: false)
+
 sources_s = [
   'entry.s'
 ]

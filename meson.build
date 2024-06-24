@@ -31,8 +31,6 @@ as_args_base = [
   is_windows ? ['--defsym', '_WIN32=1'] : []
 ]
 
-exedump = executable('dump', 'dump.c', native: true, build_by_default: false)
-
 bins = get_option('bins')
 tools = {
   'mwccarm': files(bins / 'mwccarm.exe'),
