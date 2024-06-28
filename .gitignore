@@ -1,1 +1,2 @@
-/bins/
+/bins/*
+!/bins/meson.build

@@ -32,16 +32,16 @@ endif
 relink_common = as_gen.process(sources_s,
   extra_args: as_args)
 
-tools_relink = {}
-foreach tool, bin : tools
+bins_relink = {}
+foreach name, bin : bins
   prog_src = custom_target(
     command: [exedump,
       is_windows ? '--win' : [],
       '-o', '@OUTPUT@', '@INPUT@'
     ],
     input: bin,
-    output: tool + '.s')
-  prog_obj = as_gen.process(prog_src, tools_patch[tool],
+    output: name + '.s')
+  prog_obj = as_gen.process(prog_src, bins_patch[name],
     extra_args: [
       as_args,
       '-I' + patch_inc,
@@ -51,7 +51,7 @@ foreach tool, bin : tools
   ldscript = meson.current_source_dir() / 'link.ld'
   dllimport = meson.current_source_dir() / 'dllimport.ld'
 
-  prog = executable(tool,
+  prog = executable(name,
     objects: [relink_common, prog_obj],
     name_suffix: 'exe',
     c_args: c_args,
@@ -66,5 +66,5 @@ foreach tool, bin : tools
       is_windows ? dllimport : []
     ],
     install: true)
-  tools_relink += {tool: prog}
+  bins_relink += {name: prog}
 endforeach

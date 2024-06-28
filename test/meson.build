@@ -16,15 +16,15 @@ foreach name : tests
     args: [name, dummy],
     workdir: meson.current_build_dir(),
     depends: [
-      tools_relink['mwccarm'],
-      tools_relink['mwasmarm'],
-      tools_relink['mwldarm']
+      bins_relink['mwccarm'],
+      bins_relink['mwasmarm'],
+      bins_relink['mwldarm']
     ],
     env: {
       'SRC': meson.current_source_dir(),
-      'MWCCARM': tools_relink['mwccarm'].full_path(),
-      'MWASMARM': tools_relink['mwasmarm'].full_path(),
-      'MWLDARM': tools_relink['mwldarm'].full_path()
+      'MWCCARM': bins_relink['mwccarm'].full_path(),
+      'MWASMARM': bins_relink['mwasmarm'].full_path(),
+      'MWLDARM': bins_relink['mwldarm'].full_path()
     },
   )
 endforeach

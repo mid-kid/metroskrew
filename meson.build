@@ -31,14 +31,8 @@ as_args_base = [
   is_windows ? ['--defsym', '_WIN32=1'] : []
 ]
 
-bins = get_option('bins')
-tools = {
-  'mwccarm': files(bins / 'mwccarm.exe'),
-  'mwasmarm': files(bins / 'mwasmarm.exe'),
-  'mwldarm': files(bins / 'mwldarm.exe')
-}
-
 subdir('dlls')
+subdir('bins')
 subdir('patch')
 subdir('relink')
 subdir('test')
