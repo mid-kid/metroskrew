@@ -45,7 +45,7 @@ foreach name, bin : bins
     extra_args: [
       as_args,
       '-I' + patch_inc,
-      '-I' + meson.project_source_root()
+      '-I' + bins_dir
     ])
 
   ldscript = meson.current_source_dir() / 'link.ld'

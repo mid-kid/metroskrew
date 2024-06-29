@@ -6,7 +6,7 @@ bins_patch_gen = {}
 foreach name, bin : bins
   patch = custom_target(
     command: [exescan,
-      '--incbin', 'bins' / name + '.exe',
+      '--incbin', bins_paths[name],
       '-o', '@OUTPUT@', '@INPUT@'],
     output: name + '_patch.s',
     input: bins[name])
@@ -26,12 +26,14 @@ foreach name, bin : bins
   bins_patch += {name: patch}
 endforeach
 
+bins_patch_gen_files = []
+foreach name, patch : bins_patch_gen
+  bins_patch_gen_files += patch
+endforeach
 run_target('patchgen',
   command: ['install',
-    '-Dt', meson.current_source_dir() / patch_dir,
-    bins_patch_gen['mwccarm'],
-    bins_patch_gen['mwasmarm'],
-    bins_patch_gen['mwldarm']
+    '-Dm644', '-t', meson.current_source_dir() / patch_dir,
+    bins_patch_gen_files
   ])
 
 patch_inc = meson.current_source_dir()

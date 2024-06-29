@@ -2,6 +2,7 @@
 set -eu
 
 SRC="${SRC:-.}"
+VER="${VER:-}"
 
 wine() {
     test -n "${MESON_EXE_WRAPPER:-}" && set -- "$MESON_EXE_WRAPPER" "$@"
@@ -21,7 +22,7 @@ mwldarm() {
 test_cc() {
     name="$1"; shift
     mwccarm "$@" -c -o "$name.o" "$SRC/$name.c"
-    cmp "$name.o" "$SRC/res/$name.o"
+    cmp "$name.o" "$SRC/res/$name$VER.o"
 }
 test_as() {
     name="$1"; shift
