@@ -1,9 +1,9 @@
 .macro incbin off, len
-.incbin "bins/mwccarm.exe", \off, \len
+.incbin "mwccarm/1.2/sp3/mwccarm.exe", \off, \len
 .endm
 
 pe_text_off = 0x400
-pe_text_len = 0x19898a
+pe_text_len = 0x15ae4a
 
 code_fs_1 = 0x40f
 code_fs_1.end = 0x41d
@@ -25,10 +25,10 @@ code_getenv.end = 0x2b80
 
 addr_main = 0x2d90
 
-addr_envp = 0x63a360
+addr_envp = 0x5ecdec
 
-addr_argc = 0x63bba0
+addr_argc = 0x5ed58c
 
-addr_argv = 0x63cc90
+addr_argv = 0x5ed6e0
 
 .include "patch.i"
