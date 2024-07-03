@@ -21,12 +21,12 @@ mwldarm() {
 
 test_cc() {
     name="$1"; shift
-    mwccarm "$@" -c -o "$name.o" "$SRC/$name.c"
-    cmp "$name.o" "$SRC/res/$MWCCARM_VER-$name.o"
+    mwccarm "$@" -c -o "$MWCCARM_VER-$name.o" "$SRC/$name.c"
+    cmp "$MWCCARM_VER-$name.o" "$SRC/res/$MWCCARM_VER-$name.o"
 }
 test_as() {
     name="$1"; shift
-    mwasmarm "$@" -c -o "$name.o" "$SRC/$name.s"
+    mwasmarm "$@" -c -o "$MWASMARM_VER-$name.o" "$SRC/$name.s"
 }
 
 case "$1" in
