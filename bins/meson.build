@@ -2,6 +2,7 @@ bins_dir = meson.global_source_root() / get_option('bins')
 
 versions = {
   'ds/1.2/base': '1.2',
+  'ds/1.2/base_b73': '1.2b73',
   'ds/1.2/sp2': '1.2sp2',
   'ds/1.2/sp2p3': '1.2sp2p3',
   'ds/1.2/sp3': '1.2sp3',
