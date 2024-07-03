@@ -4,40 +4,40 @@ set -eu
 BINS="${BINS:-../bins/mw-executables}"
 mkdir -p res
 
-# Keep in sync with bins/meson.build
 versions="
-    ds/1.2/base:1.2
-    ds/1.2/base_b73:1.2b73
-    ds/1.2/sp2:1.2sp2
-    ds/1.2/sp2p3:1.2sp2p3
-    ds/1.2/sp3:1.2sp3
-    ds/1.2/sp4:1.2sp4
-    ds/2.0/base:2.0
-    ds/2.0/sp1:2.0sp1
-    ds/2.0/sp1p2:2.0sp1p2
-    ds/2.0/sp1p5:2.0sp1p5
-    ds/2.0/sp1p6:2.0sp1p6
-    ds/2.0/sp1p7:2.0sp1p7
-    ds/2.0/sp2:2.0sp2
-    ds/2.0/sp2p2:2.0sp2p2
-    ds/2.0/sp2p3:2.0sp2p3
-    ds/2.0/sp2p4:2.0sp2p4
-    dsi/1.1:dsi1.1
-    dsi/1.1p1:dsi1.1p1
-    dsi/1.2:dsi1.2
-    dsi/1.2p1:dsi1.2p1
-    dsi/1.2p2:dsi1.2p2
-    dsi/1.3:dsi1.3
-    dsi/1.3p1:dsi1.3p1
-    dsi/1.6sp1:dsi1.6sp1
-    dsi/1.6sp2:dsi1.6sp2
+    mwccarm-2.0-72:ds/1.2/base/mwccarm.exe
+    mwccarm-2.0-73:ds/1.2/base_b73/mwccarm.exe
+    mwccarm-2.0-79:ds/1.2/sp2/mwccarm.exe
+    mwccarm-2.0-82:ds/1.2/sp2p3/mwccarm.exe
+    mwccarm-2.0-84:ds/1.2/sp3/mwccarm.exe
+    mwccarm-2.0-87:ds/1.2/sp4/mwccarm.exe
+    mwccarm-3.0-114:ds/2.0/base/mwccarm.exe
+    mwccarm-3.0-123:ds/2.0/sp1/mwccarm.exe
+    mwccarm-3.0-126:ds/2.0/sp1p2/mwccarm.exe
+    mwccarm-3.0-131:ds/2.0/sp1p5/mwccarm.exe
+    mwccarm-3.0-133:ds/2.0/sp1p6/mwccarm.exe
+    mwccarm-3.0-134:ds/2.0/sp1p7/mwccarm.exe
+    mwccarm-3.0-136:ds/2.0/sp2/mwccarm.exe
+    mwccarm-3.0-137:ds/2.0/sp2p2/mwccarm.exe
+    mwccarm-3.0-138:ds/2.0/sp2p3/mwccarm.exe
+    mwccarm-3.0-139:ds/2.0/sp2p4/mwccarm.exe
+    mwccarm-4.0-1018:dsi/1.1/mwccarm.exe
+    mwccarm-4.0-1024:dsi/1.1p1/mwccarm.exe
+    mwccarm-4.0-1026:dsi/1.2/mwccarm.exe
+    mwccarm-4.0-1027:dsi/1.2p1/mwccarm.exe
+    mwccarm-4.0-1028:dsi/1.2p2/mwccarm.exe
+    mwccarm-4.0-1034:dsi/1.3/mwccarm.exe
+    mwccarm-4.0-1036:dsi/1.3p1/mwccarm.exe
+    mwccarm-4.0-1051:dsi/1.6sp1/mwccarm.exe
 "
 
 mwccarm() {
     out="$1"; shift
     for version in $versions; do
-        wine "$BINS/${version%:*}/mwccarm.exe" -o \
-            "res/${out%.*}-${version##*:}.${out##*.}" "$@"
+        suffix="${version%%:*}"
+        suffix="${suffix#*-}"
+        wine "$BINS/${version#*:}" -o \
+            "res/${out%.*}-${suffix}.${out##*.}" "$@"
     done
 }
 
