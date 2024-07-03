@@ -22,7 +22,7 @@ mwldarm() {
 test_cc() {
     name="$1"; shift
     mwccarm "$@" -c -o "$name.o" "$SRC/$name.c"
-    cmp "$name.o" "$SRC/res/$name$VER.o"
+    cmp "$name.o" "$SRC/res/$MWCCARM_VER-$name.o"
 }
 test_as() {
     name="$1"; shift

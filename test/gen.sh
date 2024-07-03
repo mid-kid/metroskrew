@@ -34,10 +34,8 @@ versions="
 mwccarm() {
     out="$1"; shift
     for version in $versions; do
-        suffix="${version%%:*}"
-        suffix="${suffix#*-}"
         wine "$BINS/${version#*:}" -o \
-            "res/${out%.*}-${suffix}.${out##*.}" "$@"
+            "res/${version%%:*}-$out" "$@"
     done
 }
 

@@ -18,14 +18,14 @@ foreach name, bin : bins
     tests = tests_cc
     tests_dep = []
     tests_env = {
-      'VER': name.substring(7),
+      'MWCCARM_VER': name,
       'MWCCARM': bins_relink[name].full_path()
     }
   elif name.startswith('mwasmarm-')
     tests = tests_as
     tests_dep = []
     tests_env = {
-      'VER': name.substring(8),
+      'MWASMARM_VER': name,
       'MWASMARM': bins_relink[name].full_path()
     }
   else
