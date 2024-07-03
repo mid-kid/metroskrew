@@ -28,6 +28,8 @@ foreach name, bin : bins
       'VER': name.substring(8),
       'MWASMARM': bins_relink[name].full_path()
     }
+  else
+    continue
   endif
 
   foreach test_name : tests
