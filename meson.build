@@ -31,8 +31,12 @@ as_args_base = [
   is_windows ? ['--defsym', '_WIN32=1'] : []
 ]
 
+bins_sub = subproject('mw-executables')
+bins_dir = bins_sub.get_variable('bins_dir')
+bins = bins_sub.get_variable('bins')
+bins_paths = bins_sub.get_variable('bins_paths')
+
 subdir('dlls')
-subdir('bins')
 subdir('patch')
 subdir('relink')
 subdir('test')

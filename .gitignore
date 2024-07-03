@@ -1,3 +1,0 @@
-/bins/*
-!/bins/meson.build
-!/bins/scan.sh

@@ -1,7 +1,7 @@
 #!/bin/sh
 set -eu
 
-BINS="${BINS:-mw-executables}"
+BINS="${BINS:-.}"
 
 parse_ver() {
     sed -n 's/^Version \([0-9\.]*\) build \([0-9]*\).*$/\1-\2/p'

@@ -1,2 +1,1 @@
-option('bins', type: 'string', value: 'bins/mw-executables')
 option('trace', type: 'boolean', value: false)

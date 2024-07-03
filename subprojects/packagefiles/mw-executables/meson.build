@@ -1,4 +1,4 @@
-bins_dir = meson.global_source_root() / get_option('bins')
+project('mw-executables')
 
 versions = [
   ['mwasmarm-1.0-19', 'ds/1.2/base/mwasmarm.exe',
@@ -152,6 +152,8 @@ versions = [
   ['mwldarm-2.0-99', 'dsi/1.6sp2/mwldarm.exe',
     'e6589e421aa07730c0be2ff86dd43d4866d7a7ed'],
 ]
+
+bins_dir = meson.current_source_dir()
 
 bins = {}
 bins_paths = {}
