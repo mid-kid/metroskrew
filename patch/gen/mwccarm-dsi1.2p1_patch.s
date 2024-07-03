@@ -1,9 +1,9 @@
 .macro incbin off, len
-.incbin "mwccarm/dsi/1.2/mwccarm.exe", \off, \len
+.incbin "dsi/1.2p1/mwccarm.exe", \off, \len
 .endm
 
 pe_text_off = 0x400
-pe_text_len = 0x1b65aa
+pe_text_len = 0x1b65ca
 
 code_fs_1 = 0x40f
 code_fs_1.end = 0x41d

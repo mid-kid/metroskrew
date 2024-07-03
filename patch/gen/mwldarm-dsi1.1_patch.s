@@ -1,9 +1,9 @@
 .macro incbin off, len
-.incbin "mwccarm/dsi/1.3/mwldarm.exe", \off, \len
+.incbin "dsi/1.1/mwldarm.exe", \off, \len
 .endm
 
 pe_text_off = 0x400
-pe_text_len = 0x6c065
+pe_text_len = 0x6bb55
 
 code_fs_1 = 0x40f
 code_fs_1.end = 0x41d
@@ -25,10 +25,10 @@ code_getenv.end = 0x1a70
 
 addr_main = 0x1c80
 
-addr_envp = 0x4abe40
+addr_envp = 0x4aae30
 
-addr_argc = 0x4ad6cc
+addr_argc = 0x4ac6bc
 
-addr_argv = 0x4ae7bc
+addr_argv = 0x4ad7ac
 
 .include "patch.i"

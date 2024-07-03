@@ -1,5 +1,5 @@
 .macro incbin off, len
-.incbin "mwccarm/dsi/1.2p2/mwasmarm.exe", \off, \len
+.incbin "dsi/1.2p2/mwasmarm.exe", \off, \len
 .endm
 
 pe_text_off = 0x400
