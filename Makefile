@@ -3,57 +3,60 @@ MESON ?= meson
 CROSS := cc-m32
 
 build := build
+build_release := $(build)/opt.release
+build_trace := $(build)/opt.trace
+build_windows := $(build)/opt.windows
 
 .PHONY: all
 all: $(build)/build.ninja
 	$(MESON) compile -C $(build)
 
-.PHONY: windows
-windows: $(build)/opt.windows/build.ninja
-	$(MESON) compile -C $(build)/opt.windows
-
 .PHONY: release
-release: $(build)/opt.release/build.ninja
-	$(MESON) compile -C $(build)/opt.release
+release: $(build_release)/build.ninja
+	$(MESON) compile -C $(build_release)
 
 .PHONY: trace
-trace: $(build)/opt.trace/build.ninja
-	$(MESON) compile -C $(build)/opt.trace
+trace: $(build_trace)/build.ninja
+	$(MESON) compile -C $(build_trace)
+
+.PHONY: windows
+windows: $(build_windows)/build.ninja
+	$(MESON) compile -C $(build_windows)
 
 .PHONY: setup_all
 .NOTPARALLEL: setup_all
-setup_all: setup setup_windows setup_release setup_trace
+setup_all: setup setup_release setup_trace setup_windows
 
 .PHONY: setup
 setup: $(build)/build.ninja
 
-.PHONY: setup_windows
-setup_windows: $(build)/opt.windows/build.ninja
-
 .PHONY: setup_release
-setup_release: $(build)/opt.release/build.ninja
+setup_release: $(build_release)/build.ninja
 
 .PHONY: setup_trace
-setup_trace: $(build)/opt.trace/build.ninja
+setup_trace: $(build_trace)/build.ninja
+
+.PHONY: setup_windows
+setup_windows: $(build_windows)/build.ninja
 
 .PHONY: test_all
-test_all: setup_all .WAIT test test_windows test_release test_trace
+test_all: setup_all .WAIT test test_release test_trace test_windows
 
 .PHONY: test
 test: $(build)/build.ninja
 	$(MESON) test -C $(build)
 
-.PHONY: test_windows
-test_windows: $(build)/opt.windows/build.ninja
-	$(MESON) test -C $(build)/opt.windows
-
 .PHONY: test_release
-test_release: $(build)/opt.release/build.ninja
-	$(MESON) test -C $(build)/opt.release
+test_release: $(build_release)/build.ninja
+	$(MESON) test -C $(build_release)
 
 .PHONY: test_trace
-test_trace: $(build)/opt.trace/build.ninja
-	$(MESON) test -C $(build)/opt.trace
+test_trace: $(build_trace)/build.ninja
+	$(MESON) test -C $(build_trace)
+
+.PHONY: test_windows
+test_windows: $(build_windows)/build.ninja
+	$(MESON) test -C $(build_windows)
 
 .PHONY: patchgen
 patchgen: $(build)/build.ninja
@@ -61,13 +64,14 @@ patchgen: $(build)/build.ninja
 
 .PHONY: clean
 clean:
-	! test -f $(build)/build.ninja || $(MESON) compile -C $(build) --clean
-	! test -f $(build)/opt.windows/build.ninja || \
-		$(MESON) compile -C $(build)/opt.windows --clean
-	! test -f $(build)/opt.release/build.ninja || \
-		$(MESON) compile -C $(build)/opt.release --clean
-	! test -f $(build)/opt.trace/build.ninja || \
-		$(MESON) compile -C $(build)/opt.trace --clean
+	! test -f $(build)/build.ninja || \
+		$(MESON) compile -C $(build) --clean
+	! test -f $(build_release)/build.ninja || \
+		$(MESON) compile -C $(build_release) --clean
+	! test -f $(build_trace)/build.ninja || \
+		$(MESON) compile -C $(build_trace) --clean
+	! test -f $(build_windows)/build.ninja || \
+		$(MESON) compile -C $(build_windows) --clean
 
 .PHONY: distclean
 distclean:
@@ -77,17 +81,17 @@ distclean:
 $(build)/build.ninja:
 	$(MESON) setup --cross-file meson/$(CROSS).ini $(build)
 
-$(build)/opt.windows/build.ninja:
+$(build_release)/build.ninja:
 	@mkdir -p $(build)
-	$(MESON) setup --cross-file meson/i686-w64-mingw32.ini $(build)/opt.windows \
-		-Dtrace=true
-
-$(build)/opt.release/build.ninja:
-	@mkdir -p $(build)
-	$(MESON) setup --cross-file meson/$(CROSS).ini $(build)/opt.release \
+	$(MESON) setup --cross-file meson/$(CROSS).ini $(build_release) \
 		--buildtype release
 
-$(build)/opt.trace/build.ninja:
+$(build_trace)/build.ninja:
 	@mkdir -p $(build)
-	$(MESON) setup --cross-file meson/$(CROSS).ini $(build)/opt.trace \
+	$(MESON) setup --cross-file meson/$(CROSS).ini $(build_trace) \
+		-Dtrace=true
+
+$(build_windows)/build.ninja:
+	@mkdir -p $(build)
+	$(MESON) setup --cross-file meson/i686-w64-mingw32.ini $(build_windows) \
 		-Dtrace=true
