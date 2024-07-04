@@ -1,7 +1,3 @@
-assert(host_machine.cpu_family() == 'x86',
-  'This project can only be built for 32-bit x86')
-arch = '-march=i586'
-
 sources_s = [
   'advapi32.s',
   'kernel32.s',
@@ -18,8 +14,6 @@ sources_c = [
   'user32.c',
   'version.c'
 ]
-
-win_headers = subproject('wine').get_variable('headers_dep_lean')
 
 c_args = [
   c_args_base,
@@ -39,7 +33,7 @@ common = static_library('common',
   objects: as_gen.process(sources_s,
     extra_args: as_args),
   c_args: c_args,
-  dependencies: win_headers,
+  dependencies: wine_headers,
   build_by_default: false)
 
 common_inc = meson.current_source_dir()
