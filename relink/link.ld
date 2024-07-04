@@ -10,5 +10,7 @@ SECTIONS {
     .pe_idata pe_idata_addr : { *(.pe_idata) }
     .pe_bss pe_bss_addr : { *(.pe_bss) }
     /DISCARD/ : { *(.pe_edata) *(.pe_reloc) }
+
+    . = ALIGN(CONSTANT (MAXPAGESIZE));
 }
 INSERT BEFORE .text
