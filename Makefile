@@ -62,6 +62,11 @@ test_windows: $(build_windows)/build.ninja
 patchgen: $(build)/build.ninja
 	$(MESON) compile -C $(build) patchgen
 
+.PHONY: package
+package: $(build_release)/build.ninja
+	rm -r $(build_release)/install
+	$(MESON) install -C $(build_release) --destdir install
+
 .PHONY: clean
 clean:
 	! test -f $(build)/build.ninja || \
@@ -75,7 +80,7 @@ clean:
 
 .PHONY: distclean
 distclean:
-	rm -rf $(build)
+	rm -r $(build)
 	$(MESON) subprojects purge --confirm
 
 $(build)/build.ninja:
@@ -84,7 +89,7 @@ $(build)/build.ninja:
 $(build_release)/build.ninja:
 	@mkdir -p $(build)
 	$(MESON) setup --cross-file meson/$(CROSS).ini $(build_release) \
-		--buildtype release
+		--prefix / --buildtype release
 
 $(build_trace)/build.ninja:
 	@mkdir -p $(build)
