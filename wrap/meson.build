@@ -15,4 +15,4 @@ if host_machine.system() == 'windows'
     language: 'c')
 endif
 
-executable('skrewrap', 'wrap.c')
+executable('skrew', 'wrap.c')

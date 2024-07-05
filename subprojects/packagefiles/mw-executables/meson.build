@@ -157,10 +157,13 @@ bins_dir = meson.current_source_dir()
 
 bins = {}
 bins_paths = {}
+bins_paths_all = []
 foreach x : versions
   bin = x[0]
   path = x[1]
   sum = x[2]
+
+  bins_paths_all += [[bin, path]]
 
   # All the binaries with the same build number but differing hash have been
   # checked and only differ in their build dates. It's useless to keep them.

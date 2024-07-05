@@ -19,6 +19,7 @@ bins_sub = subproject('mw-executables')
 bins_dir = bins_sub.get_variable('bins_dir')
 bins = bins_sub.get_variable('bins')
 bins_paths = bins_sub.get_variable('bins_paths')
+bins_paths_all = bins_sub.get_variable('bins_paths_all')
 
 assert(host_machine.cpu_family() == 'x86',
   'This project can only be built for 32-bit x86')
@@ -41,3 +42,4 @@ subdir('dlls')
 subdir('patch')
 subdir('relink')
 subdir('test')
+subdir('data')
