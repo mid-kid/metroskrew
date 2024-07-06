@@ -26,7 +26,7 @@ struct scan {
     size_t size;
     unsigned char *data;
 };
-#define DEF_SCAN(_off, ...) {\
+#define DEF_SCAN(_off, ...) { \
     .off = _off, \
     .data = (unsigned char *)&((unsigned char[]){__VA_ARGS__}), \
     .size = sizeof((unsigned char[]){__VA_ARGS__})}
@@ -128,7 +128,7 @@ unsigned find_init(const struct file *binary, const struct loc **res)
             0x85, 0xc0,  // test eax, eax
             0x75, 0x08,  // jne +10
             0x6a, 0xff,  // push -1
-            0xe8,  // call unk
+            0xe8,        // call unk
         ),
         // Verify the instructions for all the parameters we're extracting
         DEF_SCAN(33,

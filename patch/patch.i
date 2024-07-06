@@ -25,18 +25,6 @@ incbin patch.end, (pe_text_off + pe_text_len - patch.end)
     push eax
 .endm
 
-.macro patch_init_args_old
-    push ebx
-    mov eax, [main_argc]
-    mov ebx, [addr_argc]
-    mov [ebx], eax
-    mov eax, [main_argv]
-    mov ebx, [addr_argv]
-    mov [ebx], eax
-    pop ebx
-    ret
-.endm
-
 .macro patch_init_args
     mov eax, [main_argc]
     mov [addr_argc], eax
