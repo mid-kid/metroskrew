@@ -1,6 +1,3 @@
-project('metroskrew-wrap', 'c',
-  default_options: ['warning_level=2'])
-
 if host_machine.system() == 'windows'
   winflags = [
     '-mconsole',
@@ -15,4 +12,5 @@ if host_machine.system() == 'windows'
     language: 'c')
 endif
 
-executable('skrew', 'wrap.c')
+executable('skrewrap', 'wrap.c',
+  install: true)
