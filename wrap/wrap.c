@@ -16,8 +16,8 @@ extern char **environ;
 #define PROGRAM_NAME "skrewrap"
 
 #define DEFAULT_VER "2.0/sp2p2"
-#define DEFAULT_CFG_FILE ".skconfig"
-#define VER_CFG 0
+#define DEFAULT_CFG_FILE ".mwconfig"
+#define VER_CFG 1
 
 #ifdef _UNICODE
 #define FMT_TS "%ls"
@@ -464,26 +464,6 @@ void fix_depfile(_TCHAR *fname, const char *path_unx, const char *path_win, cons
 
     fclose(f);
     free(file);
-}
-
-char *replace_str(char *str, char *orig, char *rep, int start)
-{
-    static char temp[4096];
-    static char buffer[4096];
-    char *p;
-
-    strcpy(temp, str + start);
-
-    if(!(p = strstr(temp, orig)))  // Is 'orig' even in 'temp'?
-        return temp;
-
-    strncpy(buffer, temp, p-temp); // Copy characters from 'temp' start to 'orig' str
-    buffer[p-temp] = '\0';
-
-    sprintf(buffer + (p - temp), "%s%s", rep, p + strlen(orig));
-    sprintf(str + start, "%s", buffer);
-
-    return str;
 }
 
 int _tmain(int argc, _TCHAR *argv[])
