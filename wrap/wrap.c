@@ -13,7 +13,7 @@
 extern char **environ;
 #endif
 
-#define PROGRAM_NAME "mwrap"
+#define PROGRAM_NAME "skrewrap"
 
 #define DEFAULT_VER "2.0/sp2p2"
 #define DEFAULT_CFG_FILE ".mwconfig"
@@ -40,6 +40,12 @@ typedef char _TCHAR;
 #define _tcsrchr(...) strrchr(__VA_ARGS__)
 #define _tfopen(...) fopen(__VA_ARGS__)
 #define _tgetenv(...) getenv(__VA_ARGS__)
+#endif
+
+#ifndef _WIN32
+#define PATH_DELIM "/"
+#else
+#define PATH_DELIM "/\\"
 #endif
 
 struct args {
@@ -301,17 +307,11 @@ _TCHAR *my_dirname(const _TCHAR *str)
 {
     _TCHAR *dir = _tcsdup(str);
     size_t sep = _tcslen(dir);
-    while (sep > 0) {
-        if (dir[sep] == '/') goto found;
-#ifdef _WIN32
-        if (dir[sep] == '\\') goto found;
-#endif
-        sep--;
+    if (_tcscspn(dir, _T(PATH_DELIM)) == sep) {
+        // Indicate current dir if no slash was found
+        dir[0] = '.';
+        sep = 1;
     }
-    // Indicate current dir if no slash was found
-    dir[0] = '.';
-    sep = 1;
-found:
     dir = realloc(dir, sizeof(*dir) * (sep + 1));
     dir[sep] = '\0';
     return dir;
@@ -507,18 +507,12 @@ int _tmain(int argc, _TCHAR *argv[])
         new_argv[0] = wine;
     }
 
-#ifdef _WIN32
-#define PATHSEP ";"
-#else
-#define PATHSEP ":"
-#endif
-
     // Build standard library paths for environment variables
     size_t mwcincludes_size = _tcslen(tool_dir) * 3  + 46;
     _TCHAR *MWCIncludes = malloc(sizeof(_TCHAR) * mwcincludes_size);
     _sntprintf(MWCIncludes, mwcincludes_size, _T(
-        FMT_TS "/" FMT_TS PATHSEP
-        FMT_TS "/" FMT_TS PATHSEP
+        FMT_TS "/" FMT_TS ";"
+        FMT_TS "/" FMT_TS ";"
         FMT_TS "/" FMT_TS),
         tool_dir, _T("include"),
         tool_dir, _T("include/MSL_C"),
@@ -533,10 +527,10 @@ int _tmain(int argc, _TCHAR *argv[])
     size_t mwclibraryfiles_size = 107;
     _TCHAR *MWLibraryFiles = malloc(sizeof(_TCHAR) * mwclibraryfiles_size);
     _sntprintf(MWLibraryFiles, mwclibraryfiles_size, _T(
-        "MSL_C_NITRO_Ai_LE.a" PATHSEP
-        "MSL_Extras_NITRO_Ai_LE.a" PATHSEP
-        "MSL_CPP_NITRO_Ai_LE.a" PATHSEP
-        "FP_fastI_v5t_LE.a" PATHSEP
+        "MSL_C_NITRO_Ai_LE.a" ";"
+        "MSL_Extras_NITRO_Ai_LE.a" ";"
+        "MSL_CPP_NITRO_Ai_LE.a" ";"
+        "FP_fastI_v5t_LE.a" ";"
         "NITRO_Runtime_Ai_LE.a"));
 
 #ifdef _WIN32
