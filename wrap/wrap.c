@@ -33,6 +33,7 @@ typedef char _TCHAR;
 #define _ftprintf(...) fprintf(__VA_ARGS__)
 #define _sntprintf(...) snprintf(__VA_ARGS__)
 #define _tcscat(...) strcat(__VA_ARGS__)
+#define _tcschr(...) strchr(__VA_ARGS__)
 #define _tcscmp(...) strcmp(__VA_ARGS__)
 #define _tcscspn(...) strcspn(__VA_ARGS__)
 #define _tcsdup(...) strdup(__VA_ARGS__)
@@ -327,7 +328,8 @@ _TCHAR *my_dirname(const _TCHAR *str)
 {
     _TCHAR *dir = _tcsdup(str);
     size_t sep = _tcslen(dir);
-    if (_tcscspn(dir, _T(PATH_DELIM)) == sep) {
+    while (sep > 0) if (_tcschr(_T(PATH_DELIM), dir[--sep])) break;
+    if (!sep) {
         // Indicate current dir if no slash was found
         dir[0] = '.';
         sep = 1;
