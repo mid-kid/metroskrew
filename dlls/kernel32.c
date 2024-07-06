@@ -251,13 +251,11 @@ UINT WINAPI GetCurrentDirectoryA(UINT nBufferLength, LPSTR lpBuffer)
     char path[0x1000];
     if (!getcwd(path, sizeof(path))) return 0;
 
-    size_t path_len = strlen(path) + 2 + 1;
+    size_t path_len = strlen(path) + 1;
     if (nBufferLength < path_len) return path_len;
 
     // Copy to DOS path
     char *p = lpBuffer;
-    *p++ = 'Z';
-    *p++ = ':';
     for (char *c = path; *c; c++) *p++ = *c == '/' ? '\\' : *c;
     *p++ = '\0';
 
@@ -383,8 +381,7 @@ DWORD WINAPI GetFullPathNameA(LPCSTR lpFileName, DWORD nBufferLength, LPSTR lpBu
     size_t full_len = name_len;
 
     // If the path isn't absolute, add the current directory
-    if (lpFileName[0] != '\\' &&
-            (lpFileName[0] != 'Z' || lpFileName[1] != ':')) {
+    if (lpFileName[0] != '\\' && !path_has_drv(lpFileName)) {
         res = GetCurrentDirectoryA(nBufferLength, lpBuffer);
         if (!res) return 0;
         full_len += res + 1;

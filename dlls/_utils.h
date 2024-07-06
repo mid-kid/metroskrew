@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 #ifdef ETRACE
 #define TRACE(msg, ...) printf("trace: " msg "\n", ##__VA_ARGS__)
@@ -22,4 +23,5 @@
 #define ALIAS(name, num) \
     __asm__(".global _" name "; .set _" name ", _" name "@" #num)
 
+bool path_has_drv(const char *path);
 char *path_dup_unx(const char *path);
