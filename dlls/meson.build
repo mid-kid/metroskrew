@@ -11,6 +11,7 @@ sources_c = [
   'advapi32.c',
   'kernel32.c',
   'lmgr8c.c',
+  'ole32.c',
   'user32.c',
   'version.c'
 ]
