@@ -16,8 +16,8 @@ extern char **environ;
 #define PROGRAM_NAME "skrewrap"
 
 #define DEFAULT_VER "2.0/sp2p2"
-#define DEFAULT_CFG_FILE ".mwconfig"
-#define VER_CFG 1
+#define DEFAULT_CFG_FILE ".skconfig"
+#define VER_CFG 0
 
 #ifdef _UNICODE
 #define FMT_TS "%ls"
@@ -56,6 +56,11 @@ struct args {
 
     bool wrap_dbg;
     _TCHAR *wrap_ver;
+};
+
+struct file {
+    size_t size;
+    unsigned char data[];
 };
 
 struct args parse_args(int argc, _TCHAR *argv[], int *out_argc, _TCHAR ***out_argv)
@@ -113,15 +118,31 @@ struct args parse_args(int argc, _TCHAR *argv[], int *out_argc, _TCHAR ***out_ar
     return args;
 }
 
-char *file_read(const _TCHAR *fname, size_t *size)
+struct file *file_read(const _TCHAR *name)
 {
-    FILE *f = _tfopen(fname, _T("rb"));
+    FILE *f = _tfopen(name, _T("rb"));
     if (!f) return NULL;
-    fseek(f, 0, SEEK_END);
-    *size = ftell(f);
-    char *file = malloc(*size);
-    rewind(f);
-    fread(file, *size, 1, f);
+
+    long size;
+    if (fseek(f, 0, SEEK_END) == -1 ||
+            (size = ftell(f)) == -1 ||
+            fseek(f, 0, SEEK_SET) == -1) {
+        fclose(f);
+        return NULL;
+    }
+
+    struct file *file = malloc(sizeof(struct file) + size);
+    if (!file) {
+        fclose(f);
+        return NULL;
+    }
+    file->size = size;
+
+    if (fread(file->data, file->size, 1, f) != 1) {
+        free(file);
+        fclose(f);
+        return NULL;
+    }
     fclose(f);
     return file;
 }
@@ -195,22 +216,22 @@ void cfg_save(struct config cfg)
     fclose(f);
 }
 
-char *cfg_load_readstr(char *file, size_t *pos, size_t len)
+char *cfg_load_readstr(struct file *file, size_t *pos)
 {
     // Check if a string is present
-    if (len < *pos + 1) return NULL;
-    if (file[*pos] == '\0') {
+    if (file->size < *pos + 1) return NULL;
+    if (file->data[*pos] == '\0') {
         // Treat empty string as empty
         (*pos)++;
         return NULL;
     }
 
     // Look for the null byte
-    size_t readlen = strnlen(file + *pos, len - *pos);
-    if (len - *pos <= readlen) return NULL;
+    size_t readlen = strnlen((char *)file->data + *pos, file->size - *pos);
+    if (file->size - *pos <= readlen) return NULL;
 
     // If found, we can safely read it
-    char *readstr = strdup(file + *pos);
+    char *readstr = strdup((char *)file->data + *pos);
     *pos += readlen + 1;
     return readstr;
 }
@@ -224,21 +245,20 @@ struct config cfg_load(void)
     cfg.path_build_unx = NULL;
     cfg.path_build_win = NULL;
 
-    size_t file_len = 0;
-    char *file = file_read(cfg_file(), &file_len);
+    struct file *file = file_read(cfg_file());
     if (!file) return cfg;
     size_t file_pos = 0;
 
     const char head[] = {'M', 'W', 'R', VER_CFG};
-    if (file_len < file_pos + sizeof(head)) return cfg;
-    if (memcmp(file + file_pos, head, sizeof(head)) != 0) return cfg;
+    if (file->size < file_pos + sizeof(head)) return cfg;
+    if (memcmp(file->data + file_pos, head, sizeof(head)) != 0) return cfg;
     file_pos += sizeof(head);
 
-    cfg.wine = cfg_load_readstr(file, &file_pos, file_len);
-    cfg.path_unx = cfg_load_readstr(file, &file_pos, file_len);
-    cfg.path_win = cfg_load_readstr(file, &file_pos, file_len);
-    cfg.path_build_unx = cfg_load_readstr(file, &file_pos, file_len);
-    cfg.path_build_win = cfg_load_readstr(file, &file_pos, file_len);
+    cfg.wine = cfg_load_readstr(file, &file_pos);
+    cfg.path_unx = cfg_load_readstr(file, &file_pos);
+    cfg.path_win = cfg_load_readstr(file, &file_pos);
+    cfg.path_build_unx = cfg_load_readstr(file, &file_pos);
+    cfg.path_build_win = cfg_load_readstr(file, &file_pos);
 
     free(file);
     return cfg;
@@ -397,8 +417,7 @@ _TCHAR *win_argv_build(const _TCHAR *const *argv)
 
 void fix_depfile(_TCHAR *fname, const char *path_unx, const char *path_win, const char *path_build_unx, const char *path_build_win)
 {
-    size_t file_size;
-    char *file = file_read(fname, &file_size);
+    struct file *file = file_read(fname);
     if (!file) return;
 
     FILE *f = _tfopen(fname, _T("wb"));
@@ -417,27 +436,27 @@ void fix_depfile(_TCHAR *fname, const char *path_unx, const char *path_win, cons
 
     // Replace any instances of path_win at the beginning of a line with
     // path_unx, and backslashes with forward slashes.
-    for (size_t x = 0; x < file_size;) {
+    for (size_t x = 0; x < file->size;) {
         if (blankline &&
-                file_size - x > size_win &&
-                memcmp(file + x, path_win, size_win) == 0) {
+                file->size - x > size_win &&
+                memcmp(file->data + x, path_win, size_win) == 0) {
             fputs(path_unx, f);
             x += size_win;
         } else if (blankline && size_build_win &&
-                file_size - x > size_build_win &&
-                memcmp(file + x, path_build_win, size_build_win) == 0) {
+                file->size - x > size_build_win &&
+                memcmp(file->data + x, path_build_win, size_build_win) == 0) {
             fputs(path_build_unx, f);
             x += size_build_win;
-        } else if (file_size - x > 2 && file[x] == '\\' &&
-                file[x + 1] != '\r' && file[x + 1] != '\n') {
+        } else if (file->size - x > 2 && file->data[x] == '\\' &&
+                file->data[x + 1] != '\r' && file->data[x + 1] != '\n') {
             fputc('/', f);
             x++;
         } else {
-            if (blankline && file[x] != ' ' && file[x] != '\t') {
+            if (blankline && file->data[x] != ' ' && file->data[x] != '\t') {
                 blankline = false;
             }
-            if (file[x] == '\n') blankline = true;
-            fputc(file[x++], f);
+            if (file->data[x] == '\n') blankline = true;
+            fputc(file->data[x++], f);
         }
     }
 
@@ -472,7 +491,6 @@ int _tmain(int argc, _TCHAR *argv[])
         return EXIT_FAILURE;
     }
 
-    if (_tcscmp(argv[1], _T("-test")) == 0) return EXIT_SUCCESS;
     if (_tcscmp(argv[1], _T("-conf")) == 0) {
         configure(argc - 2, argv + 2);
         return EXIT_SUCCESS;
@@ -564,11 +582,6 @@ int _tmain(int argc, _TCHAR *argv[])
     setenv("MWCIncludes", MWCIncludes, true);
     setenv("MWLibraries", MWLibraries, true);
     setenv("MWLibraryFiles", MWLibraryFiles, true);
-
-    #ifndef __CYGWIN__
-        // Pass environment variables to Windows if running in WSL
-        setenv("WSLENV", "MWCIncludes/p:MWLibraries/p:MWLibraryFiles", true);
-    #endif
 
     // Execute the tool
     if (args.wrap_dbg) {
