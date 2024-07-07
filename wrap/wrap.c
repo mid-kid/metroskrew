@@ -15,7 +15,10 @@ extern char **environ;
 
 #define PROGRAM_NAME "skrewrap"
 
-#define DEFAULT_VER "2.0/sp2p2"
+#define DEFAULT_MWCCARM "4.0-1051"
+#define DEFAULT_MWLDARM "2.0-99"
+#define DEFAULT_MWASMARM "1.0-27"
+
 #define DEFAULT_CFG_FILE ".mwconfig"
 #define VER_CFG 1
 
@@ -57,6 +60,7 @@ struct args {
 
     bool wrap_dbg;
     _TCHAR *wrap_ver;
+    _TCHAR *wrap_sdk;
 };
 
 struct file {
@@ -72,7 +76,8 @@ struct args parse_args(int argc, _TCHAR *argv[], int *out_argc, _TCHAR ***out_ar
         .M = false,
         .MD = false,
         .wrap_dbg = false,
-        .wrap_ver = NULL
+        .wrap_ver = NULL,
+        .wrap_sdk = NULL
     };
 
     int new_argc = 0;
@@ -100,9 +105,11 @@ struct args parse_args(int argc, _TCHAR *argv[], int *out_argc, _TCHAR ***out_ar
         } else if (_tcscmp(argv[0], _T("-wrap:dbg")) == 0) {
             args.wrap_dbg = true;
             skip = 1;
-        } else if (_tcscmp(argv[0], _T("-wrap:ver")) == 0 &&
-                argc >= 2) {
+        } else if (_tcscmp(argv[0], _T("-wrap:ver")) == 0 && argc >= 2) {
             args.wrap_ver = argv[1];
+            skip = 2;
+        } else if (_tcscmp(argv[0], _T("-wrap:sdk")) == 0 && argc >= 2) {
+            args.wrap_sdk = argv[1];
             skip = 2;
         } else {
             copy = 1;
@@ -483,22 +490,43 @@ int _tmain(int argc, _TCHAR *argv[])
 
     struct config cfg = cfg_load();
 
-    _TCHAR *tool_dir = my_dirname(argv[0]);
-    const _TCHAR *tool_ver = _T(DEFAULT_VER);
-    const _TCHAR *tool_bin = argv[1];
-
+    // Filter the arguments to pass to the application
     int new_argc;
     _TCHAR **new_argv;
     struct args args = parse_args(argc - 2, argv + 2, &new_argc, &new_argv);
 
+    _TCHAR *tool_dir = my_dirname(argv[0]);
+    const _TCHAR *tool_bin = argv[1];
+    const _TCHAR *tool_ver = NULL;
+    const _TCHAR *tool_sdk = NULL;
+
     if (args.wrap_ver) tool_ver = args.wrap_ver;
+    if (args.wrap_sdk) tool_sdk = args.wrap_sdk;
+
+    // If no version was specified, pick a default for generic binary names
+    if (!tool_ver && !tool_sdk) {
+        if (_tcscmp(tool_bin, "mwccarm") == 0) tool_ver = DEFAULT_MWCCARM;
+        if (_tcscmp(tool_bin, "mwldarm") == 0) tool_ver = DEFAULT_MWLDARM;
+        if (_tcscmp(tool_bin, "mwasmarm") == 0) tool_ver = DEFAULT_MWASMARM;
+    }
 
     // Make a path of the chosen tool
-    size_t tool_size = _tcslen(tool_dir) + 1 + _tcslen(tool_ver) + 1 +
-        _tcslen(tool_bin) + 5;
-    _TCHAR *tool = malloc(sizeof(_TCHAR) * tool_size);
-    _sntprintf(tool, tool_size, _T(FMT_TS "/" FMT_TS "/" FMT_TS ".exe"),
-        tool_dir, tool_ver, tool_bin);
+    _TCHAR *tool = NULL;
+    if (tool_sdk) {
+        // Not implemented
+        return EXIT_FAILURE;
+    } else if (tool_ver) {
+        size_t tool_size = _tcslen(tool_dir) + 1 + _tcslen(tool_bin) + 1 +
+            _tcslen(tool_ver) + 5;
+        tool = malloc(sizeof(_TCHAR) * tool_size);
+        _sntprintf(tool, tool_size, _T(FMT_TS "/" FMT_TS "-" FMT_TS ".exe"),
+            tool_dir, tool_bin, tool_ver);
+    } else {
+        size_t tool_size = _tcslen(tool_dir) + 1 + _tcslen(tool_bin) + 5;
+        tool = malloc(sizeof(_TCHAR) * tool_size);
+        _sntprintf(tool, tool_size, _T(FMT_TS "/" FMT_TS ".exe"),
+            tool_dir, tool_bin);
+    }
     new_argv[0] = tool;
 
     // Add the wine command if requested
