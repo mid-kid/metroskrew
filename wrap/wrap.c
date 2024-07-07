@@ -349,7 +349,7 @@ void str_resize(_TCHAR **str, size_t *max, size_t req)
 
 // Windows argv[] strings are passed as a whole, instead of being split up into
 // an array. This means that *we* have to make sure to quote our arguments, and
-// for some reason nobody every thought to make a library for this.
+// for some reason nobody ever thought to make a library for this.
 _TCHAR *win_argv_build(const _TCHAR *const *argv)
 {
     size_t args_max = 1024;
@@ -428,7 +428,10 @@ void fix_depfile(_TCHAR *fname, const char *path_unx, const char *path_win, cons
         return;
     }
 
-    size_t size_win = strlen(path_win);
+    size_t size_win = 0;
+    if (path_win && path_unx) {
+        size_win = strlen(path_win);
+    }
     size_t size_build_win = 0;
     if (path_build_win && path_build_unx) {
         size_build_win = strlen(path_build_win);
@@ -439,12 +442,12 @@ void fix_depfile(_TCHAR *fname, const char *path_unx, const char *path_win, cons
     // Replace any instances of path_win at the beginning of a line with
     // path_unx, and backslashes with forward slashes.
     for (size_t x = 0; x < file->size;) {
-        if (blankline &&
+        if (size_win && blankline &&
                 file->size - x > size_win &&
                 memcmp(file->data + x, path_win, size_win) == 0) {
             fputs(path_unx, f);
             x += size_win;
-        } else if (blankline && size_build_win &&
+        } else if (size_build_win && blankline &&
                 file->size - x > size_build_win &&
                 memcmp(file->data + x, path_build_win, size_build_win) == 0) {
             fputs(path_build_unx, f);
@@ -508,7 +511,7 @@ int _tmain(int argc, _TCHAR *argv[])
     }
 
     // Build standard library paths for environment variables
-    size_t mwcincludes_size = _tcslen(tool_dir) * 3  + 46;
+    size_t mwcincludes_size = _tcslen(tool_dir) * 3 + 46;
     _TCHAR *MWCIncludes = malloc(sizeof(_TCHAR) * mwcincludes_size);
     _sntprintf(MWCIncludes, mwcincludes_size, _T(
         FMT_TS "/" FMT_TS ";"
@@ -592,46 +595,46 @@ int _tmain(int argc, _TCHAR *argv[])
     free(MWLibraryFiles);
 
     // Fix dependency file if generated
-    if (cfg.path_unx && cfg.path_win) {
-        _TCHAR *depfile = NULL;
-        if (args.M) {
-            // Only generated a depfile
-            depfile = _tcsdup(args.o);
-        } else if (args.MD) {
-            // Generating a depfile as a side-effect of compilation
-            _TCHAR *out = NULL;
-            if (args.o) out = args.o;
-            if (args.precompile) out = args.precompile;
+    _TCHAR *depfile = NULL;
+    if (args.M) {
+        // Only generated a depfile
+        depfile = _tcsdup(args.o);
+    } else if (args.MD) {
+        // Generating a depfile as a side-effect of compilation
+        _TCHAR *out = NULL;
+        if (args.o) out = args.o;
+        if (args.precompile) out = args.precompile;
 
-            // Replace filename extension with .d
-            if (out) {
-                out = _tcsdup(out);
-                _TCHAR *dot = _tcsrchr(out, '.');
-                if (!dot) dot = _tcsrchr(out, '\0');
-                *dot = '\0';
+        // Replace filename extension with .d
+        if (out) {
+            out = _tcsdup(out);
+            _TCHAR *dot = _tcsrchr(out, '.');
+            if (!dot) dot = _tcsrchr(out, '\0');
+            *dot = '\0';
 
-                size_t len = dot - out + 3;
-                out = realloc(out, sizeof(*out) * len);
-                _tcscat(out, _T(".d"));
-            }
-            depfile = out;
+            size_t len = dot - out + 3;
+            out = realloc(out, sizeof(*out) * len);
+            _tcscat(out, _T(".d"));
         }
+        depfile = out;
+    }
 
-        if (depfile) {
-            if (args.wrap_dbg) {
-                fprintf(stderr, "dep: " FMT_TS "\n", depfile);
+    if (depfile) {
+        if (args.wrap_dbg) {
+            fprintf(stderr, "dep: " FMT_TS "\n", depfile);
+            if (cfg.path_unx && cfg.path_win) {
                 fprintf(stderr, "path_unx: %s\n", cfg.path_unx);
                 fprintf(stderr, "path_win: %s\n", cfg.path_win);
-                if (cfg.path_build_unx && cfg.path_build_win) {
-                    fprintf(stderr, "path_build_unx: %s\n", cfg.path_build_unx);
-                    fprintf(stderr, "path_build_win: %s\n", cfg.path_build_win);
-                }
             }
-            fix_depfile(depfile,
-                cfg.path_unx, cfg.path_win,
-                cfg.path_build_unx, cfg.path_build_win);
-            free(depfile);
+            if (cfg.path_build_unx && cfg.path_build_win) {
+                fprintf(stderr, "path_build_unx: %s\n", cfg.path_build_unx);
+                fprintf(stderr, "path_build_win: %s\n", cfg.path_build_win);
+            }
         }
+        fix_depfile(depfile,
+            cfg.path_unx, cfg.path_win,
+            cfg.path_build_unx, cfg.path_build_win);
+        free(depfile);
     }
 
     cfg_free(cfg);
