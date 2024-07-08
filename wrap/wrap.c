@@ -331,19 +331,15 @@ void configure(int argc, _TCHAR *argv[])
     cfg_free(cfg);
 }
 
-_TCHAR *my_dirname(const _TCHAR *str)
+_TCHAR *my_dirname(_TCHAR *str)
 {
-    _TCHAR *dir = _tcsdup(str);
-    size_t sep = _tcslen(dir);
-    while (sep > 0) if (_tcschr(_T(PATH_DELIM), dir[--sep])) break;
-    if (!sep) {
-        // Indicate current dir if no slash was found
-        dir[0] = '.';
-        sep = 1;
-    }
-    dir = realloc(dir, sizeof(*dir) * (sep + 1));
-    dir[sep] = '\0';
-    return dir;
+    // Returns an empty string if no slash is found
+
+    size_t sep = _tcslen(str);
+    while (sep > 0) if (_tcschr(_T(PATH_DELIM), str[--sep])) break;
+    str = realloc(str, sizeof(*str) * (sep + 1));
+    str[sep] = '\0';
+    return str;
 }
 
 void str_resize(_TCHAR **str, size_t *max, size_t req)
@@ -495,7 +491,9 @@ int _tmain(int argc, _TCHAR *argv[])
     _TCHAR **new_argv;
     struct args args = parse_args(argc - 2, argv + 2, &new_argc, &new_argv);
 
-    _TCHAR *tool_dir = my_dirname(argv[0]);
+    _TCHAR *tool_dir = _tcsdup(argv[0]);
+    tool_dir = my_dirname(tool_dir);
+
     const _TCHAR *tool_bin = argv[1];
     const _TCHAR *tool_ver = NULL;
     const _TCHAR *tool_sdk = NULL;
@@ -522,16 +520,17 @@ int _tmain(int argc, _TCHAR *argv[])
         // Not implemented
         return EXIT_FAILURE;
     } else if (tool_ver) {
-        size_t tool_size = _tcslen(tool_dir) + 1 + _tcslen(tool_bin) + 1 +
-            _tcslen(tool_ver) + 5;
+        size_t tool_size = (*tool_dir ? _tcslen(tool_dir) + 1 : 0) +
+            _tcslen(tool_bin) + 1 + _tcslen(tool_ver) + 5;
         tool = malloc(sizeof(_TCHAR) * tool_size);
-        _sntprintf(tool, tool_size, _T(FMT_TS "/" FMT_TS "-" FMT_TS ".exe"),
-            tool_dir, tool_bin, tool_ver);
+        _sntprintf(tool, tool_size, _T(FMT_TS FMT_TS FMT_TS "-" FMT_TS ".exe"),
+            tool_dir, *tool_dir ? "/" : "", tool_bin, tool_ver);
     } else {
-        size_t tool_size = _tcslen(tool_dir) + 1 + _tcslen(tool_bin) + 5;
+        size_t tool_size = (*tool_dir ? _tcslen(tool_dir) + 1 : 0) +
+            _tcslen(tool_bin) + 5;
         tool = malloc(sizeof(_TCHAR) * tool_size);
-        _sntprintf(tool, tool_size, _T(FMT_TS "/" FMT_TS ".exe"),
-            tool_dir, tool_bin);
+        _sntprintf(tool, tool_size, _T(FMT_TS FMT_TS FMT_TS ".exe"),
+            tool_dir, *tool_dir ? "/" : "", tool_bin);
     }
     new_argv[0] = tool;
 
@@ -610,8 +609,8 @@ int _tmain(int argc, _TCHAR *argv[])
         printf("\n");
     }
     pid_t pid;
-    if (posix_spawn(&pid, new_argv[0], NULL, NULL, new_argv, environ) != 0) {
-        perror(PROGRAM_NAME ": posix_spawn");
+    if (posix_spawnp(&pid, new_argv[0], NULL, NULL, new_argv, environ) != 0) {
+        perror(PROGRAM_NAME ": posix_spawnp");
         exit(EXIT_FAILURE);
     }
     int exitcode;

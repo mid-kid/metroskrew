@@ -64,7 +64,7 @@ patchgen: $(build)/build.ninja
 
 .PHONY: package
 package: $(build_release)/build.ninja
-	rm -r $(build_release)/install
+	rm -rf $(build_release)/install
 	$(MESON) install -C $(build_release) --destdir install
 
 .PHONY: clean
@@ -80,7 +80,7 @@ clean:
 
 .PHONY: distclean
 distclean:
-	rm -r $(build)
+	rm -rf $(build)
 	$(MESON) subprojects purge --confirm
 
 $(build)/build.ninja:
