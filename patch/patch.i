@@ -20,11 +20,19 @@ patch.end = \code\().end
 incbin patch.end, (pe_text_off + pe_text_len - patch.end)
 .endm
 
+# This patch avoids the use of the "fs" register to access thread-local storage
+# It's only used near the entrypoints, regular access is done through the
+#  kernel32 functions TlsAlloc/Free() and TlsGet/SetValue()
 .macro patch_fs
     xor eax, eax
     push eax
 .endm
 
+# This patch attempts to patch over the function that parses GetCommandLineA
+#  to extract the argc/argv values and pass them into main().
+# Since we bring in our own C runtime, the command line is already parsed and
+#  can be assigned directly in this function, instead of going through an extra
+#  round of potentially lossy conversion.
 .macro patch_init_args
     mov eax, [main_argc]
     mov [addr_argc], eax
@@ -33,10 +41,14 @@ incbin patch.end, (pe_text_off + pe_text_len - patch.end)
     ret
 .endm
 
+# This patch avoids a call to GetEnvironmentStrings(), which is used by the
+#  target program's C runtime to initialize getenv(3) and setenv(3) data.
+# We bring in our own C runtime, so we will use our own getenv(3).
 .macro patch_init_envp
     ret
 .endm
 
+# Use our own getenv(3)
 .macro patch_getenv
     wjmp getenv
 .endm
