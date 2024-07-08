@@ -505,9 +505,15 @@ int _tmain(int argc, _TCHAR *argv[])
 
     // If no version was specified, pick a default for generic binary names
     if (!tool_ver && !tool_sdk) {
-        if (_tcscmp(tool_bin, "mwccarm") == 0) tool_ver = DEFAULT_MWCCARM;
-        if (_tcscmp(tool_bin, "mwldarm") == 0) tool_ver = DEFAULT_MWLDARM;
-        if (_tcscmp(tool_bin, "mwasmarm") == 0) tool_ver = DEFAULT_MWASMARM;
+        if (_tcscmp(tool_bin, _T("mwccarm")) == 0) {
+            tool_ver = _T(DEFAULT_MWCCARM);
+        }
+        if (_tcscmp(tool_bin, _T("mwldarm")) == 0) {
+            tool_ver = _T(DEFAULT_MWLDARM);
+        }
+        if (_tcscmp(tool_bin, _T("mwasmarm")) == 0) {
+            tool_ver = _T(DEFAULT_MWASMARM);
+        }
     }
 
     // Make a path of the chosen tool
