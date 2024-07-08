@@ -14,7 +14,7 @@ as_args = [
 ]
 
 link_args = [
-  arch,
+  link_args_base,
   '-no-pie',
   c.get_supported_link_arguments('-Wl,-z,noexecstack')
 ]

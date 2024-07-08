@@ -3,7 +3,7 @@ c_args = [
 ]
 
 link_args = [
-  arch
+  link_args_base
 ]
 
 if host_machine.system() == 'windows'

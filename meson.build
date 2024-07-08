@@ -38,6 +38,11 @@ as_args_base = [
   is_windows ? ['--defsym', '_WIN32=1'] : []
 ]
 
+link_args_base = [
+  arch,
+  '-no-pie'
+]
+
 subdir('dlls')
 subdir('patch')
 subdir('relink')
