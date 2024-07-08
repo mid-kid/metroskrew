@@ -3,14 +3,15 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-#ifdef _WIN32
-#include <windows.h>
-#include <tchar.h>
-#include <fcntl.h>
-#else
+#ifndef _WIN32
+#include <unistd.h>
 #include <spawn.h>
 #include <sys/wait.h>
 extern char **environ;
+#else
+#include <windows.h>
+#include <tchar.h>
+#include <fcntl.h>
 #endif
 
 #define PROGRAM_NAME "skrewrap"
@@ -495,7 +496,7 @@ int _tmain(int argc, _TCHAR *argv[])
     tool_dir = my_dirname(tool_dir);
     if (!*tool_dir) {
 #ifndef _WIN32
-        size_t tool_dir_len = 0;
+        ssize_t tool_dir_len = 0;
         ssize_t res;
         do {
             free(tool_dir);
@@ -531,24 +532,28 @@ int _tmain(int argc, _TCHAR *argv[])
         }
     }
 
-    // Make a path of the chosen tool
-    _TCHAR *tool = NULL;
+    // Figure out the tool filename
+    _TCHAR *tool_file = NULL;
     if (tool_sdk) {
         // Not implemented
         return EXIT_FAILURE;
     } else if (tool_ver) {
-        size_t tool_size = (*tool_dir ? _tcslen(tool_dir) + 1 : 0) +
-            _tcslen(tool_bin) + 1 + _tcslen(tool_ver) + 5;
-        tool = malloc(sizeof(_TCHAR) * tool_size);
-        _sntprintf(tool, tool_size, _T(FMT_TS FMT_TS FMT_TS "-" FMT_TS ".exe"),
-            tool_dir, *tool_dir ? "/" : "", tool_bin, tool_ver);
+        size_t size = _tcslen(tool_bin) + 1 + _tcslen(tool_ver) + 5;
+        tool_file = malloc(sizeof(_TCHAR) * size);
+        _sntprintf(tool_file, size, _T(FMT_TS "-" FMT_TS ".exe"),
+            tool_bin, tool_ver);
     } else {
-        size_t tool_size = (*tool_dir ? _tcslen(tool_dir) + 1 : 0) +
-            _tcslen(tool_bin) + 5;
-        tool = malloc(sizeof(_TCHAR) * tool_size);
-        _sntprintf(tool, tool_size, _T(FMT_TS FMT_TS FMT_TS ".exe"),
-            tool_dir, *tool_dir ? "/" : "", tool_bin);
+        size_t size = _tcslen(tool_bin) + 5;
+        tool_file = malloc(sizeof(_TCHAR) * size);
+        _sntprintf(tool_file, size, _T(FMT_TS ".exe"), tool_bin);
     }
+
+    // Make a path of the chosen tool
+    size_t tool_size = (*tool_dir ? _tcslen(tool_dir) + 1 : 0) +
+        _tcslen(tool_file) + 1;
+    _TCHAR *tool = malloc(sizeof(_TCHAR) * tool_size);
+    _sntprintf(tool, tool_size, _T(FMT_TS FMT_TS FMT_TS),
+        tool_dir, *tool_dir ? "/" : "", tool_file);
     new_argv[0] = tool;
 
     // Add the wine command if requested
@@ -600,8 +605,8 @@ int _tmain(int argc, _TCHAR *argv[])
         printf("\n");
     }
     pid_t pid;
-    if (posix_spawnp(&pid, new_argv[0], NULL, NULL, new_argv, environ) != 0) {
-        perror(PROGRAM_NAME ": posix_spawnp");
+    if (posix_spawn(&pid, tool, NULL, NULL, new_argv, environ) != 0) {
+        perror(PROGRAM_NAME ": posix_spawn");
         exit(EXIT_FAILURE);
     }
     int exitcode;
@@ -622,7 +627,7 @@ int _tmain(int argc, _TCHAR *argv[])
     ZeroMemory(&si, sizeof(si));
     ZeroMemory(&pi, sizeof(pi));
     si.cb = sizeof(si);
-    if (!CreateProcess(new_argv[0], argv_quoted, NULL, NULL, FALSE, 0,
+    if (!CreateProcess(tool, argv_quoted, NULL, NULL, FALSE, 0,
             NULL, NULL, &si, &pi)) {
         fprintf(stderr, PROGRAM_NAME ": CreateProcess failed\n");
         exit(EXIT_FAILURE);
@@ -637,8 +642,9 @@ int _tmain(int argc, _TCHAR *argv[])
 
     if (wine) free(wine);
     free(tool);
-    free(new_argv);
+    free(tool_file);
     free(tool_dir);
+    free(new_argv);
 
     free(MWCIncludes);
     free(MWLibraries);
