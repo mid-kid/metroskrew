@@ -493,6 +493,23 @@ int _tmain(int argc, _TCHAR *argv[])
 
     _TCHAR *tool_dir = _tcsdup(argv[0]);
     tool_dir = my_dirname(tool_dir);
+    if (!*tool_dir) {
+#ifndef _WIN32
+        size_t tool_dir_len = 0;
+        ssize_t res;
+        do {
+            free(tool_dir);
+            tool_dir_len += 0x1000;
+            tool_dir = malloc(sizeof(_TCHAR) * tool_dir_len);
+        } while ((res = readlink("/proc/self/exe", tool_dir, tool_dir_len))
+            == tool_dir_len);
+        if (res == -1) {
+            perror(PROGRAM_NAME ": readlink");
+            exit(EXIT_FAILURE);
+        }
+        tool_dir = my_dirname(tool_dir);
+#endif
+    }
 
     const _TCHAR *tool_bin = argv[1];
     const _TCHAR *tool_ver = NULL;
@@ -569,7 +586,28 @@ int _tmain(int argc, _TCHAR *argv[])
         "FP_fastI_v5t_LE.a" ";"
         "NITRO_Runtime_Ai_LE.a"));
 
-#ifdef _WIN32
+#ifndef _WIN32
+    // Set up the environment
+    setenv("MWCIncludes", MWCIncludes, true);
+    setenv("MWLibraries", MWLibraries, true);
+    setenv("MWLibraryFiles", MWLibraryFiles, true);
+
+    // Execute the tool
+    if (args.wrap_dbg) {
+        for (int x = 0; x < new_argc; x++) {
+            printf(x ? " %s" : "%s", new_argv[x]);
+        }
+        printf("\n");
+    }
+    pid_t pid;
+    if (posix_spawnp(&pid, new_argv[0], NULL, NULL, new_argv, environ) != 0) {
+        perror(PROGRAM_NAME ": posix_spawnp");
+        exit(EXIT_FAILURE);
+    }
+    int exitcode;
+    waitpid(pid, &exitcode, 0);
+    if (WEXITSTATUS(exitcode)) return WEXITSTATUS(exitcode);
+#else
     // Set up the environment
     SetEnvironmentVariable(_T("MWCIncludes"), MWCIncludes);
     SetEnvironmentVariable(_T("MWLibraries"), MWLibraries);
@@ -595,27 +633,6 @@ int _tmain(int argc, _TCHAR *argv[])
     CloseHandle(pi.hThread);
     if (exitcode) return exitcode;
     free(argv_quoted);
-#else
-    // Set up the environment
-    setenv("MWCIncludes", MWCIncludes, true);
-    setenv("MWLibraries", MWLibraries, true);
-    setenv("MWLibraryFiles", MWLibraryFiles, true);
-
-    // Execute the tool
-    if (args.wrap_dbg) {
-        for (int x = 0; x < new_argc; x++) {
-            printf(x ? " %s" : "%s", new_argv[x]);
-        }
-        printf("\n");
-    }
-    pid_t pid;
-    if (posix_spawnp(&pid, new_argv[0], NULL, NULL, new_argv, environ) != 0) {
-        perror(PROGRAM_NAME ": posix_spawnp");
-        exit(EXIT_FAILURE);
-    }
-    int exitcode;
-    waitpid(pid, &exitcode, 0);
-    if (WEXITSTATUS(exitcode)) return WEXITSTATUS(exitcode);
 #endif
 
     if (wine) free(wine);
