@@ -1,0 +1,8 @@
+MEMORY {
+    text : ORIGIN=0, LENGTH=0
+}
+
+SECTIONS {
+    __startup=.;
+    .text : { *(.text) } > text
+}

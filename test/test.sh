@@ -12,17 +12,21 @@ wine() {
 mwccarm() {
     wine "$MWCCARM" "$@"
 }
-mwasmarm() {
-    wine "$MWASMARM" "$@"
-}
 mwldarm() {
     wine "$MWLDARM" "$@"
+}
+mwasmarm() {
+    wine "$MWASMARM" "$@"
 }
 
 test_cc() {
     name="$1"; shift
     mwccarm "$@" -c -o "$MWCCARM_VER-$name.o" "$SRC/$name.c"
     cmp "$MWCCARM_VER-$name.o" "$SRC/res/$MWCCARM_VER-$name.o"
+}
+test_ld() {
+    name="$1"; shift
+    mwldarm "$@" -nostdlib -o "$MWLDARM_VER-$name.elf"
 }
 test_as() {
     name="$1"; shift
@@ -35,6 +39,7 @@ case "$1" in
     include_dir) test_cc "$1" -gccinc -I"$SRC" ;;
     include_sys) MWCIncludes="$SRC" test_cc "$1" -gccinc ;;
     switch_float_bug) test_cc "$1" ;;
+    basic_ld) test_ld "$1" test_ld.o "$SRC/link.lcf" ;;
     basic_s) test_as "$1" ;;
     *) exit 1 ;;
 esac
