@@ -19,7 +19,8 @@ dummy = static_library('dummy', objects: 'test.sh', build_by_default: false)
 test_ld_o = custom_target(
   output: 'test_ld.o',
   input: 'basic_c.c',
-  command: [bins_relink['mwccarm-4.0-1051'],
+  command: ['sh', '-c', '"$@" >/dev/null', '--',
+    bins_relink['mwccarm-4.0-1051'],
     '-c', '-o', '@OUTPUT@', '@INPUT@'])
 
 foreach name, bin : bins
@@ -58,7 +59,6 @@ foreach name, bin : bins
       ],
       env: tests_env + {
         'SRC': meson.current_source_dir()
-      }
-    )
+      })
   endforeach
 endforeach
