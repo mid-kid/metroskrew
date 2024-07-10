@@ -235,12 +235,14 @@ LPSTR WINAPI GetEnvironmentStrings(void)
 
 LPSTR WINAPI GetEnvironmentStringsA(void)
 {
+    STUB("GetEnvironmentStringsA");
     return "\0";
 }
 
 BOOL WINAPI FreeEnvironmentStringsA(LPSTR penv)
 {
     (void)penv;
+    STUB("FreeEnvironmentStringsA");
     return TRUE;
 }
 #endif
