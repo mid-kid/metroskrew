@@ -16,11 +16,12 @@ tests_ld = [
 #  in order to set MESON_EXE_WRAPPER.
 dummy = static_library('dummy', objects: 'test.sh', build_by_default: false)
 
+exe_wrapper = find_program('exe_wrapper', required: false)
 test_ld_o = custom_target(
   output: 'test_ld.o',
   input: 'basic_c.c',
   command: ['sh', '-c', '"$@" > /dev/null', '--',
-    meson.is_cross_build() ? find_program('exe_wrapper') : [],
+    meson.is_cross_build() and exe_wrapper.found() ? exe_wrapper : [],
     bins_relink['mwccarm-4.0-1051'],
     '-c', '-o', '@OUTPUT@', '@INPUT@'])
 
