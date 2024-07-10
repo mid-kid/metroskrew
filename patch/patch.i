@@ -50,7 +50,7 @@ incbin patch.end, (pe_text_off + pe_text_len - patch.end)
 
 # Use our own getenv(3)
 .macro patch_getenv
-    wjmp getenv
+    wjmp relink_getenv
 .endm
 
 # The actual code

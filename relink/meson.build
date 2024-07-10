@@ -4,8 +4,15 @@ sources_s = [
   'entry.s'
 ]
 
+sources_c = [
+  'env.c'
+]
+
 c_args = [
-  c_args_base
+  c_args_base,
+  get_option('debug') ? [] : '-DNDEBUG',
+  get_option('trace') ? '-DETRACE' : [],
+  '-I' + common_inc
 ]
 
 as_args = [
@@ -29,8 +36,9 @@ if is_windows
   ]
 endif
 
-relink_common = as_gen.process(sources_s,
-  extra_args: as_args)
+relink_common = static_library('relink_common', sources_c,
+  c_args: c_args,
+  objects: as_gen.process(sources_s, extra_args: as_args))
 
 bins_relink = {}
 foreach name, bin : bins
@@ -52,15 +60,14 @@ foreach name, bin : bins
   dllimport = meson.current_source_dir() / 'dllimport.ld'
 
   prog = executable(name,
-    objects: [relink_common, prog_obj],
+    objects: prog_obj,
     name_suffix: 'exe',
-    c_args: c_args,
     link_args: [
       '-T' + ldscript,
       is_windows ? '-T' + dllimport : [],
       link_args
     ],
-    link_whole: common,
+    link_whole: [relink_common, common],
     link_depends: [
       ldscript,
       is_windows ? dllimport : []
