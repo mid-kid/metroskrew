@@ -28,6 +28,8 @@ as_args = [
   get_option('trace') ? ['--defsym', 'ETRACE=1'] : [],
 ]
 
+common_inc = meson.current_source_dir()
+
 common = static_library('common',
   sources_c,
   objects: as_gen.process(sources_s,
@@ -35,5 +37,3 @@ common = static_library('common',
   c_args: c_args,
   dependencies: wine_headers,
   build_by_default: false)
-
-common_inc = meson.current_source_dir()

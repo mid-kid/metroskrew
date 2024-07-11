@@ -5,7 +5,6 @@ sources_s = [
 ]
 
 sources_c = [
-  'env.c'
 ]
 
 c_args = [
@@ -67,6 +66,7 @@ foreach name, bin : bins
       is_windows ? '-T' + dllimport : [],
       link_args
     ],
+    link_with: [patch_common],
     link_whole: [relink_common, common],
     link_depends: [
       ldscript,

@@ -4,7 +4,7 @@
 
 #include "_utils.h"
 
-char *relink_getenv(const char *name)
+char *patch_getenv(const char *name)
 {
     char *res = NULL;
     if (strcmp(name, "MW_CYGDRIVE_PREFIX") == 0) {
@@ -37,6 +37,12 @@ char *relink_getenv(const char *name)
     } else if (strcmp(name, "MWASMINCLUDES") == 0) {
         // Used by mwasmarm >=1.0-26
         res = getenv(name);
+    } else if (strcmp(name, "TEMP") == 0) {
+        res = NULL;
+    } else if (strcmp(name, "TMP") == 0) {
+        res = NULL;
+    } else if (strcmp(name, "TMPDIR") == 0) {
+        res = NULL;
     } else {
         printf("die: getenv: name='%s'\n", name);
         exit(EXIT_FAILURE);
