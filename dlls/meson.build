@@ -2,7 +2,6 @@ sources_s = [
   'advapi32.s',
   'kernel32.s',
   'ole32.s',
-  'user32.s',
   'version.s',
   'ws2_32.s'
 ]

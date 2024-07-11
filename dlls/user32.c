@@ -53,3 +53,21 @@ INT WINAPI LoadStringA(HINSTANCE hInstance, UINT uID, LPSTR lpBuffer, INT cchBuf
 die:
     DIE("LoadStringA: %p %d", hInstance, uID);
 }
+
+INT WINAPI MessageBoxA(HWND hWnd, LPCSTR lpText, LPCSTR lpCaption, UINT uType)
+{
+    (void)hWnd;
+    (void)uType;
+
+    printf("[[ MessageBoxA ]]\n");
+    if (lpCaption) {
+        printf("%s\n", lpCaption);
+        for (LPCSTR c = lpCaption; *c; c++) putchar('-');
+        putchar('\n');
+        putchar('\n');
+    }
+    printf("%s\n", lpText);
+
+    //return IDIGNORE;
+    return 0;
+}
