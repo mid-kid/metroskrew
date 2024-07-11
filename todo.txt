@@ -1,0 +1,10 @@
+This file is for the "big" TODOs that can't be described in a comment.
+
+- [ ] Fix the execution of "mwccarm -S file.c"
+    - It would be nice to patch over the function that calls CreateProcessA()
+      in order to avoid the back-and-forth conversion of argv.
+- [ ] Figure out what to do about findexe()
+    - This function is called in two scenarios: When finding its own executable
+      path, and when it's finding other executables to run. The heurestics for
+      this search aren't entirely suitable to our port, and it's one small step
+      towards reimplementing important parts of the tool.
