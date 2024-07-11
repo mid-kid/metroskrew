@@ -12,10 +12,9 @@ func main
     #  in modern compilers, but this application needs lower precision.
     fldcw [cw]
 
-    jmp dword ptr [_pe_start]
+    jmp offset pe_start
 
 cw: .short 0x027f
-_pe_start: .long pe_start
 
 .bss
 .global main_argc
