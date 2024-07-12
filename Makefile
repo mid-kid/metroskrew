@@ -62,10 +62,15 @@ test_windows: $(build_windows)/build.ninja
 patchgen: $(build)/build.ninja
 	$(MESON) compile -C $(build) patchgen
 
-.PHONY: package
-package: $(build_release)/build.ninja
+.PHONY: package_release
+package_release: $(build_release)/build.ninja
 	rm -rf $(build_release)/install
 	$(MESON) install -C $(build_release) --destdir install
+
+.PHONY: package_windows
+package_windows: $(build_windows)/build.ninja
+	rm -rf $(build_windows)/install
+	$(MESON) install -C $(build_windows) --destdir install
 
 .PHONY: clean
 clean:
@@ -99,4 +104,4 @@ $(build_trace)/build.ninja:
 $(build_windows)/build.ninja:
 	@mkdir -p $(build)
 	$(MESON) setup --cross-file meson/i686-w64-mingw32.ini $(build_windows) \
-		-Dtrace=true
+		--prefix / -Dtrace=true
