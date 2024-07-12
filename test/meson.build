@@ -16,15 +16,6 @@ tests_ld = [
 #  in order to set MESON_EXE_WRAPPER.
 dummy = static_library('dummy', objects: 'test.sh', build_by_default: false)
 
-exe_wrapper = find_program('exe_wrapper', required: false)
-test_ld_o = custom_target(
-  output: 'test_ld.o',
-  input: 'basic_c.c',
-  command: ['sh', '-c', '"$@" > /dev/null', '--',
-    meson.is_cross_build() and exe_wrapper.found() ? exe_wrapper : [],
-    bins_relink['mwccarm-4.0-1051'],
-    '-c', '-o', '@OUTPUT@', '@INPUT@'])
-
 foreach name, bin : bins
   if name.startswith('mwccarm-')
     tests = tests_cc
@@ -35,7 +26,7 @@ foreach name, bin : bins
     }
   elif name.startswith('mwldarm-')
     tests = tests_ld
-    tests_dep = test_ld_o
+    tests_dep = []
     tests_env = {
       'MWLDARM_VER': name,
       'MWLDARM': bins_relink[name].full_path()
