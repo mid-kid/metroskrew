@@ -49,8 +49,10 @@ typedef char _TCHAR;
 #endif
 
 #ifndef _WIN32
+#define PATH_SEP "/"
 #define PATH_DELIM "/"
 #else
+#define PATH_SEP "\\"
 #define PATH_DELIM "/\\"
 #endif
 
@@ -574,7 +576,7 @@ int _tmain(int argc, _TCHAR *argv[])
 
     // Make a path of the chosen tool
     _TCHAR *tool = strmake(_T(FMT_TS FMT_TS FMT_TS),
-        tool_dir, *tool_dir ? "/" : "", tool_file);
+        tool_dir, *tool_dir ? PATH_SEP : "", tool_file);
     new_argv[0] = tool;
 
     // Add the wine command if requested
@@ -588,15 +590,15 @@ int _tmain(int argc, _TCHAR *argv[])
 
     // Build standard library paths for environment variables
     _TCHAR *MWCIncludes = strmake(_T(
-        FMT_TS "/" FMT_TS ";"
-        FMT_TS "/" FMT_TS ";"
-        FMT_TS "/" FMT_TS),
+        FMT_TS PATH_SEP FMT_TS ";"
+        FMT_TS PATH_SEP FMT_TS ";"
+        FMT_TS PATH_SEP FMT_TS),
         tool_dir, _T("include"),
-        tool_dir, _T("include/MSL_C"),
-        tool_dir, _T("include/MSL_Extras"));
+        tool_dir, _T("include" PATH_SEP "MSL_C"),
+        tool_dir, _T("include" PATH_SEP "MSL_Extras"));
 
     _TCHAR *MWLibraries = strmake(_T(
-        FMT_TS "/" FMT_TS),
+        FMT_TS PATH_SEP FMT_TS),
         tool_dir, _T("lib"));
 
     _TCHAR *MWLibraryFiles = strmake(_T(
