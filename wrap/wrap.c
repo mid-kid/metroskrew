@@ -332,17 +332,6 @@ void configure(int argc, _TCHAR *argv[])
     cfg_free(cfg);
 }
 
-_TCHAR *my_dirname(_TCHAR *str)
-{
-    // Returns an empty string if no slash is found
-
-    size_t sep = _tcslen(str);
-    while (sep > 0) if (_tcschr(_T(PATH_DELIM), str[--sep])) break;
-    str = realloc(str, sizeof(*str) * (sep + 1));
-    str[sep] = '\0';
-    return str;
-}
-
 void str_resize(_TCHAR **str, size_t *max, size_t req)
 {
     if (*max < req) {
@@ -473,6 +462,50 @@ void fix_depfile(_TCHAR *fname, const char *path_unx, const char *path_win, cons
     free(file);
 }
 
+_TCHAR *my_dirname(_TCHAR *str)
+{
+    // Returns an empty string if no slash is found
+
+    size_t sep = _tcslen(str);
+    while (sep > 0) if (_tcschr(_T(PATH_DELIM), str[--sep])) break;
+    str = realloc(str, sizeof(*str) * (sep + 1));
+    str[sep] = '\0';
+    return str;
+}
+
+// Figure out the directory that the program's running from
+_TCHAR *find_self(_TCHAR *argv0)
+{
+    _TCHAR *dir = _tcsdup(argv0);
+    dir = my_dirname(dir);
+
+    if (!*dir) {
+#ifndef _WIN32
+        free(dir);
+        dir = realpath("/proc/self/exe", NULL);
+        if (!dir) {
+            perror(PROGRAM_NAME ": realpath");
+            exit(EXIT_FAILURE);
+        }
+        dir = my_dirname(dir);
+#else
+        DWORD res;
+        DWORD size = 0;
+        do {
+            free(dir);
+            dir = malloc(sizeof(*dir) * (size += 0x1000));
+        } while ((res = GetModuleFileName(NULL, dir, size)) == size);
+        if (!res) {
+            fprintf(stderr, PROGRAM_NAME ": GetModuleFileName failed\n");
+            exit(EXIT_FAILURE);
+        }
+        dir = my_dirname(dir);
+#endif
+    }
+
+    return dir;
+}
+
 int _tmain(int argc, _TCHAR *argv[])
 {
     if (argc < 2) {
@@ -493,19 +526,7 @@ int _tmain(int argc, _TCHAR *argv[])
     struct args args = parse_args(argc - 2, argv + 2, &new_argc, &new_argv);
 
     // Figure out program location
-    _TCHAR *tool_dir = _tcsdup(argv[0]);
-    tool_dir = my_dirname(tool_dir);
-    if (!*tool_dir) {
-#ifndef _WIN32
-        free(tool_dir);
-        tool_dir = realpath("/proc/self/exe", NULL);
-        if (!tool_dir) {
-            perror(PROGRAM_NAME ": realpath");
-            exit(EXIT_FAILURE);
-        }
-        tool_dir = my_dirname(tool_dir);
-#endif
-    }
+    _TCHAR *tool_dir = find_self(argv[0]);
 
     const _TCHAR *tool_bin = argv[1];
     const _TCHAR *tool_ver = NULL;
