@@ -492,20 +492,15 @@ int _tmain(int argc, _TCHAR *argv[])
     _TCHAR **new_argv;
     struct args args = parse_args(argc - 2, argv + 2, &new_argc, &new_argv);
 
+    // Figure out program location
     _TCHAR *tool_dir = _tcsdup(argv[0]);
     tool_dir = my_dirname(tool_dir);
     if (!*tool_dir) {
 #ifndef _WIN32
-        ssize_t tool_dir_len = 0;
-        ssize_t res;
-        do {
-            free(tool_dir);
-            tool_dir_len += 0x1000;
-            tool_dir = malloc(sizeof(_TCHAR) * tool_dir_len);
-        } while ((res = readlink("/proc/self/exe", tool_dir, tool_dir_len))
-            == tool_dir_len);
-        if (res == -1) {
-            perror(PROGRAM_NAME ": readlink");
+        free(tool_dir);
+        tool_dir = realpath("/proc/self/exe", NULL);
+        if (!tool_dir) {
+            perror(PROGRAM_NAME ": realpath");
             exit(EXIT_FAILURE);
         }
         tool_dir = my_dirname(tool_dir);
