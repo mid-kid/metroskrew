@@ -1,6 +1,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdarg.h>
 #include <stdbool.h>
 
 #ifndef _WIN32
@@ -35,7 +36,6 @@ typedef char _TCHAR;
 #define _tmain main
 #define _T(...) __VA_ARGS__
 #define _ftprintf(...) fprintf(__VA_ARGS__)
-#define _sntprintf(...) snprintf(__VA_ARGS__)
 #define _tcscat(...) strcat(__VA_ARGS__)
 #define _tcschr(...) strchr(__VA_ARGS__)
 #define _tcscmp(...) strcmp(__VA_ARGS__)
@@ -45,6 +45,7 @@ typedef char _TCHAR;
 #define _tcsrchr(...) strrchr(__VA_ARGS__)
 #define _tfopen(...) fopen(__VA_ARGS__)
 #define _tgetenv(...) getenv(__VA_ARGS__)
+#define _vsntprintf(...) vsnprintf(__VA_ARGS__)
 #endif
 
 #ifndef _WIN32
@@ -462,6 +463,18 @@ void fix_depfile(_TCHAR *fname, const char *path_unx, const char *path_win, cons
     free(file);
 }
 
+_TCHAR *strmake(const _TCHAR *format, ...)
+{
+    va_list ap;
+
+    va_start(ap, format);
+    int size = _vsntprintf(NULL, 0, format, ap) + 1;
+    _TCHAR *dest = malloc(sizeof(_TCHAR) * size);
+    _vsntprintf(dest, size, format, ap);
+    va_end(ap);
+    return dest;
+}
+
 _TCHAR *my_dirname(_TCHAR *str)
 {
     // Returns an empty string if no slash is found
@@ -554,21 +567,13 @@ int _tmain(int argc, _TCHAR *argv[])
         // Not implemented
         return EXIT_FAILURE;
     } else if (tool_ver) {
-        size_t size = _tcslen(tool_bin) + 1 + _tcslen(tool_ver) + 5;
-        tool_file = malloc(sizeof(_TCHAR) * size);
-        _sntprintf(tool_file, size, _T(FMT_TS "-" FMT_TS ".exe"),
-            tool_bin, tool_ver);
+        tool_file = strmake(_T(FMT_TS "-" FMT_TS ".exe"), tool_bin, tool_ver);
     } else {
-        size_t size = _tcslen(tool_bin) + 5;
-        tool_file = malloc(sizeof(_TCHAR) * size);
-        _sntprintf(tool_file, size, _T(FMT_TS ".exe"), tool_bin);
+        tool_file = strmake(_T(FMT_TS ".exe"), tool_bin);
     }
 
     // Make a path of the chosen tool
-    size_t tool_size = (*tool_dir ? _tcslen(tool_dir) + 1 : 0) +
-        _tcslen(tool_file) + 1;
-    _TCHAR *tool = malloc(sizeof(_TCHAR) * tool_size);
-    _sntprintf(tool, tool_size, _T(FMT_TS FMT_TS FMT_TS),
+    _TCHAR *tool = strmake(_T(FMT_TS FMT_TS FMT_TS),
         tool_dir, *tool_dir ? "/" : "", tool_file);
     new_argv[0] = tool;
 
@@ -582,9 +587,7 @@ int _tmain(int argc, _TCHAR *argv[])
     }
 
     // Build standard library paths for environment variables
-    size_t mwcincludes_size = _tcslen(tool_dir) * 3 + 46;
-    _TCHAR *MWCIncludes = malloc(sizeof(_TCHAR) * mwcincludes_size);
-    _sntprintf(MWCIncludes, mwcincludes_size, _T(
+    _TCHAR *MWCIncludes = strmake(_T(
         FMT_TS "/" FMT_TS ";"
         FMT_TS "/" FMT_TS ";"
         FMT_TS "/" FMT_TS),
@@ -592,15 +595,11 @@ int _tmain(int argc, _TCHAR *argv[])
         tool_dir, _T("include/MSL_C"),
         tool_dir, _T("include/MSL_Extras"));
 
-    size_t mwclibraries_size = _tcslen(tool_dir) + 5;
-    _TCHAR *MWLibraries = malloc(sizeof(_TCHAR) * mwclibraries_size);
-    _sntprintf(MWLibraries, mwclibraries_size, _T(
+    _TCHAR *MWLibraries = strmake(_T(
         FMT_TS "/" FMT_TS),
         tool_dir, _T("lib"));
 
-    size_t mwclibraryfiles_size = 107;
-    _TCHAR *MWLibraryFiles = malloc(sizeof(_TCHAR) * mwclibraryfiles_size);
-    _sntprintf(MWLibraryFiles, mwclibraryfiles_size, _T(
+    _TCHAR *MWLibraryFiles = strmake(_T(
         "MSL_C_NITRO_Ai_LE.a" ";"
         "MSL_Extras_NITRO_Ai_LE.a" ";"
         "MSL_CPP_NITRO_Ai_LE.a" ";"
