@@ -15,7 +15,7 @@ extern char **environ;
 #include <fcntl.h>
 #endif
 
-#define PROGRAM_NAME "skrewrap"
+#include "config.h"
 
 #define DEFAULT_MWCCARM "4.0-1051"
 #define DEFAULT_MWLDARM "2.0-99"

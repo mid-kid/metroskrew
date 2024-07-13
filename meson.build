@@ -1,6 +1,13 @@
 project('metroskrew', 'c',
   default_options: ['warning_level=2'])
 
+wine_headers = subproject('wine').get_variable('headers_dep_lean')
+bins_sub = subproject('mw-executables')
+bins_dir = bins_sub.get_variable('bins_dir')
+bins = bins_sub.get_variable('bins')
+bins_paths = bins_sub.get_variable('bins_paths')
+bins_paths_all = bins_sub.get_variable('bins_paths_all')
+
 c = meson.get_compiler('c')
 
 as = find_program('as')
@@ -13,13 +20,6 @@ as_gen = generator(as,
     ],
   output: '@PLAINNAME@.o',
   depfile: '@PLAINNAME@.o.d')
-
-wine_headers = subproject('wine').get_variable('headers_dep_lean')
-bins_sub = subproject('mw-executables')
-bins_dir = bins_sub.get_variable('bins_dir')
-bins = bins_sub.get_variable('bins')
-bins_paths = bins_sub.get_variable('bins_paths')
-bins_paths_all = bins_sub.get_variable('bins_paths_all')
 
 assert(host_machine.cpu_family() == 'x86',
   'This project can only be built for 32-bit x86')
@@ -42,6 +42,8 @@ link_args_base = [
   arch,
   '-no-pie'
 ]
+
+proj_datadir = get_option('datadir') / meson.project_name()
 
 subdir('dlls')
 subdir('patch')

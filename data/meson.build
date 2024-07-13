@@ -7,4 +7,4 @@ custom_target(
   output: 'sdk',
   command: ['sdk.sh', '@OUTPUT@', args],
   install: true,
-  install_dir: get_option('datadir') / 'metroskrew')
+  install_dir: proj_datadir)
