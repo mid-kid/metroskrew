@@ -576,7 +576,7 @@ int _tmain(int argc, _TCHAR *argv[])
 
     // Make a path of the chosen tool
     _TCHAR *tool = strmake(_T(FMT_TS FMT_TS FMT_TS),
-        tool_dir, *tool_dir ? PATH_SEP : "", tool_file);
+        tool_dir, *tool_dir ? _T(PATH_SEP) : _T(""), tool_file);
     new_argv[0] = tool;
 
     // Add the wine command if requested
