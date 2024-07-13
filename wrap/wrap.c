@@ -59,7 +59,6 @@ typedef char _TCHAR;
 struct args {
     _TCHAR *o;
     _TCHAR *precompile;
-    bool M;
     bool MD;
 
     bool wrap_dbg;
@@ -77,7 +76,6 @@ struct args parse_args(int argc, _TCHAR *argv[], int *out_argc, _TCHAR ***out_ar
     struct args args = {
         .o = NULL,
         .precompile = NULL,
-        .M = false,
         .MD = false,
         .wrap_dbg = false,
         .wrap_ver = NULL,
@@ -100,9 +98,6 @@ struct args parse_args(int argc, _TCHAR *argv[], int *out_argc, _TCHAR ***out_ar
                 argc >= 2) {
             args.precompile = argv[1];
             copy = 2;
-        } else if (_tcscmp(argv[0], _T("-M")) == 0) {
-            args.M = true;
-            copy = 1;
         } else if (_tcscmp(argv[0], _T("-MD")) == 0) {
             args.MD = true;
             copy = 1;
@@ -669,10 +664,7 @@ int _tmain(int argc, _TCHAR *argv[])
 
     // Fix dependency file if generated
     _TCHAR *depfile = NULL;
-    if (args.M) {
-        // Only generated a depfile
-        depfile = _tcsdup(args.o);
-    } else if (args.MD) {
+    if (args.MD) {
         // Generating a depfile as a side-effect of compilation
         _TCHAR *out = NULL;
         if (args.o) out = args.o;
