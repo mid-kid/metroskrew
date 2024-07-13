@@ -67,6 +67,8 @@ struct file {
     unsigned char data[];
 };
 
+struct args args;
+
 struct args parse_args(int argc, _TCHAR *argv[], int *out_argc, _TCHAR ***out_argv)
 {
     struct args args = {
@@ -326,6 +328,120 @@ void configure(int argc, _TCHAR *argv[])
     cfg_free(cfg);
 }
 
+_TCHAR *strmake(const _TCHAR *format, ...)
+{
+    va_list ap;
+
+    va_start(ap, format);
+    int size = _vsntprintf(NULL, 0, format, ap) + 1;
+    _TCHAR *dest = malloc(sizeof(_TCHAR) * size);
+    _vsntprintf(dest, size, format, ap);
+    va_end(ap);
+    return dest;
+}
+
+_TCHAR *my_dirname(_TCHAR *str)
+{
+    // Returns an empty string if no slash is found
+
+    size_t sep = _tcslen(str);
+    while (sep > 0) if (_tcschr(_T(PATH_DELIM), str[--sep])) break;
+    str = realloc(str, sizeof(*str) * (sep + 1));
+    str[sep] = '\0';
+    return str;
+}
+
+// Figure out the directory that the program's running from
+_TCHAR *find_self(const _TCHAR *argv0)
+{
+    _TCHAR *dir = _tcsdup(argv0);
+    dir = my_dirname(dir);
+
+    if (!*dir) {
+#ifndef _WIN32
+        free(dir);
+        dir = realpath("/proc/self/exe", NULL);
+        if (!dir) {
+            perror(PROGRAM_NAME ": realpath");
+            exit(EXIT_FAILURE);
+        }
+        dir = my_dirname(dir);
+#else
+        DWORD res;
+        DWORD size = 0;
+        do {
+            free(dir);
+            dir = malloc(sizeof(*dir) * (size += 0x1000));
+        } while ((res = GetModuleFileName(NULL, dir, size)) == size);
+        if (!res) {
+            fprintf(stderr, PROGRAM_NAME ": GetModuleFileName failed\n");
+            exit(EXIT_FAILURE);
+        }
+        dir = my_dirname(dir);
+#endif
+    }
+
+    return dir;
+}
+
+_TCHAR *find_datadir(const _TCHAR *self)
+{
+    _TCHAR *dir = NULL;
+    const _TCHAR *env = _tgetenv(_T("SKREW_DATADIR"));
+    if (env) {
+        dir = _tcsdup(env);
+    } else if (*self) {
+        dir = strmake(_T(FMT_TS PATH_SEP BIN_TO_DATADIR), self);
+    }
+    return dir;
+}
+
+_TCHAR *sdk_version(const _TCHAR *datadir, const _TCHAR *tool, const _TCHAR *ver)
+{
+    if (!datadir) return NULL;
+
+    // Compatibility: try multiple subdirs
+    _TCHAR *subdirs[] = {
+        _T("sdk"),
+        _T("sdk" PATH_SEP "ds"),
+        NULL
+    };
+
+    struct file *file = NULL;
+    for (_TCHAR **dir = subdirs; *dir; dir++) {
+        _TCHAR *path = strmake(
+            _T(FMT_TS PATH_SEP FMT_TS PATH_SEP FMT_TS PATH_SEP FMT_TS
+                ".exe.txt"),
+            datadir, *dir, ver, tool);
+
+        if (args.wrap_dbg) {
+            fprintf(stderr, "sdk: " FMT_TS "\n", path);
+        }
+
+        file = file_read(path);
+        free(path);
+        if (file) break;
+    }
+    if (!file) return NULL;
+
+    // Strip the end and start of the string
+    unsigned char *s = file->data;
+    unsigned char *e = file->data + file->size - 1;
+    while (s <  e && (!*s || strchr(" \t\n", *s))) s++;
+    while (e >= s && (!*e || strchr(" \t\n", *e))) e--;
+    e++;
+
+    size_t size = e - s;
+    char *utf = malloc(size + 1);
+    memcpy(utf, s, size);
+    utf[size] = '\0';
+    free(file);
+
+    _TCHAR *res = utftotc(utf);
+    free(utf);
+    return res;
+}
+
 void str_resize(_TCHAR **str, size_t *max, size_t req)
 {
     if (*max < req) {
@@ -456,62 +572,6 @@ void fix_depfile(_TCHAR *fname, const char *path_unx, const char *path_win, cons
     free(file);
 }
 
-_TCHAR *strmake(const _TCHAR *format, ...)
-{
-    va_list ap;
-
-    va_start(ap, format);
-    int size = _vsntprintf(NULL, 0, format, ap) + 1;
-    _TCHAR *dest = malloc(sizeof(_TCHAR) * size);
-    _vsntprintf(dest, size, format, ap);
-    va_end(ap);
-    return dest;
-}
-
-_TCHAR *my_dirname(_TCHAR *str)
-{
-    // Returns an empty string if no slash is found
-
-    size_t sep = _tcslen(str);
-    while (sep > 0) if (_tcschr(_T(PATH_DELIM), str[--sep])) break;
-    str = realloc(str, sizeof(*str) * (sep + 1));
-    str[sep] = '\0';
-    return str;
-}
-
-// Figure out the directory that the program's running from
-_TCHAR *find_self(_TCHAR *argv0)
-{
-    _TCHAR *dir = _tcsdup(argv0);
-    dir = my_dirname(dir);
-
-    if (!*dir) {
-#ifndef _WIN32
-        free(dir);
-        dir = realpath("/proc/self/exe", NULL);
-        if (!dir) {
-            perror(PROGRAM_NAME ": realpath");
-            exit(EXIT_FAILURE);
-        }
-        dir = my_dirname(dir);
-#else
-        DWORD res;
-        DWORD size = 0;
-        do {
-            free(dir);
-            dir = malloc(sizeof(*dir) * (size += 0x1000));
-        } while ((res = GetModuleFileName(NULL, dir, size)) == size);
-        if (!res) {
-            fprintf(stderr, PROGRAM_NAME ": GetModuleFileName failed\n");
-            exit(EXIT_FAILURE);
-        }
-        dir = my_dirname(dir);
-#endif
-    }
-
-    return dir;
-}
-
 int _tmain(int argc, _TCHAR *argv[])
 {
     if (argc < 2) {
@@ -524,15 +584,16 @@ int _tmain(int argc, _TCHAR *argv[])
         return EXIT_SUCCESS;
     }
 
-    struct config cfg = cfg_load();
-
     // Filter the arguments to pass to the application
     int new_argc;
     _TCHAR **new_argv;
-    struct args args = parse_args(argc - 2, argv + 2, &new_argc, &new_argv);
+    args = parse_args(argc - 2, argv + 2, &new_argc, &new_argv);
+
+    struct config cfg = cfg_load();
 
     // Figure out program location
     _TCHAR *tool_dir = find_self(argv[0]);
+    _TCHAR *datadir = find_datadir(tool_dir);
 
     const _TCHAR *tool_bin = argv[1];
     const _TCHAR *tool_ver = NULL;
@@ -557,8 +618,12 @@ int _tmain(int argc, _TCHAR *argv[])
     // Figure out the tool filename
     _TCHAR *tool_file = NULL;
     if (tool_sdk) {
-        // Not implemented
-        return EXIT_FAILURE;
+        tool_file = sdk_version(datadir, tool_bin, tool_sdk);
+        if (!tool_file) {
+            fprintf(stderr, PROGRAM_NAME ": did not find SDK version "
+                FMT_TS "\n", tool_sdk);
+            exit(EXIT_FAILURE);
+        }
     } else if (tool_ver) {
         tool_file = strmake(_T(FMT_TS "-" FMT_TS ".exe"), tool_bin, tool_ver);
     } else {
@@ -648,15 +713,16 @@ int _tmain(int argc, _TCHAR *argv[])
     free(argv_quoted);
 #endif
 
-    if (wine) free(wine);
-    free(tool);
-    free(tool_file);
-    free(tool_dir);
-    free(new_argv);
-
     free(MWCIncludes);
     free(MWLibraries);
     free(MWLibraryFiles);
+
+    if (wine) free(wine);
+    free(tool);
+    free(tool_file);
+    free(datadir);
+    free(tool_dir);
+    free(new_argv);
 
     // Fix dependency file if generated
     _TCHAR *depfile = NULL;
