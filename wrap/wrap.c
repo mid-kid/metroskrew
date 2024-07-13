@@ -17,10 +17,6 @@ extern char **environ;
 
 #include "config.h"
 
-#define DEFAULT_MWCCARM "4.0-1051"
-#define DEFAULT_MWLDARM "2.0-99"
-#define DEFAULT_MWASMARM "1.0-27"
-
 #define DEFAULT_CFG_FILE ".mwconfig"
 #define VER_CFG 1
 

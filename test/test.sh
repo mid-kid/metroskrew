@@ -2,7 +2,6 @@
 set -eu
 
 SRC="${SRC:-.}"
-VER="${VER:-}"
 
 wine() {
     test -n "${MESON_EXE_WRAPPER:-}" && set -- "$MESON_EXE_WRAPPER" "$@"

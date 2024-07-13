@@ -1,5 +1,21 @@
 fs = import('fs')
 
+prog_name = 'skrewrap'
+
+default_mwccarm = '4.0-1051'
+default_mwldarm = '2.0-99'
+default_mwasmarm = '1.0-27'
+
+cfg = configuration_data()
+cfg.set_quoted('PROGRAM_NAME', prog_name)
+cfg.set_quoted('BIN_TO_DATADIR',
+  fs.relative_to(proj_datadir, get_option('bindir')))
+cfg.set_quoted('DEFAULT_MWCCARM', default_mwccarm)
+cfg.set_quoted('DEFAULT_MWLDARM', default_mwldarm)
+cfg.set_quoted('DEFAULT_MWASMARM', default_mwasmarm)
+
+cfg_file = configure_file(output: 'config.h', configuration: cfg)
+
 c_args = [
   c_args_base
 ]
@@ -22,16 +38,37 @@ if host_machine.system() == 'windows'
   ]
 endif
 
-wrap_name = 'skrewrap'
-
-cfg = configuration_data()
-cfg.set_quoted('PROGRAM_NAME', wrap_name)
-cfg.set_quoted('BIN_TO_DATADIR',
-  fs.relative_to(proj_datadir, get_option('bindir')))
-
-cfg_file = configure_file(output: 'config.h', configuration: cfg)
-
-executable(wrap_name, 'wrap.c', cfg_file,
+wrap = executable(prog_name, 'wrap.c', cfg_file,
   c_args: c_args,
   link_args: link_args,
   install: true)
+
+# test() requires a cross-compiled target in its argument list
+#  in order to set MESON_EXE_WRAPPER.
+dummy = static_library('dummy', objects: 'test.sh', build_by_default: false)
+
+tests = [
+  'exec_argv',
+  'exec_path'
+]
+
+test_mwccarm = bins_relink['mwccarm-' + default_mwccarm]
+test_mwldarm = bins_relink['mwldarm-' + default_mwldarm]
+test_mwasmarm = bins_relink['mwasmarm-' + default_mwasmarm]
+foreach name : tests
+  test('wrap_' + name, files('test.sh'),
+    args: [name, dummy],
+    workdir: meson.current_build_dir(),
+    depends: [
+      wrap,
+      test_mwccarm,
+      test_mwldarm,
+      test_mwasmarm
+    ],
+    env: {
+      'PROGRAM': wrap.full_path(),
+      'MWCCARM': test_mwccarm.full_path(),
+      'MWLDARM': test_mwldarm.full_path(),
+      'MWASMARM': test_mwasmarm.full_path()
+    })
+endforeach
