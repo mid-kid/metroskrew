@@ -62,9 +62,12 @@ foreach name, bin : bins
     objects: prog_obj,
     name_suffix: 'exe',
     link_args: [
+      link_args,
       '-T' + ldscript,
-      is_windows ? '-T' + dllimport : [],
-      link_args
+      is_windows ?
+        '-T' + dllimport : [],
+      is_windows and name.startswith('mwasmarm-') ?
+        '-Wl,--image-base,0x00b80000' : [],
     ],
     link_with: [patch_common],
     link_whole: [relink_common, common],
