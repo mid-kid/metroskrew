@@ -670,9 +670,9 @@ int _tmain(int argc, _TCHAR *argv[])
 
 #ifndef _WIN32
     // Set up the environment
-    setenv("MWCIncludes", MWCIncludes, true);
-    setenv("MWLibraries", MWLibraries, true);
-    setenv("MWLibraryFiles", MWLibraryFiles, true);
+    setenv("MWCIncludes", MWCIncludes, false);
+    setenv("MWLibraries", MWLibraries, false);
+    setenv("MWLibraryFiles", MWLibraryFiles, false);
 
     // Execute the tool
     if (args.wrap_dbg) {
@@ -691,9 +691,15 @@ int _tmain(int argc, _TCHAR *argv[])
     if (WEXITSTATUS(exitcode)) return WEXITSTATUS(exitcode);
 #else
     // Set up the environment
-    SetEnvironmentVariable(_T("MWCIncludes"), MWCIncludes);
-    SetEnvironmentVariable(_T("MWLibraries"), MWLibraries);
-    SetEnvironmentVariable(_T("MWLibraryFiles"), MWLibraryFiles);
+    if (!_tgetenv(_T("MWCIncludes"))) {
+        SetEnvironmentVariable(_T("MWCIncludes"), MWCIncludes);
+    }
+    if (!_tgetenv(_T("MWLibraries"))) {
+        SetEnvironmentVariable(_T("MWLibraries"), MWLibraries);
+    }
+    if (!_tgetenv(_T("MWLibraryFiles"))) {
+        SetEnvironmentVariable(_T("MWLibraryFiles"), MWLibraryFiles);
+    }
 
     // Execute the tool
     _TCHAR *argv_quoted = win_argv_build((const _TCHAR **)new_argv);
