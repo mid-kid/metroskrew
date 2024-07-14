@@ -359,10 +359,14 @@ _TCHAR *find_self(const _TCHAR *argv0)
 
     if (!*dir) {
 #ifndef _WIN32
-        free(dir);
-        dir = realpath("/proc/self/exe", NULL);
-        if (!dir) {
-            perror(PROGRAM_NAME ": realpath");
+        ssize_t res;
+        ssize_t size = 0;
+        do {
+            free(dir);
+            dir = malloc(sizeof(*dir) * (size += 0x1000));
+        } while ((res = readlink("/proc/self/exe", dir, size)) == size);
+        if (res == -1) {
+            perror(PROGRAM_NAME ": readlink");
             exit(EXIT_FAILURE);
         }
         dir = my_dirname(dir);

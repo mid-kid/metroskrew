@@ -28,7 +28,9 @@ arch = '-march=i586'
 c_args_base = [
   arch,
   '-fno-PIC',
-  '-U_FILE_OFFSET_BITS'
+  '-fno-plt',
+  '-U_FILE_OFFSET_BITS',
+  '-U_FORTIFY_SOURCE'
 ]
 
 as_args_base = [
@@ -40,7 +42,15 @@ link_args_base = [
   '-no-pie'
 ]
 
+is_glibc = c.has_define('__GLIBC__', prefix: '#include <features.h>')
 is_windows = c.has_define('_WIN32')
+
+if is_glibc
+  c_args_base += ['-include',
+    meson.current_source_dir() / 'meson' / 'glibc_symver.h']
+  link_args_base += meson.current_source_dir() / 'meson' / 'glibc_start.c'
+endif
+
 if is_windows
   as_args_base += ['--defsym', '_WIN32=1']
   c_args_base += ['-mcrtdll=msvcrt-os', '-D_WIN32_WINNT=0x500']

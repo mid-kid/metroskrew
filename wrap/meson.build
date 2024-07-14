@@ -16,15 +16,20 @@ cfg.set_quoted('DEFAULT_MWASMARM', default_mwasmarm)
 
 cfg_file = configure_file(output: 'config.h', configuration: cfg)
 
+sources = [
+  'wrap.c'
+]
+
 c_args = [
   c_args_base
 ]
 
 link_args = [
-  link_args_base
+  link_args_base,
+  '-no-pie'
 ]
 
-if host_machine.system() == 'windows'
+if is_windows
   c_args += [
     '-municode',
     '-D_UNICODE',
@@ -33,7 +38,7 @@ if host_machine.system() == 'windows'
   link_args += '-municode'
 endif
 
-wrap = executable(prog_name, 'wrap.c', cfg_file,
+wrap = executable(prog_name, sources, cfg_file,
   c_args: c_args,
   link_args: link_args,
   install: true)
