@@ -25,17 +25,12 @@ link_args = [
 ]
 
 if host_machine.system() == 'windows'
-  winflags = [
-    '-mconsole',
-    '-municode'
-  ]
-  link_args += winflags
   c_args += [
-    winflags,
-    '-DUNICODE',
+    '-municode',
     '-D_UNICODE',
     '-D_CRT_SECURE_NO_WARNINGS'
   ]
+  link_args += '-municode'
 endif
 
 wrap = executable(prog_name, 'wrap.c', cfg_file,

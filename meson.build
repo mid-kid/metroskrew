@@ -25,8 +25,6 @@ assert(host_machine.cpu_family() == 'x86',
   'This project can only be built for 32-bit x86')
 arch = '-march=i586'
 
-is_windows = c.has_define('_WIN32')
-
 c_args_base = [
   arch,
   '-fno-PIC',
@@ -34,14 +32,20 @@ c_args_base = [
 ]
 
 as_args_base = [
-  arch,
-  is_windows ? ['--defsym', '_WIN32=1'] : []
+  arch
 ]
 
 link_args_base = [
   arch,
   '-no-pie'
 ]
+
+is_windows = c.has_define('_WIN32')
+if is_windows
+  as_args_base += ['--defsym', '_WIN32=1']
+  c_args_base += ['-mcrtdll=msvcrt-os', '-D_WIN32_WINNT=0x500']
+  link_args_base += '-mcrtdll=msvcrt-os'
+endif
 
 proj_datadir = get_option('datadir') / meson.project_name()
 
