@@ -25,6 +25,9 @@ code_getenv.end = 0x2b80
 
 addr_main = 0x2d90
 
+code_findexe = 0x17060
+code_findexe.end = 0x17220
+
 addr_envp = 0x63a368
 
 addr_argc = 0x63be18

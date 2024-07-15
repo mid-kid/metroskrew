@@ -252,11 +252,51 @@ unsigned find_getenv(const struct file *binary, const struct loc **res)
     return 1;
 }
 
+unsigned find_findexe(const struct file *binary, const struct loc **res)
+{
+    const struct scan code[] = {
+        DEF_SCAN(0,
+            0x57,                                     // push edi
+            0x55,                                     // push ebp
+            0x81, 0xec, 0x08, 0x02, 0x00, 0x00,       // sub esp, 0x208
+            0x8b, 0xac, 0x24, 0x18, 0x02, 0x00, 0x00  // mov ebp, dword [esp + 0x218]
+        ),
+        END_SCAN
+    };
+
+    static struct loc loc[] = {
+        {.name = "findexe"}
+    };
+
+    const unsigned char *pos = scan(binary, code, 0);
+    if (!pos) return 0;
+    size_t off = pos - binary->data;
+
+    const unsigned char *end;
+    static const unsigned char end_code[] = {
+        0x90, 0x90  // nop nop
+    };
+
+    loc[0].start = off;
+    loc[0].end = 0;
+    end = memmem(binary->data + loc[0].start, binary->size - loc[0].start,
+        end_code, sizeof(end_code));
+    if (end) {
+        size_t off = end - binary->data;
+        while (off < binary->size && binary->data[off] == 0x90) off++;
+        loc[0].end = off;
+    }
+
+    *res = loc;
+    return 1;
+}
+
 typedef unsigned (*funcs_t)(const struct file *, const struct loc **);
 static const funcs_t funcs[] = {
     find_fs,
     find_init,
     find_getenv,
+    find_findexe,
     NULL
 };
 
