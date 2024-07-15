@@ -183,7 +183,6 @@ _TCHAR *utftotc(const char *str)
 }
 
 struct config {
-    char *wine;
     char *path_unx;
     char *path_win;
     char *path_build_unx;
@@ -213,7 +212,6 @@ void cfg_save(struct config cfg)
 
     const char head[] = {'M', 'W', 'R', VER_CFG};
     fwrite(head, sizeof(head), 1, f);
-    cfg_save_writestr(f, cfg.wine);
     cfg_save_writestr(f, cfg.path_unx);
     cfg_save_writestr(f, cfg.path_win);
     cfg_save_writestr(f, cfg.path_build_unx);
@@ -244,7 +242,6 @@ char *cfg_load_readstr(struct file *file, size_t *pos)
 struct config cfg_load(void)
 {
     struct config cfg;
-    cfg.wine = NULL;
     cfg.path_unx = NULL;
     cfg.path_win = NULL;
     cfg.path_build_unx = NULL;
@@ -259,7 +256,6 @@ struct config cfg_load(void)
     if (memcmp(file->data + file_pos, head, sizeof(head)) != 0) return cfg;
     file_pos += sizeof(head);
 
-    cfg.wine = cfg_load_readstr(file, &file_pos);
     cfg.path_unx = cfg_load_readstr(file, &file_pos);
     cfg.path_win = cfg_load_readstr(file, &file_pos);
     cfg.path_build_unx = cfg_load_readstr(file, &file_pos);
@@ -275,22 +271,17 @@ void cfg_free(struct config cfg)
     free(cfg.path_unx);
     free(cfg.path_build_win);
     free(cfg.path_build_unx);
-    free(cfg.wine);
 }
 
 void configure(int argc, _TCHAR *argv[])
 {
-    _TCHAR *wine = NULL;
     _TCHAR *path_unx = NULL;
     _TCHAR *path_win = NULL;
     _TCHAR *path_build_unx = NULL;
     _TCHAR *path_build_win = NULL;
 
     while (argc >= 1) {
-        if (_tcscmp(argv[0], _T("-wine")) == 0) {
-            wine = argv[1];
-            argv += 2; argc -= 2;
-        } else if (_tcscmp(argv[0], _T("-path_unx")) == 0) {
+        if (_tcscmp(argv[0], _T("-path_unx")) == 0) {
             path_unx = argv[1];
             argv += 2; argc -= 2;
         } else if (_tcscmp(argv[0], _T("-path_win")) == 0) {
@@ -311,12 +302,11 @@ void configure(int argc, _TCHAR *argv[])
     }
 
     struct config cfg;
-    cfg.wine = tctoutf(wine);
     cfg.path_unx = tctoutf(path_unx);
     cfg.path_win = tctoutf(path_win);
     cfg.path_build_unx = tctoutf(path_build_unx);
     cfg.path_build_win = tctoutf(path_build_win);
-    if ((wine && !cfg.wine) ||
+    if (
             (path_unx && !cfg.path_unx) ||
             (path_win && !cfg.path_win) ||
             (path_build_unx && !cfg.path_build_unx) ||
@@ -639,15 +629,6 @@ int _tmain(int argc, _TCHAR *argv[])
         tool_dir, *tool_dir ? _T(PATH_SEP) : _T(""), tool_file);
     new_argv[0] = tool;
 
-    // Add the wine command if requested
-    _TCHAR *wine = utftotc(cfg.wine);
-    if (wine) {
-        new_argc += 1;
-        new_argv = realloc(new_argv, sizeof(*new_argv) * (new_argc + 1));
-        memmove(new_argv + 1, new_argv, sizeof(*new_argv) * new_argc);
-        new_argv[0] = wine;
-    }
-
     // Build standard library paths for environment variables
     _TCHAR *MWCIncludes = strmake(_T(
         FMT_TS PATH_SEP FMT_TS ";"
@@ -727,7 +708,6 @@ int _tmain(int argc, _TCHAR *argv[])
     free(MWLibraries);
     free(MWLibraryFiles);
 
-    if (wine) free(wine);
     free(tool);
     free(tool_file);
     free(datadir);
