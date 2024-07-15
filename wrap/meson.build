@@ -45,7 +45,8 @@ dummy = static_library('dummy', objects: 'test.sh', build_by_default: false)
 
 tests = [
   'exec_argv',
-  'exec_path'
+  'exec_path',
+  'sdk'
 ]
 
 test_mwccarm = bins_relink['mwccarm-' + default_mwccarm]
