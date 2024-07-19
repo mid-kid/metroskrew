@@ -746,31 +746,23 @@ int _tmain(int argc, _TCHAR *argv[])
             FMT_TS PATH_SEP FMT_TS ";"
             FMT_TS PATH_SEP FMT_TS ";"
             FMT_TS PATH_SEP FMT_TS),
-            tool_libdir, _T(
-                "msl" PATH_SEP "MSL_C" PATH_SEP "MSL_ARM" PATH_SEP "Include"),
-            tool_libdir, _T(
-                "msl" PATH_SEP "MSL_C" PATH_SEP "MSL_Common" PATH_SEP
-                "Include"),
-            tool_libdir, _T(
-                "msl" PATH_SEP "MSL_C" PATH_SEP "MSL_Common_Embedded" PATH_SEP
-                "Math" PATH_SEP "Include"),
-            tool_libdir, _T(
-                "msl" PATH_SEP "MSL_C++" PATH_SEP "MSL_ARM" PATH_SEP
-                "Include"),
-            tool_libdir, _T(
-                "msl" PATH_SEP "MSL_C++" PATH_SEP "MSL_Common" PATH_SEP
-                "Include"),
-            tool_libdir, _T(
-                "msl" PATH_SEP "MSL_Extras" PATH_SEP "MSL_Common" PATH_SEP
-                "Include"),
+            tool_libdir, _T("msl" PATH_SEP "MSL_C" PATH_SEP "MSL_ARM"
+                PATH_SEP "Include"),
+            tool_libdir, _T("msl" PATH_SEP "MSL_C" PATH_SEP "MSL_Common"
+                PATH_SEP "Include"),
+            tool_libdir, _T("msl" PATH_SEP "MSL_C" PATH_SEP "MSL_Common_Embedded"
+                PATH_SEP "Math" PATH_SEP "Include"),
+            tool_libdir, _T("msl" PATH_SEP "MSL_C++" PATH_SEP "MSL_ARM"
+                PATH_SEP "Include"),
+            tool_libdir, _T("msl" PATH_SEP "MSL_C++" PATH_SEP "MSL_Common"
+                PATH_SEP "Include"),
+            tool_libdir, _T("msl" PATH_SEP "MSL_Extras" PATH_SEP "MSL_Common"
+                PATH_SEP "Include"),
             tool_libdir, _T("Profiler" PATH_SEP "include"),
-            tool_libdir, _T(
-                "Runtime" PATH_SEP "Runtime_ARM" PATH_SEP "Runtime_NITRO"
+            tool_libdir, _T("Runtime" PATH_SEP "Runtime_ARM" PATH_SEP "Runtime_NITRO"
                 PATH_SEP "Common_Includes"),
-            tool_libdir, _T(
-                "msl" PATH_SEP "MSL_Extras" PATH_SEP "MSL_ARM" PATH_SEP
-                "Include")
-            );
+            tool_libdir, _T("msl" PATH_SEP "MSL_Extras" PATH_SEP "MSL_ARM"
+                PATH_SEP "Include"));
 
         MWLibraries = strmake(_T(
             FMT_TS PATH_SEP FMT_TS ";"
@@ -778,17 +770,15 @@ int _tmain(int argc, _TCHAR *argv[])
             FMT_TS PATH_SEP FMT_TS ";"
             FMT_TS PATH_SEP FMT_TS ";"
             FMT_TS PATH_SEP FMT_TS),
-            tool_libdir, _T(
-                "msl" PATH_SEP "MSL_C" PATH_SEP "MSL_ARM" PATH_SEP "Lib"),
-            tool_libdir, _T(
-                "msl" PATH_SEP "MSL_C++" PATH_SEP "MSL_ARM" PATH_SEP "Lib"),
-            tool_libdir, _T(
-                "msl" PATH_SEP "MSL_Extras" PATH_SEP "MSL_ARM" PATH_SEP "Lib"),
-            tool_libdir, _T(
-                "Runtime" PATH_SEP "Runtime_ARM" PATH_SEP "Runtime_NITRO"
+            tool_libdir, _T("msl" PATH_SEP "MSL_C" PATH_SEP "MSL_ARM"
                 PATH_SEP "Lib"),
-            tool_libdir, _T(
-                "Mathlib" PATH_SEP "lib"));
+            tool_libdir, _T("msl" PATH_SEP "MSL_C++" PATH_SEP "MSL_ARM"
+                PATH_SEP "Lib"),
+            tool_libdir, _T("msl" PATH_SEP "MSL_Extras" PATH_SEP "MSL_ARM"
+                PATH_SEP "Lib"),
+            tool_libdir, _T("Runtime" PATH_SEP "Runtime_ARM" PATH_SEP "Runtime_NITRO"
+                PATH_SEP "Lib"),
+            tool_libdir, _T("Mathlib" PATH_SEP "lib"));
     }
 
     const _TCHAR *MWLibraryFiles = NULL;
