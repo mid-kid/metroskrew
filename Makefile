@@ -86,7 +86,7 @@ clean:
 .PHONY: distclean
 distclean:
 	rm -rf $(build)
-	$(MESON) subprojects purge --confirm
+	$(MESON) subprojects purge --confirm || true
 
 $(build)/build.ninja:
 	$(MESON) setup --cross-file meson/$(CROSS).ini $(build)

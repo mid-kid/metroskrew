@@ -36,8 +36,8 @@ if is_windows
 endif
 
 relink_common = static_library('relink_common', sources_c,
-  c_args: c_args,
-  objects: as_gen.process(sources_s, extra_args: as_args))
+  as_gen.process(sources_s, extra_args: as_args),
+  c_args: c_args)
 
 bins_relink = {}
 foreach name, bin : bins
@@ -59,7 +59,7 @@ foreach name, bin : bins
   dllimport = meson.current_source_dir() / 'dllimport.ld'
 
   prog = executable(name,
-    objects: prog_obj,
+    prog_obj,
     name_suffix: 'exe',
     link_args: [
       link_args,

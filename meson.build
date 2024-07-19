@@ -1,5 +1,6 @@
 project('metroskrew', 'c',
-  default_options: ['warning_level=2'])
+  default_options: ['warning_level=2'],
+  meson_version: '>=0.60.0')
 
 wine_headers = subproject('wine').get_variable('headers_dep_lean')
 bins_sub = subproject('mw-executables')
@@ -9,6 +10,8 @@ bins_paths = bins_sub.get_variable('bins_paths')
 bins_paths_all = bins_sub.get_variable('bins_paths_all')
 
 c = meson.get_compiler('c')
+
+python = find_program('python3')
 
 as = find_program('as')
 as_gen = generator(as,
@@ -42,8 +45,11 @@ link_args_base = [
   '-no-pie'
 ]
 
-is_glibc = c.has_define('__GLIBC__', prefix: '#include <features.h>')
-is_windows = c.has_define('_WIN32')
+is_glibc = false
+is_windows = c.get_define('_WIN32') != ''
+if c.has_header('features.h')
+  is_glibc = c.get_define('__GLIBC__', prefix: '#include <features.h>') != ''
+endif
 
 if is_glibc
   c_args_base += ['-include',
@@ -57,7 +63,14 @@ if is_windows
   link_args_base += '-mcrtdll=msvcrt-os'
 endif
 
+proj_libdir = get_option('libdir') / meson.project_name()
 proj_datadir = get_option('datadir') / meson.project_name()
+proj_bin_to_libdir = run_command(
+  [python, 'meson' / 'relpath.py', proj_libdir, get_option('bindir')],
+  check: true).stdout().strip()
+proj_bin_to_datadir = run_command(
+  [python, 'meson' / 'relpath.py', proj_datadir, get_option('bindir')],
+  check: true).stdout().strip()
 
 subdir('dlls')
 subdir('patch')

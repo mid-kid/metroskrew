@@ -32,8 +32,7 @@ common_inc = meson.current_source_dir()
 
 common = static_library('common',
   sources_c,
-  objects: as_gen.process(sources_s,
-    extra_args: as_args),
+  as_gen.process(sources_s, extra_args: as_args),
   c_args: c_args,
   dependencies: wine_headers,
   build_by_default: false)

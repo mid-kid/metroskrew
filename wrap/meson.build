@@ -1,5 +1,3 @@
-fs = import('fs')
-
 prog_name = 'skrewrap'
 
 default_mwccarm = '4.0-1051'
@@ -8,8 +6,8 @@ default_mwasmarm = '1.0-27'
 
 cfg = configuration_data()
 cfg.set_quoted('PROGRAM_NAME', prog_name)
-cfg.set_quoted('BIN_TO_DATADIR',
-  fs.relative_to(proj_datadir, get_option('bindir')))
+cfg.set_quoted('BIN_TO_LIBDIR', proj_bin_to_libdir)
+cfg.set_quoted('BIN_TO_DATADIR', proj_bin_to_datadir)
 cfg.set_quoted('DEFAULT_MWCCARM', default_mwccarm)
 cfg.set_quoted('DEFAULT_MWLDARM', default_mwldarm)
 cfg.set_quoted('DEFAULT_MWASMARM', default_mwasmarm)
