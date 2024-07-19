@@ -48,8 +48,8 @@ widl_gen = generator(widl,
     '-o', '@OUTPUT@',
     '-m32',
     '--nostdinc',
-    '-L../../dlls/*',
-    '-I../../include',
+    '-L' + meson.project_source_root() / 'dlls/*',
+    '-I' + meson.project_source_root() / 'include',
     '-D__WINESRC__',
     '@INPUT@'
   ])
