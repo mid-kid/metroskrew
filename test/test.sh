@@ -36,7 +36,7 @@ case "$1" in
     basic_c) test_cc "$1" ;;
     include) test_cc "$1" -gccinc ;;
     include_dir) test_cc "$1" -gccinc -I"$SRC" ;;
-    include_sys) MWCIncludes="$SRC" test_cc "$1" -gccinc ;;
+    include_sys) export MWCIncludes="$SRC"; test_cc "$1" -gccinc ;;
     switch_float_bug) test_cc "$1" ;;
     basic_ld) test_ld "$1" "$SRC/link.lcf" \
         "$SRC/res/mwccarm-4.0-1051-basic_c.o" ;;
