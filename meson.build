@@ -45,11 +45,8 @@ link_args_base = [
   '-no-pie'
 ]
 
-is_glibc = false
+is_glibc = c.get_define('__GLIBC__', prefix: '#include <stdlib.h>') != ''
 is_windows = c.get_define('_WIN32') != ''
-if c.has_header('features.h')
-  is_glibc = c.get_define('__GLIBC__', prefix: '#include <features.h>') != ''
-endif
 
 if is_glibc
   c_args_base += ['-include',
