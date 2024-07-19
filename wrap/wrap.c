@@ -8,6 +8,7 @@
 #include <unistd.h>
 #include <spawn.h>
 #include <sys/wait.h>
+#include <sys/stat.h>
 extern char **environ;
 #else
 #include <windows.h>
@@ -41,6 +42,7 @@ typedef char _TCHAR;
 #define _tcsrchr(...) strrchr(__VA_ARGS__)
 #define _tfopen(...) fopen(__VA_ARGS__)
 #define _tgetenv(...) getenv(__VA_ARGS__)
+#define _tstat(...) stat(__VA_ARGS__)
 #define _vsntprintf(...) vsnprintf(__VA_ARGS__)
 #endif
 
@@ -52,6 +54,21 @@ typedef char _TCHAR;
 #define PATH_DELIM "/\\"
 #endif
 
+enum libarch {
+    LIBARCH_NONE,
+    LIBARCH_v4,
+    LIBARCH_v4t,
+    LIBARCH_v5,
+    LIBARCH_v5t
+};
+const _TCHAR *libarch_opt[] = {
+    _T("v4"),
+    _T("v4t"),
+    _T("v5"),
+    _T("v5t"),
+    NULL
+};
+
 struct args {
     _TCHAR *o;
     _TCHAR *precompile;
@@ -60,6 +77,8 @@ struct args {
     bool wrap_dbg;
     _TCHAR *wrap_ver;
     _TCHAR *wrap_sdk;
+    _TCHAR *wrap_lib;
+    enum libarch wrap_libarch;
 };
 
 struct file {
@@ -107,6 +126,22 @@ struct args parse_args(int argc, _TCHAR *argv[], int *out_argc, _TCHAR ***out_ar
             skip = 2;
         } else if (_tcscmp(argv[0], _T("-wrap:sdk")) == 0 && argc >= 2) {
             args.wrap_sdk = argv[1];
+            skip = 2;
+        } else if (_tcscmp(argv[0], _T("-wrap:lib")) == 0 && argc >= 2) {
+            args.wrap_lib = argv[1];
+            skip = 2;
+        } else if (_tcscmp(argv[0], _T("-wrap:libarch")) == 0 && argc >= 2) {
+            unsigned x = 0;
+            for (; libarch_opt[x]; x++) {
+                if (_tcscmp(argv[1], libarch_opt[x]) == 0) break;
+            }
+            if (libarch_opt[x]) {
+                args.wrap_libarch = x + 1;
+            } else {
+                fprintf(stderr,
+                    PROGRAM_NAME ": Unknown architecture '" FMT_TS "'\n",
+                    argv[1]);
+            }
             skip = 2;
         } else {
             copy = 1;
@@ -390,7 +425,19 @@ _TCHAR *find_datadir(const _TCHAR *self)
     return dir;
 }
 
-_TCHAR *sdk_version(const _TCHAR *datadir, const _TCHAR *tool, const _TCHAR *ver)
+_TCHAR *find_libdir(const _TCHAR *self)
+{
+    _TCHAR *dir = NULL;
+    const _TCHAR *env = _tgetenv(_T("SKREW_LIBDIR"));
+    if (env) {
+        dir = _tcsdup(env);
+    } else if (*self) {
+        dir = strmake(_T(FMT_TS PATH_SEP BIN_TO_LIBDIR), self);
+    }
+    return dir;
+}
+
+_TCHAR *sdk_version(const _TCHAR *datadir, const _TCHAR *ver, const _TCHAR *tool, const _TCHAR *suff)
 {
     if (!datadir) return NULL;
 
@@ -404,9 +451,9 @@ _TCHAR *sdk_version(const _TCHAR *datadir, const _TCHAR *tool, const _TCHAR *ver
     struct file *file = NULL;
     for (_TCHAR **dir = subdirs; *dir; dir++) {
         _TCHAR *path = strmake(
-            _T(FMT_TS PATH_SEP FMT_TS PATH_SEP FMT_TS PATH_SEP FMT_TS
-                ".exe.txt"),
-            datadir, *dir, ver, tool);
+            _T(FMT_TS PATH_SEP FMT_TS PATH_SEP FMT_TS PATH_SEP FMT_TS FMT_TS
+                ".txt"),
+            datadir, *dir, ver, tool, suff);
 
         if (args.wrap_dbg) {
             fprintf(stderr, "sdk: " FMT_TS "\n", path);
@@ -434,6 +481,38 @@ _TCHAR *sdk_version(const _TCHAR *datadir, const _TCHAR *tool, const _TCHAR *ver
     _TCHAR *res = utftotc(utf);
     free(utf);
     return res;
+}
+
+_TCHAR *lib_version(const _TCHAR *libdir, const _TCHAR *ver)
+{
+    if (!libdir) return NULL;
+
+    // Compatibility: try multiple subdirs
+    _TCHAR *subdirs[] = {
+        _T("msl"),
+        _T("msl" PATH_SEP "ds"),
+        NULL
+    };
+
+    _TCHAR *path = NULL;
+    for (_TCHAR **dir = subdirs; *dir; dir++) {
+        path = strmake(
+            _T(FMT_TS PATH_SEP FMT_TS PATH_SEP FMT_TS),
+            libdir, *dir, ver);
+
+        if (args.wrap_dbg) {
+            fprintf(stderr, "lib: " FMT_TS "\n", path);
+        }
+
+        // Check if the directory exists
+        struct stat buf;
+        if (_tstat(path, &buf) != -1) {
+            if ((buf.st_mode & S_IFMT) == S_IFDIR) break;
+        }
+
+        free(path); path = NULL;
+    }
+    return path;
 }
 
 void str_resize(_TCHAR **str, size_t *max, size_t req)
@@ -588,13 +667,18 @@ int _tmain(int argc, _TCHAR *argv[])
     // Figure out program location
     _TCHAR *tool_dir = find_self(argv[0]);
     _TCHAR *datadir = find_datadir(tool_dir);
+    _TCHAR *libdir = find_libdir(tool_dir);
 
     const _TCHAR *tool_bin = argv[1];
     const _TCHAR *tool_ver = NULL;
     const _TCHAR *tool_sdk = NULL;
+    const _TCHAR *tool_lib = NULL;
+    enum libarch tool_libarch = LIBARCH_v5;
 
     if (args.wrap_ver) tool_ver = args.wrap_ver;
     if (args.wrap_sdk) tool_sdk = args.wrap_sdk;
+    if (args.wrap_lib) tool_lib = args.wrap_lib;
+    if (args.wrap_libarch) tool_libarch = args.wrap_libarch;
 
     // If no version was specified, pick a default for generic binary names
     if (!tool_ver && !tool_sdk) {
@@ -612,7 +696,7 @@ int _tmain(int argc, _TCHAR *argv[])
     // Figure out the tool filename
     _TCHAR *tool_file = NULL;
     if (tool_sdk) {
-        tool_file = sdk_version(datadir, tool_bin, tool_sdk);
+        tool_file = sdk_version(datadir, tool_sdk, tool_bin, _T(".exe"));
         if (!tool_file) {
             fprintf(stderr, PROGRAM_NAME ": did not find SDK version "
                 FMT_TS "\n", tool_sdk);
@@ -629,31 +713,142 @@ int _tmain(int argc, _TCHAR *argv[])
         tool_dir, *tool_dir ? _T(PATH_SEP) : _T(""), tool_file);
     new_argv[0] = tool;
 
+    free(tool_file);
+    free(tool_dir);
+
     // Build standard library paths for environment variables
-    _TCHAR *MWCIncludes = strmake(_T(
-        FMT_TS PATH_SEP FMT_TS ";"
-        FMT_TS PATH_SEP FMT_TS ";"
-        FMT_TS PATH_SEP FMT_TS),
-        tool_dir, _T("include"),
-        tool_dir, _T("include" PATH_SEP "MSL_C"),
-        tool_dir, _T("include" PATH_SEP "MSL_Extras"));
+    _TCHAR *tool_libver = NULL;
+    if (tool_lib) {
+        tool_libver = _tcsdup(tool_lib);
+    } else if (tool_sdk) {
+        tool_libver = sdk_version(datadir, tool_sdk, _T("lib"), _T(""));
+    }
 
-    _TCHAR *MWLibraries = strmake(_T(
-        FMT_TS PATH_SEP FMT_TS),
-        tool_dir, _T("lib"));
+    _TCHAR *tool_libdir = NULL;
+    if (tool_libver) {
+        tool_libdir = lib_version(libdir, tool_libver);
+        free(tool_libver);
+    }
 
-    _TCHAR *MWLibraryFiles = strmake(_T(
-        "MSL_C_NITRO_Ai_LE.a" ";"
-        "MSL_Extras_NITRO_Ai_LE.a" ";"
-        "MSL_CPP_NITRO_Ai_LE.a" ";"
-        "FP_fastI_v5t_LE.a" ";"
-        "NITRO_Runtime_Ai_LE.a"));
+    free(datadir);
+    free(libdir);
+
+    _TCHAR *MWCIncludes = NULL;
+    _TCHAR *MWLibraries = NULL;
+    if (tool_libdir) {
+        MWCIncludes = strmake(_T(
+            FMT_TS PATH_SEP FMT_TS ";"
+            FMT_TS PATH_SEP FMT_TS ";"
+            FMT_TS PATH_SEP FMT_TS ";"
+            FMT_TS PATH_SEP FMT_TS ";"
+            FMT_TS PATH_SEP FMT_TS ";"
+            FMT_TS PATH_SEP FMT_TS ";"
+            FMT_TS PATH_SEP FMT_TS ";"
+            FMT_TS PATH_SEP FMT_TS ";"
+            FMT_TS PATH_SEP FMT_TS),
+            tool_libdir, _T(
+                "msl" PATH_SEP "MSL_C" PATH_SEP "MSL_ARM" PATH_SEP "Include"),
+            tool_libdir, _T(
+                "msl" PATH_SEP "MSL_C" PATH_SEP "MSL_Common" PATH_SEP
+                "Include"),
+            tool_libdir, _T(
+                "msl" PATH_SEP "MSL_C" PATH_SEP "MSL_Common_Embedded" PATH_SEP
+                "Math" PATH_SEP "Include"),
+            tool_libdir, _T(
+                "msl" PATH_SEP "MSL_C++" PATH_SEP "MSL_ARM" PATH_SEP
+                "Include"),
+            tool_libdir, _T(
+                "msl" PATH_SEP "MSL_C++" PATH_SEP "MSL_Common" PATH_SEP
+                "Include"),
+            tool_libdir, _T(
+                "msl" PATH_SEP "MSL_Extras" PATH_SEP "MSL_Common" PATH_SEP
+                "Include"),
+            tool_libdir, _T("Profiler" PATH_SEP "include"),
+            tool_libdir, _T(
+                "Runtime" PATH_SEP "Runtime_ARM" PATH_SEP "Runtime_NITRO"
+                PATH_SEP "Common_Includes"),
+            tool_libdir, _T(
+                "msl" PATH_SEP "MSL_Extras" PATH_SEP "MSL_ARM" PATH_SEP
+                "Include")
+            );
+
+        MWLibraries = strmake(_T(
+            FMT_TS PATH_SEP FMT_TS ";"
+            FMT_TS PATH_SEP FMT_TS ";"
+            FMT_TS PATH_SEP FMT_TS ";"
+            FMT_TS PATH_SEP FMT_TS ";"
+            FMT_TS PATH_SEP FMT_TS),
+            tool_libdir, _T(
+                "msl" PATH_SEP "MSL_C" PATH_SEP "MSL_ARM" PATH_SEP "Lib"),
+            tool_libdir, _T(
+                "msl" PATH_SEP "MSL_C++" PATH_SEP "MSL_ARM" PATH_SEP "Lib"),
+            tool_libdir, _T(
+                "msl" PATH_SEP "MSL_Extras" PATH_SEP "MSL_ARM" PATH_SEP "Lib"),
+            tool_libdir, _T(
+                "Runtime" PATH_SEP "Runtime_ARM" PATH_SEP "Runtime_NITRO"
+                PATH_SEP "Lib"),
+            tool_libdir, _T(
+                "Mathlib" PATH_SEP "lib"));
+    }
+
+    const _TCHAR *MWLibraryFiles = NULL;
+    switch (tool_libarch) {
+    case LIBARCH_v4:
+        MWLibraryFiles = _T(
+            "MSL_C_NITRO_Ai_LE.a" ";"
+            "MSL_Extras_NITRO_Ai_LE.a" ";"
+            "MSL_CPP_NITRO_Ai_LE.a" ";"
+            "FP_fastI_v4t_LE.a" ";"
+            "NITRO_Runtime_Ai_LE.a");
+        break;
+
+    case LIBARCH_v4t:
+        MWLibraryFiles = _T(
+            "MSL_C_NITRO_T_LE.a" ";"
+            "MSL_Extras_NITRO_T_LE.a" ";"
+            "MSL_CPP_NITRO_T_LE.a" ";"
+            "FP_fastI_v4t_LE.a" ";"
+            "NITRO_Runtime_T_LE.a");
+        break;
+
+    case LIBARCH_v5:
+        MWLibraryFiles = _T(
+            "MSL_C_NITRO_Ai_LE.a" ";"
+            "MSL_Extras_NITRO_Ai_LE.a" ";"
+            "MSL_CPP_NITRO_Ai_LE.a" ";"
+            "FP_fastI_v5t_LE.a" ";"
+            "NITRO_Runtime_Ai_LE.a");
+        break;
+
+    case LIBARCH_v5t:
+        MWLibraryFiles = _T(
+            "MSL_C_NITRO_T_LE.a" ";"
+            "MSL_Extras_NITRO_T_LE.a" ";"
+            "MSL_CPP_NITRO_T_LE.a" ";"
+            "FP_fastI_v5t_LE.a" ";"
+            "NITRO_Runtime_T_LE.a");
+        break;
+
+    default: break;
+    }
+
+    if (args.wrap_dbg) {
+        if (MWCIncludes) {
+            fprintf(stderr, "MWCIncludes: " FMT_TS "\n", MWCIncludes);
+        }
+        if (MWLibraries) {
+            fprintf(stderr, "MWLibraries: " FMT_TS "\n", MWLibraries);
+        }
+        if (MWLibraryFiles) {
+            fprintf(stderr, "MWLibraryFiles: " FMT_TS "\n", MWLibraryFiles);
+        }
+    }
 
 #ifndef _WIN32
     // Set up the environment
-    setenv("MWCIncludes", MWCIncludes, false);
-    setenv("MWLibraries", MWLibraries, false);
-    setenv("MWLibraryFiles", MWLibraryFiles, false);
+    if (MWCIncludes) setenv("MWCIncludes", MWCIncludes, false);
+    if (MWLibraries) setenv("MWLibraries", MWLibraries, false);
+    if (MWLibraryFiles) setenv("MWLibraryFiles", MWLibraryFiles, false);
 
     // Execute the tool
     if (args.wrap_dbg) {
@@ -672,13 +867,13 @@ int _tmain(int argc, _TCHAR *argv[])
     if (WEXITSTATUS(exitcode)) return WEXITSTATUS(exitcode);
 #else
     // Set up the environment
-    if (!_tgetenv(_T("MWCIncludes"))) {
+    if (MWCIncludes && !_tgetenv(_T("MWCIncludes"))) {
         SetEnvironmentVariable(_T("MWCIncludes"), MWCIncludes);
     }
-    if (!_tgetenv(_T("MWLibraries"))) {
+    if (MWLibraries && !_tgetenv(_T("MWLibraries"))) {
         SetEnvironmentVariable(_T("MWLibraries"), MWLibraries);
     }
-    if (!_tgetenv(_T("MWLibraryFiles"))) {
+    if (MWLibraryFiles && !_tgetenv(_T("MWLibraryFiles"))) {
         SetEnvironmentVariable(_T("MWLibraryFiles"), MWLibraryFiles);
     }
 
@@ -703,15 +898,10 @@ int _tmain(int argc, _TCHAR *argv[])
     if (exitcode) return exitcode;
     free(argv_quoted);
 #endif
-
     free(MWCIncludes);
     free(MWLibraries);
-    free(MWLibraryFiles);
 
     free(tool);
-    free(tool_file);
-    free(datadir);
-    free(tool_dir);
     free(new_argv);
 
     // Fix dependency file if generated
