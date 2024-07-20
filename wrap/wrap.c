@@ -55,18 +55,10 @@ typedef char _TCHAR;
 #endif
 
 enum libarch {
-    LIBARCH_NONE,
     LIBARCH_v4,
     LIBARCH_v4t,
     LIBARCH_v5,
     LIBARCH_v5t
-};
-const _TCHAR *libarch_opt[] = {
-    _T("v4"),
-    _T("v4t"),
-    _T("v5"),
-    _T("v5t"),
-    NULL
 };
 
 struct args {
@@ -91,32 +83,41 @@ struct args args;
 struct args parse_args(int argc, _TCHAR *argv[], int *out_argc, _TCHAR ***out_argv)
 {
     struct args args = {
-        .o = NULL,
-        .precompile = NULL,
-        .MD = false,
-        .wrap_dbg = false,
-        .wrap_ver = NULL,
-        .wrap_sdk = NULL
+        .wrap_libarch = LIBARCH_v5
     };
 
     int new_argc = 0;
     _TCHAR **new_argv = malloc(sizeof(_TCHAR *) * (argc + 2));
     new_argv[new_argc++] = NULL;
 
+    bool thumb = false;
     while (argc >= 1) {
         int skip = 0;
         int copy = 0;
 
-        if (_tcscmp(argv[0], _T("-o")) == 0 &&
-                argc >= 2) {
+        if (_tcscmp(argv[0], _T("-o")) == 0 && argc >= 2) {
             args.o = argv[1];
             copy = 2;
-        } else if (_tcscmp(argv[0], _T("-precompile")) == 0 &&
-                argc >= 2) {
+        } else if (_tcscmp(argv[0], _T("-precompile")) == 0 && argc >= 2) {
             args.precompile = argv[1];
             copy = 2;
         } else if (_tcscmp(argv[0], _T("-MD")) == 0) {
             args.MD = true;
+            copy = 1;
+        } else if (_tcscmp(argv[0], _T("-proc")) == 0 && argc >= 2) {
+            if (_tcscmp(argv[1], _T("arm7tdmi")) == 0 ||
+                    _tcscmp(argv[1], _T("arm4T")) == 0) {
+                args.wrap_libarch = LIBARCH_v4;
+            } else if (_tcscmp(argv[1], _T("arm946e")) == 0 ||
+                    _tcscmp(argv[1], _T("arm5TE")) == 0) {
+                args.wrap_libarch = LIBARCH_v5;
+            }
+            copy = 2;
+        } else if (_tcscmp(argv[0], _T("-thumb")) == 0) {
+            thumb = true;
+            copy = 1;
+        } else if (_tcscmp(argv[0], _T("-nothumb")) == 0) {
+            thumb = false;
             copy = 1;
         } else if (_tcscmp(argv[0], _T("-wrap:dbg")) == 0) {
             args.wrap_dbg = true;
@@ -130,19 +131,6 @@ struct args parse_args(int argc, _TCHAR *argv[], int *out_argc, _TCHAR ***out_ar
         } else if (_tcscmp(argv[0], _T("-wrap:lib")) == 0 && argc >= 2) {
             args.wrap_lib = argv[1];
             skip = 2;
-        } else if (_tcscmp(argv[0], _T("-wrap:libarch")) == 0 && argc >= 2) {
-            unsigned x = 0;
-            for (; libarch_opt[x]; x++) {
-                if (_tcscmp(argv[1], libarch_opt[x]) == 0) break;
-            }
-            if (libarch_opt[x]) {
-                args.wrap_libarch = x + 1;
-            } else {
-                fprintf(stderr,
-                    PROGRAM_NAME ": Unknown architecture '" FMT_TS "'\n",
-                    argv[1]);
-            }
-            skip = 2;
         } else {
             copy = 1;
         }
@@ -152,6 +140,11 @@ struct args parse_args(int argc, _TCHAR *argv[], int *out_argc, _TCHAR ***out_ar
         while (copy--) new_argv[new_argc++] = *argv++;
     }
     new_argv[new_argc] = NULL;
+
+    if (thumb) {
+        if (args.wrap_libarch == LIBARCH_v4) args.wrap_libarch = LIBARCH_v4t;
+        if (args.wrap_libarch == LIBARCH_v5) args.wrap_libarch = LIBARCH_v5t;
+    }
 
     *out_argc = new_argc;
     *out_argv = new_argv;
@@ -673,12 +666,11 @@ int _tmain(int argc, _TCHAR *argv[])
     const _TCHAR *tool_ver = NULL;
     const _TCHAR *tool_sdk = NULL;
     const _TCHAR *tool_lib = NULL;
-    enum libarch tool_libarch = LIBARCH_v5;
+    enum libarch tool_libarch = args.wrap_libarch;
 
     if (args.wrap_ver) tool_ver = args.wrap_ver;
     if (args.wrap_sdk) tool_sdk = args.wrap_sdk;
     if (args.wrap_lib) tool_lib = args.wrap_lib;
-    if (args.wrap_libarch) tool_libarch = args.wrap_libarch;
 
     // If no version was specified, pick a default for generic binary names
     if (!tool_ver && !tool_sdk) {
@@ -818,8 +810,6 @@ int _tmain(int argc, _TCHAR *argv[])
             "FP_fastI_v5t_LE.a" ";"
             "NITRO_Runtime_T_LE.a");
         break;
-
-    default: break;
     }
 
     if (args.wrap_dbg) {
