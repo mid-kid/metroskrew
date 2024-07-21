@@ -3,17 +3,16 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <stdbool.h>
+#include <sys/stat.h>
 
 #ifndef _WIN32
 #include <unistd.h>
 #include <spawn.h>
 #include <sys/wait.h>
-#include <sys/stat.h>
 extern char **environ;
 #else
 #include <windows.h>
 #include <tchar.h>
-#include <fcntl.h>
 #endif
 
 #include "config.h"
@@ -32,6 +31,8 @@ extern char **environ;
 typedef char _TCHAR;
 #define _tmain main
 #define _T(...) __VA_ARGS__
+#define _stat stat
+
 #define _ftprintf(...) fprintf(__VA_ARGS__)
 #define _tcscat(...) strcat(__VA_ARGS__)
 #define _tcschr(...) strchr(__VA_ARGS__)
@@ -498,9 +499,9 @@ _TCHAR *lib_version(const _TCHAR *libdir, const _TCHAR *ver)
         }
 
         // Check if the directory exists
-        struct stat buf;
+        struct _stat buf;
         if (_tstat(path, &buf) != -1) {
-            if ((buf.st_mode & S_IFMT) == S_IFDIR) break;
+            if (S_ISDIR(buf.st_mode)) break;
         }
 
         free(path); path = NULL;
