@@ -641,20 +641,28 @@ void fix_depfile(_TCHAR *fname, const char *path_unx, const char *path_win, cons
 
 int _tmain(int argc, _TCHAR *argv[])
 {
-    if (argc < 2) {
+#ifndef WRAP_PROG
+#define MIN_ARGS 2
+#else
+#define MIN_ARGS 1
+#endif
+
+    if (argc < MIN_ARGS) {
         fprintf(stderr, PROGRAM_NAME ": Too few arguments\n");
         return EXIT_FAILURE;
     }
 
+#ifndef WRAP_PROG
     if (_tcscmp(argv[1], _T("-conf")) == 0) {
         configure(argc - 2, argv + 2);
         return EXIT_SUCCESS;
     }
+#endif
 
     // Filter the arguments to pass to the application
     int new_argc;
     _TCHAR **new_argv;
-    args = parse_args(argc - 2, argv + 2, &new_argc, &new_argv);
+    args = parse_args(argc - MIN_ARGS, argv + MIN_ARGS, &new_argc, &new_argv);
 
     struct config cfg = cfg_load();
 
@@ -663,7 +671,12 @@ int _tmain(int argc, _TCHAR *argv[])
     _TCHAR *datadir = find_datadir(tool_dir);
     _TCHAR *libdir = find_libdir(tool_dir);
 
+#ifndef WRAP_PROG
     const _TCHAR *tool_bin = argv[1];
+#else
+    const _TCHAR *tool_bin = _T(WRAP_PROG);
+#endif
+
     const _TCHAR *tool_ver = NULL;
     const _TCHAR *tool_sdk = NULL;
     const _TCHAR *tool_lib = NULL;

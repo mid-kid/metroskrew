@@ -32,10 +32,15 @@ if is_windows
   link_args += '-municode'
 endif
 
-wrap = executable(prog_name, 'wrap.c', cfg_file,
-  c_args: c_args,
-  link_args: link_args,
-  install: true)
+wrap_progs = ['skrewrap', 'mwccarm', 'mwldarm', 'mwasmarm']
+foreach wrap_prog : wrap_progs
+  wrap = executable(wrap_prog, 'wrap.c', cfg_file,
+    c_args: c_args + [
+      wrap_prog != 'skrewrap' ? '-DWRAP_PROG="' + wrap_prog + '"' : []
+    ],
+    link_args: link_args,
+    install: true)
+endforeach
 
 # test() requires a cross-compiled target in its argument list
 #  in order to set MESON_EXE_WRAPPER.
