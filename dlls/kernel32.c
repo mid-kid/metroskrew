@@ -219,10 +219,10 @@ BOOL WINAPI FindClose(HANDLE hFindFile)
 
     if (findfile->dir) closedir(findfile->dir);
     if (findfile->path) free(findfile->path);
-    free(findfile);
 
     BOOL res = TRUE;
     TRACE("FindClose: res=%d hFindFile=%p", res, hFindFile);
+    free(findfile);
     return res;
 }
 
@@ -611,6 +611,9 @@ HANDLE WINAPI CreateFileMappingA(HANDLE hFile, LPSECURITY_ATTRIBUTES lpFileMappi
         " dwMaximumSizeLow=%ld lpName='%s'",
         hFile, flProtect, dwMaximumSizeHigh,
         dwMaximumSizeLow, lpName ? lpName : "");
+#ifdef _WIN32
+    SetLastError(2);
+#endif
     return NULL;
 }
 
