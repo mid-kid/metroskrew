@@ -1,9 +1,9 @@
 .macro incbin off, len
-.incbin "ds/2.0/p4/mwldarm.exe", \off, \len
+.incbin "ds/2.0/p2/mwldarm.exe", \off, \len
 .endm
 
 pe_text_off = 0x400
-pe_text_len = 0x6abb5
+pe_text_len = 0x6aba5
 
 code_fs_1 = 0x40f
 code_fs_1.end = 0x41d

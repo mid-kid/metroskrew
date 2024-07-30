@@ -7,7 +7,7 @@ parse_ver() {
     sed -n 's/^Version \([0-9\.]*\) build \([0-9]*\).*$/\1-\2/p'
 }
 
-for x in $(cd "$BINS"; find -name '*.exe'); do
+for x in $(cd "$BINS"; echo ds/*/*/*.exe dsi/*/*.exe); do
     ver="${x%/*}"
     ver="${x#./}"
     name="${x##*/}"

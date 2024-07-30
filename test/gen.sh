@@ -1,7 +1,7 @@
 #!/bin/sh
 set -eu
 
-BINS="${BINS:-../bins/mw-executables}"
+BINS="${BINS:-$(echo ../subprojects/mw-executables-*/)}"
 mkdir -p res
 
 versions="
@@ -12,6 +12,8 @@ versions="
     mwccarm-2.0-84:ds/1.2/sp3/mwccarm.exe
     mwccarm-2.0-87:ds/1.2/sp4/mwccarm.exe
     mwccarm-3.0-114:ds/2.0/base/mwccarm.exe
+    mwccarm-3.0-118:ds/2.0/p2/mwccarm.exe
+    mwccarm-3.0-122:ds/2.0/p4/mwccarm.exe
     mwccarm-3.0-123:ds/2.0/sp1/mwccarm.exe
     mwccarm-3.0-126:ds/2.0/sp1p2/mwccarm.exe
     mwccarm-3.0-131:ds/2.0/sp1p5/mwccarm.exe

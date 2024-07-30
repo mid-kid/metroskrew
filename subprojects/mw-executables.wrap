@@ -1,7 +1,7 @@
 [wrap-file]
-directory = mw-executables-439cd704877b87c2051dfd565d584b45e3216fb7
+directory = mw-executables-b16bc004552fdacbbc50892d2dd24746d6c0ccc0
 patch_directory = mw-executables
 
-source_filename = mw-executables-20240702.zip
-source_url = https://github.com/luckytyphlosion/mw-executables/archive/439cd704877b87c2051dfd565d584b45e3216fb7.zip
-source_hash = 49f2209d1793d4448208e3313ea1d5845805eb86adf743d9677f26c607f33f9a
+source_filename = mw-executables-20240730.tar.gz
+source_url = https://github.com/luckytyphlosion/mw-executables/archive/b16bc004552fdacbbc50892d2dd24746d6c0ccc0.tar.gz
+source_hash = e5262ed9e7cad7d4b73b5400b3b0cb870f549329803f85628837b41ae7076192
