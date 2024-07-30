@@ -483,8 +483,8 @@ _TCHAR *lib_version(const _TCHAR *libdir, const _TCHAR *ver)
 
     // Compatibility: try multiple subdirs
     _TCHAR *subdirs[] = {
-        _T("msl"),
-        _T("msl" PATH_SEP "ds"),
+        _T("sdk"),
+        _T("sdk" PATH_SEP "ds"),
         NULL
     };
 

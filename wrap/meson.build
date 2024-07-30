@@ -33,8 +33,9 @@ if is_windows
 endif
 
 wrap_progs = ['skrewrap', 'mwccarm', 'mwldarm', 'mwasmarm']
+wrap = []
 foreach wrap_prog : wrap_progs
-  wrap = executable(wrap_prog, 'wrap.c', cfg_file,
+  wrap += executable(wrap_prog, 'wrap.c', cfg_file,
     c_args: c_args + [
       wrap_prog != 'skrewrap' ? '-DWRAP_PROG="' + wrap_prog + '"' : []
     ],
@@ -60,13 +61,13 @@ foreach name : tests
     args: [name, dummy],
     workdir: meson.current_build_dir(),
     depends: [
-      wrap,
+      wrap[0],
       test_mwccarm,
       test_mwldarm,
       test_mwasmarm
     ],
     env: {
-      'PROGRAM': wrap.full_path(),
+      'PROGRAM': wrap[0].full_path(),
       'MWCCARM': test_mwccarm.full_path(),
       'MWLDARM': test_mwldarm.full_path(),
       'MWASMARM': test_mwasmarm.full_path()
