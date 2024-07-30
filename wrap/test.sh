@@ -9,7 +9,7 @@ wine() {
 PROGRAM_NAME="${PROGRAM##*/}"
 
 DIR="./test_$1"
-rm -r "$DIR"; mkdir "$DIR"
+rm -rf "$DIR"; mkdir "$DIR"
 
 case "$1" in
     exec_argv)
