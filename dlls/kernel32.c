@@ -226,17 +226,16 @@ BOOL WINAPI FindClose(HANDLE hFindFile)
     return res;
 }
 
-LPSTR WINAPI GetCommandLineA(void);
-
-#ifndef _WIN32
 #undef GetEnvironmentStrings
-LPSTR WINAPI GetEnvironmentStrings(void)
-    __attribute__((weak, alias("GetEnvironmentStringsA")));
-
 LPSTR WINAPI GetEnvironmentStringsA(void)
 {
     STUB("GetEnvironmentStringsA");
     return "\0";
+}
+
+LPSTR WINAPI GetEnvironmentStrings(void)
+{
+    return GetEnvironmentStringsA();
 }
 
 BOOL WINAPI FreeEnvironmentStringsA(LPSTR penv)
@@ -245,7 +244,6 @@ BOOL WINAPI FreeEnvironmentStringsA(LPSTR penv)
     STUB("FreeEnvironmentStringsA");
     return TRUE;
 }
-#endif
 
 #ifndef _WIN32
 UINT WINAPI GetCurrentDirectoryA(UINT nBufferLength, LPSTR lpBuffer)
