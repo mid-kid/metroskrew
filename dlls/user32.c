@@ -67,6 +67,7 @@ INT WINAPI MessageBoxA(HWND hWnd, LPCSTR lpText, LPCSTR lpCaption, UINT uType)
         putchar('\n');
     }
     printf("%s\n", lpText);
+    fflush(stdout);
 
     //return IDIGNORE;
     return 0;

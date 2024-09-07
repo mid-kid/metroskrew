@@ -5,14 +5,14 @@
 #include <stdbool.h>
 
 #ifdef ETRACE
-#define TRACE(msg, ...) printf("trace: " msg "\n", ##__VA_ARGS__)
+#define TRACE(msg, ...) { printf("trace: " msg "\n", ##__VA_ARGS__);fflush(stdout); }
 #else
 #define TRACE(msg, ...)
 #endif
 
 #ifndef NDEBUG
-#define DEBUG(msg, ...) printf(msg "\n", ##__VA_ARGS__)
-#define STUB(msg, ...) printf("stub: " msg "\n", ##__VA_ARGS__)
+#define DEBUG(msg, ...) { printf(msg "\n", ##__VA_ARGS__);fflush(stdout); }
+#define STUB(msg, ...) { printf("stub: " msg "\n", ##__VA_ARGS__);fflush(stdout); }
 #else
 #define DEBUG(msg, ...)
 #define STUB(msg, ...)
