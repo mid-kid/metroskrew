@@ -598,7 +598,15 @@ unsigned dump_do_import(FILE *out, struct dump_import *dump, const char *incbin,
         char *name = strchr(dump->name, '@');
         if (name) *name = '\0';
 
-        fprintf(out, ".long %s%s # %s\n", opt.win ? "_" : "",
+        // These are used in the startfiles...
+        char *my = "";
+        if (strcmp(dump->name, "GetLastError") == 0) {
+            my = "my_";
+        } else if (strcmp(dump->name, "GetFileAttributesA") == 0) {
+            my = "my_";
+        }
+
+        fprintf(out, ".long %s%s%s # %s\n", opt.win ? "_" : "", my,
             dump->name, dump->dllname);
         free(dump->name);
         size = 4;

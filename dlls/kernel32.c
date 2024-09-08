@@ -51,14 +51,12 @@ die:
         dwDesiredAccess, bInheritHandle, dwOptions);
 }
 
-#ifndef _WIN32
-DWORD WINAPI GetLastError(void)
+DWORD WINAPI my_GetLastError(void)
 {
     DWORD res = errno;
     TRACE("GetLastError: res=%ld", res);
     return res;
 }
-#endif
 
 HANDLE WINAPI GetStdHandle(DWORD nStdHandle)
 {
@@ -191,8 +189,7 @@ end:
     return res;
 }
 
-#ifndef _WIN32
-DWORD WINAPI GetFileAttributesA(LPCSTR lpFileName)
+DWORD WINAPI my_GetFileAttributesA(LPCSTR lpFileName)
 {
     STUB("GetFileAttributes: only presence and directory: '%s'", lpFileName);
     char *path = path_dup_unx(lpFileName);
@@ -201,7 +198,6 @@ DWORD WINAPI GetFileAttributesA(LPCSTR lpFileName)
     free(path);
     return res;
 }
-#endif
 
 BOOL WINAPI FindNextFileA(HANDLE hFindFile, LPWIN32_FIND_DATAA lpFindFileData)
 {
@@ -245,7 +241,6 @@ BOOL WINAPI FreeEnvironmentStringsA(LPSTR penv)
     return TRUE;
 }
 
-#ifndef _WIN32
 UINT WINAPI GetCurrentDirectoryA(UINT nBufferLength, LPSTR lpBuffer)
 {
     char path[0x1000];
@@ -262,7 +257,6 @@ UINT WINAPI GetCurrentDirectoryA(UINT nBufferLength, LPSTR lpBuffer)
     DEBUG("GetCurrentDirectoryA: '%s'", lpBuffer);
     return strlen(lpBuffer);
 }
-#endif
 
 BOOL WINAPI CreateProcessA(LPCSTR,LPSTR,LPSECURITY_ATTRIBUTES,LPSECURITY_ATTRIBUTES,BOOL,DWORD,LPVOID,LPCSTR,LPSTARTUPINFOA,LPPROCESS_INFORMATION);
 DWORD WINAPI WaitForSingleObject(HANDLE,DWORD);
@@ -609,9 +603,6 @@ HANDLE WINAPI CreateFileMappingA(HANDLE hFile, LPSECURITY_ATTRIBUTES lpFileMappi
         " dwMaximumSizeLow=%ld lpName='%s'",
         hFile, flProtect, dwMaximumSizeHigh,
         dwMaximumSizeLow, lpName ? lpName : "");
-#ifdef _WIN32
-    SetLastError(2);
-#endif
     return NULL;
 }
 
