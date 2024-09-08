@@ -26,7 +26,7 @@ as_gen = generator(as,
 
 assert(host_machine.cpu_family() == 'x86',
   'This project can only be built for 32-bit x86')
-arch = '-march=i586'
+arch = '-march=pentium4'
 
 c_args_base = [
   arch,

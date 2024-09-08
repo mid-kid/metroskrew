@@ -10,11 +10,20 @@ func main
     # Set up the FPU to reflect the default state in windows
     # Usually it's set to a different value due to the startfiles used
     #  in modern compilers, but this application needs lower precision.
-    fldcw [cw]
+    fninit
+    fnclex
+    fldcw cw_x87
+    ldmxcsr cw_sse
+
+    mov eax, 0
+    mov ebx, 0
+    mov ecx, 0
+    mov edx, 0
 
     jmp offset pe_start
 
-cw: .short 0x027f
+cw_x87: .short 0x027f
+cw_sse: .long 0x1f80
 
 .bss
 .global main_argc

@@ -46,12 +46,12 @@ INT WINAPI LoadStringA(HINSTANCE hInstance, UINT uID, LPSTR lpBuffer, INT cchBuf
     for (INT x = res; x; x--) *dst++ = *str++;
     *dst++ = '\0';
 
-    TRACE("LoadStringA: res=%d hInstance=%p uID=%d lpBuffer='%s'",
-        res, hInstance, uID, lpBuffer);
+    TRACE("LoadStringA: res=%d hInstance=%lx uID=%d lpBuffer='%s'",
+        res, (long)hInstance, uID, lpBuffer);
     return res;
 
 die:
-    DIE("LoadStringA: %p %d", hInstance, uID);
+    DIE("LoadStringA: %lx %d", (long)hInstance, uID);
 }
 
 INT WINAPI MessageBoxA(HWND hWnd, LPCSTR lpText, LPCSTR lpCaption, UINT uType)

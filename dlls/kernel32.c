@@ -46,19 +46,17 @@ BOOL WINAPI DuplicateHandle(HANDLE hSourceProcessHandle, HANDLE hSourceHandle, H
     return TRUE;
 
 die:
-    DIE("DuplicateHandle: %p %p %p %lx %d %lx",
-        hSourceProcessHandle, hSourceHandle, hTargetProcessHandle,
+    DIE("DuplicateHandle: %lx %lx %lx %lx %d %lx",
+        (long)hSourceProcessHandle, (long)hSourceHandle, (long)hTargetProcessHandle,
         dwDesiredAccess, bInheritHandle, dwOptions);
 }
 
-#ifndef _WIN32
-DWORD WINAPI GetLastError(void)
+DWORD WINAPI my_GetLastError(void)
 {
     DWORD res = errno;
     TRACE("GetLastError: res=%ld", res);
     return res;
 }
-#endif
 
 HANDLE WINAPI GetStdHandle(DWORD nStdHandle)
 {
@@ -184,15 +182,14 @@ HANDLE WINAPI FindFirstFileA(LPCSTR lpFileName, LPWIN32_FIND_DATAA lpFindFileDat
 
     res = (HANDLE)findfile;
 end:
-    TRACE("FindFirstFileA: res=%p lpFileName='%s'", res, path);
+    TRACE("FindFirstFileA: res=%lx lpFileName='%s'", (long)res, path);
 #ifdef TRACE
     free(path);
 #endif
     return res;
 }
 
-#ifndef _WIN32
-DWORD WINAPI GetFileAttributesA(LPCSTR lpFileName)
+DWORD WINAPI my_GetFileAttributesA(LPCSTR lpFileName)
 {
     STUB("GetFileAttributes: only presence and directory: '%s'", lpFileName);
     char *path = path_dup_unx(lpFileName);
@@ -201,7 +198,6 @@ DWORD WINAPI GetFileAttributesA(LPCSTR lpFileName)
     free(path);
     return res;
 }
-#endif
 
 BOOL WINAPI FindNextFileA(HANDLE hFindFile, LPWIN32_FIND_DATAA lpFindFileData)
 {
@@ -209,7 +205,7 @@ BOOL WINAPI FindNextFileA(HANDLE hFindFile, LPWIN32_FIND_DATAA lpFindFileData)
     struct findfile *findfile = (struct findfile *)hFindFile;
 
     BOOL res = FindNextFileA_do(findfile, lpFindFileData);
-    TRACE("FindNextFileA: res=%d hFindFile=%p", res, hFindFile);
+    TRACE("FindNextFileA: res=%d hFindFile=%lx", res, (long)hFindFile);
     return res;
 }
 
@@ -221,7 +217,7 @@ BOOL WINAPI FindClose(HANDLE hFindFile)
     if (findfile->path) free(findfile->path);
 
     BOOL res = TRUE;
-    TRACE("FindClose: res=%d hFindFile=%p", res, hFindFile);
+    TRACE("FindClose: res=%d hFindFile=%lx", res, (long)hFindFile);
     free(findfile);
     return res;
 }
@@ -245,7 +241,6 @@ BOOL WINAPI FreeEnvironmentStringsA(LPSTR penv)
     return TRUE;
 }
 
-#ifndef _WIN32
 UINT WINAPI GetCurrentDirectoryA(UINT nBufferLength, LPSTR lpBuffer)
 {
     char path[0x1000];
@@ -262,7 +257,6 @@ UINT WINAPI GetCurrentDirectoryA(UINT nBufferLength, LPSTR lpBuffer)
     DEBUG("GetCurrentDirectoryA: '%s'", lpBuffer);
     return strlen(lpBuffer);
 }
-#endif
 
 BOOL WINAPI CreateProcessA(LPCSTR,LPSTR,LPSECURITY_ATTRIBUTES,LPSECURITY_ATTRIBUTES,BOOL,DWORD,LPVOID,LPCSTR,LPSTARTUPINFOA,LPPROCESS_INFORMATION);
 DWORD WINAPI WaitForSingleObject(HANDLE,DWORD);
@@ -273,7 +267,7 @@ BOOL WINAPI CloseHandle(HANDLE hObject)
     uintptr_t uObject = (uintptr_t)hObject;
     BOOL res = TRUE;
     if (uObject > 3) res = close(uObject - 1) == 0;
-    TRACE("CloseHandle: res=%d hObject=%p", res, hObject);
+    TRACE("CloseHandle: res=%d hObject=%lx", res, (long)hObject);
     return res;
 }
 
@@ -316,7 +310,7 @@ DWORD WINAPI GetModuleFileNameA(HMODULE hModule, LPSTR lpFileName, DWORD nSize)
     (void)hModule;
     (void)lpFileName;
     (void)nSize;
-    STUB("GetModuleFileNameA: hModule=%p", hModule);
+    STUB("GetModuleFileNameA: hModule=%lx", (long)hModule);
     return 0;
 }
 
@@ -325,7 +319,7 @@ HMODULE WINAPI LoadLibraryA(LPCSTR lpLibFileName)
     (void)lpLibFileName;
     STUB("HACK: LoadLibraryA");
     HANDLE res = (HANDLE)-1;
-    TRACE("LoadLibraryA: res=%p lpLibFileName='%s'", res, lpLibFileName);
+    TRACE("LoadLibraryA: res=%lx lpLibFileName='%s'", (long)res, lpLibFileName);
     return res;
 }
 
@@ -334,7 +328,7 @@ BOOL WINAPI FreeLibrary(HMODULE hLibModule)
     (void)hLibModule;
     STUB("HACK: FreeLibrary");
     BOOL res = TRUE;
-    TRACE("FreeLibrary: res=%d hLibModule=%p", res, hLibModule);
+    TRACE("FreeLibrary: res=%d hLibModule=%lx", res, (long)hLibModule);
     return res;
 }
 
@@ -411,8 +405,8 @@ DWORD WINAPI SetFilePointer(HANDLE hFile, LONG lDistanceToMove, LPLONG lpDistanc
     }
 
     DWORD res = lseek(uFile - 1, lDistanceToMove, dwMoveMethod);
-    TRACE("SetFilePointer: res=%ld hFile=%p lDistanceToMove=%ld dwMoveMethod=%ld",
-        res, hFile, lDistanceToMove, dwMoveMethod);
+    TRACE("SetFilePointer: res=%ld hFile=%lx lDistanceToMove=%ld dwMoveMethod=%ld",
+        res, (long)hFile, lDistanceToMove, dwMoveMethod);
     return res;
 }
 
@@ -427,8 +421,8 @@ BOOL WINAPI WriteFile(HANDLE hFile, LPCVOID lpBuffer, DWORD nNumberOfBytesToWrit
     int count = write(uFile - 1, lpBuffer, nNumberOfBytesToWrite);
     BOOL res = count != -1;
     if (lpNumberOfBytesWritten) *lpNumberOfBytesWritten = count != -1 ? count : 0;
-    TRACE("WriteFile: res=%d hFile=%p nNumberOfBytesToWrite=%ld "
-        "lpNumberOfBytesWritten=%ld", res, hFile, nNumberOfBytesToWrite,
+    TRACE("WriteFile: res=%d hFile=%lx nNumberOfBytesToWrite=%ld "
+        "lpNumberOfBytesWritten=%ld", res, (long)hFile, nNumberOfBytesToWrite,
         lpNumberOfBytesWritten ? *lpNumberOfBytesWritten : 0);
     return res;
 }
@@ -444,8 +438,8 @@ BOOL WINAPI ReadFile(HANDLE hFile, LPVOID lpBuffer, DWORD nNumberOfBytesToRead, 
     int count = read(uFile - 1, lpBuffer, nNumberOfBytesToRead);
     BOOL res = count != -1;
     if (lpNumberOfBytesRead) *lpNumberOfBytesRead = count != -1 ? count : 0;
-    TRACE("ReadFile: res=%d hFile=%p nNumberOfBytesToRead=%ld "
-        "lpNumberOfBytesRead=%ld", res, hFile, nNumberOfBytesToRead,
+    TRACE("ReadFile: res=%d hFile=%lx nNumberOfBytesToRead=%ld "
+        "lpNumberOfBytesRead=%ld", res, (long)hFile, nNumberOfBytesToRead,
         lpNumberOfBytesRead ? *lpNumberOfBytesRead : 0);
     return res;
 }
@@ -481,14 +475,14 @@ HANDLE WINAPI CreateFileA(LPCSTR lpFileName, DWORD dwDesiredAccess, DWORD dwShar
 
     char *path = path_dup_unx(lpFileName);
     HANDLE res = (HANDLE)(open(path, flags, 0666) + 1);
-    DEBUG("CreateFileA: res=%p lpFileName='%s'", res, path);
+    DEBUG("CreateFileA: res=%lx lpFileName='%s'", (long)res, path);
     free(path);
     return res;
 
 die:
-    DIE("CreateFileA: '%s' %lx %lx %p %lx %lx %p",
-        lpFileName, dwDesiredAccess, dwShareMode, lpSecurityAttributes,
-        dwCreationDisposition, dwFlagsAndAttributes, hTemplateFile
+    DIE("CreateFileA: '%s' %lx %lx %lx %lx %lx %lx",
+        lpFileName, dwDesiredAccess, dwShareMode, (long)lpSecurityAttributes,
+        dwCreationDisposition, dwFlagsAndAttributes, (long)hTemplateFile
     );
 }
 
@@ -516,7 +510,7 @@ BOOL WINAPI GetFileTime(HANDLE hFile, LPFILETIME lpCreationTime, LPFILETIME lpLa
     (void)lpCreationTime;
     (void)lpLastAccessTime;
     (void)lpLastWriteTime;
-    STUB("GetFileTime: hFile=%p", hFile);
+    STUB("GetFileTime: hFile=%lx", (long)hFile);
     return FALSE;
 }
 
@@ -605,13 +599,10 @@ HANDLE WINAPI CreateFileMappingA(HANDLE hFile, LPSECURITY_ATTRIBUTES lpFileMappi
     (void)dwMaximumSizeHigh;
     (void)dwMaximumSizeLow;
     (void)lpName;
-    STUB("CreateFileMappingA: hFile=%p flProtext=%lx dwMaximumSizeHigh=%ld"
+    STUB("CreateFileMappingA: hFile=%lx flProtext=%lx dwMaximumSizeHigh=%ld"
         " dwMaximumSizeLow=%ld lpName='%s'",
-        hFile, flProtect, dwMaximumSizeHigh,
+        (long)hFile, flProtect, dwMaximumSizeHigh,
         dwMaximumSizeLow, lpName ? lpName : "");
-#ifdef _WIN32
-    SetLastError(2);
-#endif
     return NULL;
 }
 
@@ -665,7 +656,7 @@ BOOL WINAPI GetConsoleScreenBufferInfo(HANDLE hConsole, LPCONSOLE_SCREEN_BUFFER_
 {
     (void)hConsole;
     (void)lpConsoleScreenBufferInfo;
-    STUB("GetConsoleScreenBufferInfo: hConsole=%p", hConsole);
+    STUB("GetConsoleScreenBufferInfo: hConsole=%lx", (long)hConsole);
     return FALSE;
 }
 
