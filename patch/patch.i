@@ -53,6 +53,10 @@ incbin patch.end, (pe_text_off + pe_text_len - patch.end)
     wjmp patch_getenv
 .endm
 
+.macro patch_nop
+    nop
+.endm
+
 # The actual code
 .section .patch_pe_text, "ax"
 pe_text:
@@ -61,4 +65,7 @@ pe_text:
     patch code_init_args, patch_init_args
     patch code_init_envp, patch_init_envp
     patch code_getenv, patch_getenv
+.ifdef code_test
+    #patch code_test, patch_nop
+.endif
     patch_end

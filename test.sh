@@ -2,11 +2,11 @@
 set -e
 export LANG=C
 
-test -d build || make setup
-ninja -C build relink/mwccarm-4.0-1028.exe
+test -f build/build.ninja || make setup
+ninja -C build relink/mwccarm-3.0-137.exe
 
-qemu-i386 ./build/relink/mwccarm-4.0-1028.exe -o test_qemu.o -c test.c
-./build/relink/mwccarm-4.0-1028.exe -o test_host.o -c test.c
+qemu-i386 ./build/relink/mwccarm-3.0-137.exe -o test_qemu.o -c test.c
+./build/relink/mwccarm-3.0-137.exe -o test_host.o -c test.c
 
 diff test_host.o test_qemu.o || true
 
