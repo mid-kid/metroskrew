@@ -36,7 +36,7 @@ addr_argv = 0x63cc90
 
 pe_text_base = 0x401000
 
-code_test2 = 0x00505542 - pe_text_base + pe_text_off
-code_test2.end = code_test2 + 2
+code_test = 0x00505542 - pe_text_base + pe_text_off
+code_test.end = code_test + 2
 
 .include "patch.i"
