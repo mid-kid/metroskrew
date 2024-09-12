@@ -45,13 +45,22 @@ link_args_base = [
   '-no-pie'
 ]
 
+support_dir = meson.current_source_dir() / 'meson'
+
 is_glibc = c.get_define('__GLIBC__', prefix: '#include <stdlib.h>') != ''
 is_windows = c.get_define('_WIN32') != ''
 
 if is_glibc
-  c_args_base += ['-include',
-    meson.current_source_dir() / 'meson' / 'glibc_symver.h']
-  link_args_base += meson.current_source_dir() / 'meson' / 'glibc_start.c'
+  tested = c.compiles('', args: [
+    '-include', support_dir / 'glibc_symver.h',
+    '-include', support_dir / 'glibc_start.c'])
+  if tested
+    c_args_base = ['-include', support_dir / 'glibc_symver.h']
+    link_args_base = support_dir / 'glibc_start.c'
+    message('glibc downgrade: YES')
+  else
+    message('glibc downgrade: NO')
+  endif
 endif
 
 if is_windows
