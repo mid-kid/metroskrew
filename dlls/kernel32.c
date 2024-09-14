@@ -358,12 +358,14 @@ HGLOBAL WINAPI GlobalAlloc(UINT uFlags, SIZE_T dwBytes)
         DIE("GlobalAlloc: Unhandled flags: %x", uFlags);
     }
 
+    TRACE("GlobalAlloc: res=%p uFlags=%x dwBytes=%lx", alloc->data, uFlags, dwBytes);
     return alloc->data;
 }
 
 HGLOBAL WINAPI GlobalFree(HGLOBAL hMem)
 {
     free((struct alloc *)hMem - 1);
+    TRACE("GlobalFree: hMem=%p", hMem);
     return NULL;
 }
 
@@ -577,12 +579,15 @@ HGLOBAL WINAPI GlobalReAlloc(HGLOBAL hMem, SIZE_T dwBytes, UINT uFlags)
         DIE("GlobalReAlloc: Unhandled flags: %x", uFlags);
     }
 
+    TRACE("GlobalReAlloc: res=%p hMem=%p dwBytes=%lx uFlags=%x", alloc->data, hMem, dwBytes, uFlags);
     return alloc->data;
 }
 
 UINT WINAPI GlobalFlags(HGLOBAL hMem)
 {
-    return ((struct alloc *)hMem - 1)->flags;
+    UINT res = ((struct alloc *)hMem - 1)->flags;
+    TRACE("GlobalFlags: res=%x hMem=%p", res, hMem);
+    return res;
 }
 
 BOOL WINAPI FileTimeToSystemTime(const FILETIME*,LPSYSTEMTIME);
