@@ -12,11 +12,12 @@ define my2
 set $var06 = *(uint32_t*)($ebx + 0x1c)
 set $var05 = *(uint32_t*)($edx + 0xc)
 set $var04 = *(uint32_t*)0x63ccf0
-set $var03 = *(uint32_t*)($var05+0x1c)
+set $var03 = *(uint32_t*)($var05 + 0x1c)
 set $var02 = *(uint32_t*)($var04 + $var03 * 4)
 set $var01 = *(uint32_t*)($var02 + ($var06 >> 5) * 4)
 p $var01
 p (void*)($var02 + ($var06 >> 5) * 4)
+p (void*)($var04 + $var03 * 4)
 #p $var03
 #p (void*)$var04
 #p (void*)$var05
@@ -34,6 +35,8 @@ b *0x50551a
 #c
 #end
 #b *0x50553b
+
+# 0x63ccf0
 
 # $1 = 1
 # $2 = 11

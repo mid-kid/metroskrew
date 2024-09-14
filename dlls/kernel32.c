@@ -358,12 +358,14 @@ HGLOBAL WINAPI GlobalAlloc(UINT uFlags, SIZE_T dwBytes)
         DIE("GlobalAlloc: Unhandled flags: %x", uFlags);
     }
 
+    TRACE("GlobalAlloc: res=%lx uFlags=%x dwBytes=%lx", (long)alloc->data, uFlags, dwBytes);
     return alloc->data;
 }
 
 HGLOBAL WINAPI GlobalFree(HGLOBAL hMem)
 {
     free((struct alloc *)hMem - 1);
+    TRACE("GlobalFree: hMem=%lx", (long)hMem);
     return NULL;
 }
 
@@ -577,6 +579,7 @@ HGLOBAL WINAPI GlobalReAlloc(HGLOBAL hMem, SIZE_T dwBytes, UINT uFlags)
         DIE("GlobalReAlloc: Unhandled flags: %x", uFlags);
     }
 
+    TRACE("GlobalReAlloc: res=%lx hMem=%lx dwBytes=%lx uFlags=%x", (long)alloc->data, (long)hMem, dwBytes, uFlags);
     return alloc->data;
 }
 
