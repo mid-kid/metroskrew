@@ -31,7 +31,6 @@ arch = '-march=i586'
 c_args_base = [
   arch,
   '-fno-PIC',
-  '-fno-plt',
   '-U_FILE_OFFSET_BITS',
   '-U_FORTIFY_SOURCE'
 ]
@@ -55,8 +54,8 @@ if is_glibc
     '-include', support_dir / 'glibc_symver.h',
     '-include', support_dir / 'glibc_start.c'])
   if tested
-    c_args_base = ['-include', support_dir / 'glibc_symver.h']
-    link_args_base = support_dir / 'glibc_start.c'
+    c_args_base += ['-include', support_dir / 'glibc_symver.h']
+    link_args_base += support_dir / 'glibc_start.c'
     message('glibc downgrade: YES')
   else
     message('glibc downgrade: NO')

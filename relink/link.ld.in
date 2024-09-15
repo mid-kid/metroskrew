@@ -11,6 +11,9 @@ SECTIONS {
     .pe_bss pe_bss_addr : { *(.pe_bss) }
     /DISCARD/ : { *(.pe_edata) *(.pe_reloc) }
 
+    /* The information in this section will be inaccurate */
+    /DISCARD/ : { *(.note.gnu.property) }
+
     . = ALIGN(CONSTANT (MAXPAGESIZE));
 }
-INSERT BEFORE .text
+INSERT BEFORE @INSERT@;
