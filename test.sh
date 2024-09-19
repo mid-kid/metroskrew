@@ -5,8 +5,8 @@ export LANG=C
 test -f build/build.ninja || make setup
 ninja -C build relink/mwccarm-3.0-137.exe
 
-#export GLIBC_TUNABLES=glibc.malloc.mmap_max=0
-qemu-i386 ./build/relink/mwccarm-3.0-137.exe -o test_qemu.o -c test.c
+GLIBC_TUNABLES=glibc.malloc.mmap_max=0 \
+./build/relink/mwccarm-3.0-137.exe -o test_qemu.o -c test.c
 ./build/relink/mwccarm-3.0-137.exe -o test_host.o -c test.c
 
 diff test_host.o test_qemu.o || true
