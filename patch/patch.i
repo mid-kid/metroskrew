@@ -58,9 +58,7 @@ incbin patch.end, (pe_text_off + pe_text_len - patch.end)
 .endm
 
 .macro patch_memreuse01
-    push eax
     call jump_patch_memreuse01
-    pop eax
 .endm
 
 # The actual code
@@ -78,10 +76,11 @@ pe_text:
 
 .ifdef code_memreuse01
 jump_patch_memreuse01:
+    wcall patch_memreuse01
     lea ecx, [ebx + 0x1f]
     sar ecx, 5
     lea ecx, [ecx * 4]
-    wjmp patch_memreuse01
+    ret
 .endif
 
 .section .rodata
