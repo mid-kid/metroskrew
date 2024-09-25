@@ -22,10 +22,17 @@ p $var06
 c
 end
 
+define my3
+p (void*)$eax
+c
+end
+
 # Half-pointer is written
 b *0x5454b2
 # Faulty value is read
 b *0x50551a
+# Memory is allocated
+b *0x505386
 
 #define my
 #p $eax
