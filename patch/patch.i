@@ -84,5 +84,5 @@ jump_patch_memreuse01:
 .endif
 
 .section .rodata
-.global memreuse01_arr; memreuse01_arr = addr_memreuse01_arr
-.global memreuse01_len; memreuse01_len = addr_memreuse01_len
+var memreuse01_arr addr_memreuse01_arr
+var memreuse01_len addr_memreuse01_len

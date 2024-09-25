@@ -12,6 +12,16 @@ _\name:
 .endif
 .endm
 
+.macro var name, off
+.ifndef _WIN32
+.global \name
+\name = \off
+.else
+.global _\name
+_\name = \off
+.endif
+.endm
+
 .macro wcall name
 .ifndef _WIN32
     call \name
