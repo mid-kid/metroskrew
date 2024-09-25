@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 // The program mallocs some memory without clearing it, and reads from it,
@@ -15,16 +16,23 @@ extern unsigned int memreuse01_len;
 
 void patch_memreuse01(void)
 {
-    size_t bitlen = ((memreuse01_len + 0x1f) >> 5) * sizeof(unsigned int);
-    (void)bitlen;
+    unsigned int elemlen = (memreuse01_len + 0x1f) >> 5;
+    (void)elemlen;
 
-    fprintf(stderr, "memreuse01_arr: 0x%lx\n", (long)memreuse01_arr);
-    fprintf(stderr, "memreuse01_len: 0x%lx\n", (long)memreuse01_len);
-
-    for (unsigned i = 0; i < memreuse01_len; i++) {
-        fprintf(stderr, "memreuse01_arr[i]: 0x%lx\n", (long)memreuse01_arr[i]);
-        //memset(memreuse01_arr[i], 0, bitlen);
+    if (getenv("SKREW_HACK_MEMREUSE01_DUMP")) {
+        for (unsigned y = 0; y < memreuse01_len; y++) {
+            fprintf(stderr, "memreuse01_arr[%02d]: ", y);
+            for (unsigned x = 0; x < elemlen; x++) {
+                fprintf(stderr, "%08x", memreuse01_arr[y][x]);
+            }
+            fprintf(stderr, "\n");
+            fflush(stderr);
+        }
     }
 
-    fflush(stderr);
+#if 0
+    for (unsigned y = 0; y < memreuse01_len; y++) {
+        memset(memreuse01_arr[y], 0, elemlen * sizeof(unsigned int));
+    }
+#endif
 }
