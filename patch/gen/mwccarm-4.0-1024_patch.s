@@ -31,6 +31,9 @@ code_findexe.end = 0x172b0
 code_memreuse01 = 0x113b4b
 code_memreuse01.end = 0x113b58
 
+code_memreuse01_exit = 0x113c5d
+code_memreuse01_exit.end = 0x113c65
+
 addr_envp = 0x65ab54
 
 addr_memreuse01_len = 0x65afa0

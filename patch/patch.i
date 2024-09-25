@@ -60,6 +60,9 @@ incbin patch.end, (pe_text_off + pe_text_len - patch.end)
 .macro patch_memreuse01
     call jump_patch_memreuse01
 .endm
+.macro patch_memreuse01_exit
+    jmp jump_patch_memreuse01_exit
+.endm
 
 # The actual code
 .section .patch_pe_text, "ax"
@@ -71,6 +74,7 @@ pe_text:
     patch code_getenv, patch_getenv
 .ifdef code_memreuse01
     patch code_memreuse01, patch_memreuse01
+    patch code_memreuse01_exit, patch_memreuse01_exit
 .endif
     patch_end
 
@@ -80,6 +84,14 @@ jump_patch_memreuse01:
     lea ecx, [ebx + 0x1f]
     sar ecx, 5
     lea ecx, [ecx * 4]
+    ret
+jump_patch_memreuse01_exit:
+    wcall patch_memreuse01_exit
+    add esp, 8
+    pop ebp
+    pop edi
+    pop esi
+    pop ebx
     ret
 .endif
 

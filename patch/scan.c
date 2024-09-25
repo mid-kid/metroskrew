@@ -302,6 +302,9 @@ unsigned find_memreuse01(const struct file *binary, const struct loc **res)
             0xc1, 0xf9, 0x05,                         // sar ecx, 5
             0x8d, 0x0c, 0x8d, 0x00, 0x00, 0x00, 0x00  // lea ecx, [ecx * 4]
         ),
+        DEF_SCAN(274,
+            0x83, 0xc4, 0x08, 0x5d, 0x5f, 0x5e, 0x5b, 0xc3
+        ),
         DEF_SCAN(-8,
             0x3b, 0x3d  // cmp dword ptr [u32]
         ),
@@ -313,6 +316,7 @@ unsigned find_memreuse01(const struct file *binary, const struct loc **res)
 
     static struct loc loc[] = {
         {.name = "memreuse01"},
+        {.name = "memreuse01_exit"},
         {.name = "memreuse01_len"},
         {.name = "memreuse01_arr"}
     };
@@ -323,11 +327,13 @@ unsigned find_memreuse01(const struct file *binary, const struct loc **res)
 
     loc[0].start = off + code[0].off;
     loc[0].end = loc[0].start + code[0].size;
-    loc[1].start = read_u32(pos + code[1].off + code[1].size);
+    loc[1].start = off + code[1].off;
+    loc[1].end = loc[1].start + code[1].size;
     loc[2].start = read_u32(pos + code[2].off + code[2].size);
+    loc[3].start = read_u32(pos + code[3].off + code[3].size);
 
     *res = loc;
-    return 3;
+    return 4;
 }
 
 typedef unsigned (*funcs_t)(const struct file *, const struct loc **);
