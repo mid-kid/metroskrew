@@ -3,7 +3,8 @@ fs = import('fs')
 # Common code used by the patches
 
 sources_c = [
-  'env.c'
+  'env.c',
+  'memreuse01.c'
 ]
 
 c_args = [

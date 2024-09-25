@@ -28,10 +28,17 @@ addr_main = 0x2d90
 code_findexe = 0x17120
 code_findexe.end = 0x172e0
 
+code_memreuse01 = 0x113d3b
+code_memreuse01.end = 0x113d48
+
 addr_envp = 0x65a8d4
+
+addr_memreuse01_len = 0x65ad24
 
 addr_argc = 0x65c108
 
 addr_argv = 0x65d1f8
+
+addr_memreuse01_arr = 0x65d24c
 
 .include "patch.i"

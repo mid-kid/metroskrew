@@ -291,12 +291,52 @@ unsigned find_findexe(const struct file *binary, const struct loc **res)
     return 1;
 }
 
+unsigned find_memreuse01(const struct file *binary, const struct loc **res)
+{
+    // Find the code that allocates some memory without clearing it
+    // This allows us to stably control UB in the codegen
+
+    const struct scan code[] = {
+        DEF_SCAN(0,
+            0x8d, 0x4b, 0x1f,                         // lea ecx, [ebx + 0x1f]
+            0xc1, 0xf9, 0x05,                         // sar ecx, 5
+            0x8d, 0x0c, 0x8d, 0x00, 0x00, 0x00, 0x00  // lea ecx, [ecx * 4]
+        ),
+        DEF_SCAN(-8,
+            0x3b, 0x3d  // cmp dword ptr [u32]
+        ),
+        DEF_SCAN(-21,
+            0x8b, 0x35  // mov esi, dword ptr [u32]
+        ),
+        END_SCAN
+    };
+
+    static struct loc loc[] = {
+        {.name = "memreuse01"},
+        {.name = "memreuse01_len"},
+        {.name = "memreuse01_arr"}
+    };
+
+    const unsigned char *pos = scan(binary, code, 0);
+    if (!pos) return 0;
+    size_t off = pos - binary->data;
+
+    loc[0].start = off + code[0].off;
+    loc[0].end = loc[0].start + code[0].size;
+    loc[1].start = read_u32(pos + code[1].off + code[1].size);
+    loc[2].start = read_u32(pos + code[2].off + code[2].size);
+
+    *res = loc;
+    return 3;
+}
+
 typedef unsigned (*funcs_t)(const struct file *, const struct loc **);
 static const funcs_t funcs[] = {
     find_fs,
     find_init,
     find_getenv,
     find_findexe,
+    find_memreuse01,
     NULL
 };
 

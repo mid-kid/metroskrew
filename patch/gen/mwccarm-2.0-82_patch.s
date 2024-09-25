@@ -28,7 +28,14 @@ addr_main = 0x2d90
 code_findexe = 0x1f6f0
 code_findexe.end = 0x1f880
 
+code_memreuse01 = 0x14ed1b
+code_memreuse01.end = 0x14ed28
+
+addr_memreuse01_arr = 0x5e2500
+
 addr_envp = 0x5ecdec
+
+addr_memreuse01_len = 0x5ed1b4
 
 addr_argc = 0x5ed58c
 

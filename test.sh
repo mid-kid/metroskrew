@@ -6,8 +6,8 @@ test -f build/build.ninja || make setup
 ninja -C build relink/mwccarm-3.0-137.exe
 
 GLIBC_TUNABLES=glibc.malloc.mmap_max=0 \
-./build/relink/mwccarm-3.0-137.exe -o test_qemu.o -c test.c
-./build/relink/mwccarm-3.0-137.exe -o test_host.o -c test.c
+setarch -R ./build/relink/mwccarm-3.0-137.exe -o test_qemu.o -c test.c
+setarch -R ./build/relink/mwccarm-3.0-137.exe -o test_host.o -c test.c
 
 diff test_host.o test_qemu.o || true
 
