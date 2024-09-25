@@ -59,7 +59,7 @@ incbin patch.end, (pe_text_off + pe_text_len - patch.end)
 
 .macro patch_memreuse01
     push eax
-    wcall patch_memreuse01
+    call jump_patch_memreuse01
     pop eax
 .endm
 
@@ -75,6 +75,14 @@ pe_text:
     patch code_memreuse01, patch_memreuse01
 .endif
     patch_end
+
+.ifdef code_memreuse01
+jump_patch_memreuse01:
+    lea ecx, [ebx + 0x1f]
+    sar ecx, 5
+    lea ecx, [ecx * 4]
+    wjmp patch_memreuse01
+.endif
 
 .section .rodata
 .global memreuse01_arr; memreuse01_arr = addr_memreuse01_arr
