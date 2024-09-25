@@ -53,6 +53,17 @@ incbin patch.end, (pe_text_off + pe_text_len - patch.end)
     wjmp patch_getenv
 .endm
 
+.macro patch_memreuse01_hook
+    call jump_patch_memreuse01_hook
+.endm
+.macro patch_memreuse01_exit
+    jmp jump_patch_memreuse01_exit
+.endm
+
+.macro patch_FUN_00505340
+    wjmp FUN_00505340
+.endm
+
 # The actual code
 .section .patch_pe_text, "ax"
 pe_text:
@@ -61,4 +72,36 @@ pe_text:
     patch code_init_args, patch_init_args
     patch code_init_envp, patch_init_envp
     patch code_getenv, patch_getenv
+.ifdef code_memreuse01
+    #patch code_memreuse01_hook, patch_memreuse01_hook
+    #patch code_memreuse01_exit, patch_memreuse01_exit
+.endif
+.ifdef code_FUN_00505340
+    patch code_FUN_00505340, patch_FUN_00505340
+.endif
     patch_end
+
+.ifdef code_memreuse01
+jump_patch_memreuse01:
+    wcall patch_memreuse01_hook
+    lea ecx, [ebx + 0x1f]
+    sar ecx, 5
+    lea ecx, [ecx * 4]
+    ret
+jump_patch_memreuse01_exit:
+    wcall patch_memreuse01_exit
+    add esp, 8
+    pop ebp
+    pop edi
+    pop esi
+    pop ebx
+    ret
+.endif
+
+var prog_malloc addr_prog_malloc
+var FUN_004f8b60 addr_FUN_004f8b60
+
+var DAT_0063a798 addr_DAT_0063a798
+var DAT_0063a828 addr_DAT_0063a828
+var DAT_0063ccb0 addr_DAT_0063ccb0
+var DAT_0063ccf0 addr_DAT_0063ccf0
