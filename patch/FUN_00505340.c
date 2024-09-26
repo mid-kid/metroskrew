@@ -13,7 +13,7 @@ struct STRUC_0063a828 {
     struct STRUC_0063a828 *unk_8;
     struct STRUC_0063a828 *unk_c;
     int _unk2[3];
-    unsigned int unk_1c;
+    int unk_1c;
 };
 
 extern int DAT_0063a798;  // 0x0063a798
@@ -38,7 +38,7 @@ void FUN_00505340(void)
         DAT_0063ccf0[i] = prog_malloc(wordlen * sizeof(**DAT_0063ccf0));
     }
 
-    unsigned int *curbits = prog_malloc(wordlen * sizeof(**DAT_0063ccf0));
+    uint32_t *curbits = prog_malloc(wordlen * sizeof(**DAT_0063ccf0));
 
     bitarr_set(DAT_0063ccf0[DAT_0063a828->unk_1c], DAT_0063a798, 0);
     DAT_0063ccf0[DAT_0063a828->unk_1c][0] |= 1;
