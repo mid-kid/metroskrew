@@ -45,29 +45,29 @@ void FUN_00505340(void)
 
     for (struct STRUC_0063a828 *listptr = DAT_0063a828->next;
             listptr; listptr = listptr->next) {
-        bitarr_set(DAT_0063ccf0[listptr->unk_1c], DAT_0063a798, 0xffffffff);
+        bitarr_set(DAT_0063ccf0[listptr->unk_1c], DAT_0063a798, -1);
     }
 
     FUN_004f8b60();
 
-    int cont;
-    do {
-        cont = 0;
+    for (;;) {
+        int cont = 0;
         for (int i = 0; i < DAT_0063a798; i++) {
             struct STRUC_0063a828 *cur1 = DAT_0063ccb0[i];
-            if (cur1 && cur1->unk_1c != DAT_0063a828->unk_1c) {
-                struct STRUC_0063a828 *cur2 = cur1->unk_c;
-                bitarr_cpy(curbits, DAT_0063ccf0[cur2->unk_c->unk_1c], DAT_0063a798);
-                for (cur2 = cur2->unk_8; cur2; cur2 = cur2->unk_8) {
-                    bitarr_and(curbits, DAT_0063ccf0[cur2->unk_c->unk_1c], DAT_0063a798);
-                }
-                curbits[cur1->unk_1c >> 5] |= 1 << (cur1->unk_1c & 0x1f);
+            if (!cur1) continue;
+            if (cur1->unk_1c == DAT_0063a828->unk_1c) continue;
 
-                int res = bitarr_cpycmp(DAT_0063ccf0[cur1->unk_1c], curbits, DAT_0063a798);
-                if (res) cont = 1;
+            struct STRUC_0063a828 *cur2 = cur1->unk_c;
+            bitarr_cpy(curbits, DAT_0063ccf0[cur2->unk_c->unk_1c], DAT_0063a798);
+            for (cur2 = cur2->unk_8; cur2; cur2 = cur2->unk_8) {
+                bitarr_and(curbits, DAT_0063ccf0[cur2->unk_c->unk_1c], DAT_0063a798);
             }
+            curbits[cur1->unk_1c >> 5] |= 1 << (cur1->unk_1c & 0x1f);
+
+            cont += bitarr_cpycmp(DAT_0063ccf0[cur1->unk_1c], curbits, DAT_0063a798);
         }
-    } while (cont);
+        if (!cont) break;
+    }
 }
 
 // 0x00581750
