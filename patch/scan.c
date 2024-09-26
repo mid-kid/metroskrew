@@ -201,7 +201,7 @@ unsigned find_init(const struct file *binary, const struct loc **res)
 
     loc[5].start = read_u32(pos + code[6].off + code[6].size) +
         off + code[6].off + 5;
-    loc[5].end = 0;  // Not relevant for now
+    loc[5].end = loc[5].start;  // Not relevant for now
 
     *res = loc;
     return 6;
@@ -298,18 +298,39 @@ unsigned find_memreuse01(const struct file *binary, const struct loc **res)
 
     const struct scan code[] = {
         DEF_SCAN(0,
+            0x53,        // push ebx
+            0x8b, 0x1d,  // mov ebx, dword ptr [u32]
+        ),
+        DEF_SCAN(91,
             0x8d, 0x4b, 0x1f,                         // lea ecx, [ebx + 0x1f]
             0xc1, 0xf9, 0x05,                         // sar ecx, 5
             0x8d, 0x0c, 0x8d, 0x00, 0x00, 0x00, 0x00  // lea ecx, [ecx * 4]
         ),
-        DEF_SCAN(274,
+        DEF_SCAN(365,
             0x83, 0xc4, 0x08, 0x5d, 0x5f, 0x5e, 0x5b, 0xc3
         ),
-        DEF_SCAN(-8,
+        DEF_SCAN(83,
             0x3b, 0x3d  // cmp dword ptr [u32]
         ),
-        DEF_SCAN(-21,
+        DEF_SCAN(70,
             0x8b, 0x35  // mov esi, dword ptr [u32]
+        ),
+        DEF_SCAN(417,
+            0xc7, 0x44, 0x24, 0x04, 0x01, 0x00, 0x00, 0x00,  // mov dword ptr [esp + 4], 1
+            0xeb, 0xa9,                                      // jmp -85
+            0x90, 0x90, 0x90, 0x90, 0x90
+        ),
+        DEF_SCAN(23,
+            0xe8  // call .+u32
+        ),
+        DEF_SCAN(117,
+            0x8b, 0x2d  // mov ebp, dword ptr [u32]
+        ),
+        DEF_SCAN(205,
+            0xe8  // call .+u32
+        ),
+        DEF_SCAN(240,
+            0x8b, 0x15  // mov edx, dword ptr
         ),
         END_SCAN
     };
@@ -317,23 +338,38 @@ unsigned find_memreuse01(const struct file *binary, const struct loc **res)
     static struct loc loc[] = {
         {.name = "memreuse01_hook"},
         {.name = "memreuse01_exit"},
-        {.name = "memreuse01_len"},
-        {.name = "memreuse01_arr"}
+        {.name = "DAT_0063a798"},
+        {.name = "DAT_0063ccf0"},
+        {.name = "FUN_00505340"},
+        {.name = "prog_malloc"},
+        {.name = "DAT_0063a828"},
+        {.name = "FUN_004f8b60"},
+        {.name = "DAT_0063ccb0"}
     };
 
     const unsigned char *pos = scan(binary, code, 0);
     if (!pos) return 0;
     size_t off = pos - binary->data;
 
-    loc[0].start = off + code[0].off;
-    loc[0].end = loc[0].start + code[0].size;
-    loc[1].start = off + code[1].off;
-    loc[1].end = loc[1].start + code[1].size;
-    loc[2].start = read_u32(pos + code[2].off + code[2].size);
-    loc[3].start = read_u32(pos + code[3].off + code[3].size);
+    loc[0].start = off + code[1].off;
+    loc[0].end = loc[0].start + code[1].size;
+    loc[1].start = off + code[2].off;
+    loc[1].end = loc[1].start + code[2].size;
+    loc[2].start = read_u32(pos + code[0].off + code[0].size);
+    loc[3].start = read_u32(pos + code[4].off + code[4].size);
+    loc[4].start = off + code[0].off;
+    loc[4].end = off + code[5].off + code[5].size;
+    loc[5].start = off + code[6].off + code[6].size + 4 +
+        (int32_t)read_u32(pos + code[6].off + code[6].size);
+    loc[5].end = loc[5].start;
+    loc[6].start = read_u32(pos + code[7].off + code[7].size);
+    loc[7].start = off + code[8].off + code[8].size + 4 +
+        (int32_t)read_u32(pos + code[8].off + code[8].size);
+    loc[7].end = loc[7].start;
+    loc[8].start = read_u32(pos + code[9].off + code[9].size);
 
     *res = loc;
-    return 4;
+    return 9;
 }
 
 typedef unsigned (*funcs_t)(const struct file *, const struct loc **);
@@ -388,13 +424,18 @@ int scan_bin(FILE *out, const struct file *binary, const char *incbin)
         END_SCAN
     };
     const unsigned char *text_pos = scan(binary, text_code, 0);
+    uint32_t pe_text_off = 0;
+    uint32_t pe_text_len = 0;
     if (text_pos) {
-        uint32_t pe_text_off = read_u32(text_pos + 20);
-        uint32_t pe_text_len = read_u32(text_pos + 8);
+        pe_text_off = read_u32(text_pos + 20);
+        pe_text_len = read_u32(text_pos + 8);
+        uint32_t pe_base_addr = read_u32(binary->data + 0xb4);
+        uint32_t pe_text_addr = pe_base_addr + read_u32(text_pos + 12);
         fprintf(out, "\n"
             "pe_text_off = 0x%x\n"
-            "pe_text_len = 0x%x\n",
-            pe_text_off, pe_text_len
+            "pe_text_len = 0x%x\n"
+            "pe_text_addr = 0x%x\n",
+            pe_text_off, pe_text_len, pe_text_addr
         );
     }
 
@@ -404,7 +445,16 @@ int scan_bin(FILE *out, const struct file *binary, const char *incbin)
         fprintf(out, "\n");
         if (loc->end) {
             fprintf(out, "code_%s = 0x%lx\n", loc->name, loc->start);
-            fprintf(out, "code_%s.end = 0x%lx\n", loc->name, loc->end);
+            if (loc->end != loc->start) {
+                fprintf(out, "code_%s.end = 0x%lx\n", loc->name, loc->end);
+            }
+            if (loc->start >= pe_text_off &&
+                    loc->start < pe_text_off + pe_text_len &&
+                    loc->end >= pe_text_off &&
+                    loc->end < pe_text_off + pe_text_len) {
+                fprintf(out, "addr_%s = code_%s - pe_text_off + pe_text_addr\n",
+                    loc->name, loc->name);
+            }
         } else {
             fprintf(out, "addr_%s = 0x%lx\n", loc->name, loc->start);
         }
