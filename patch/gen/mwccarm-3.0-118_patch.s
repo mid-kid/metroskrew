@@ -47,14 +47,6 @@ code_FUN_00505340 = 0x1027a0
 code_FUN_00505340.end = 0x102950
 addr_FUN_00505340 = code_FUN_00505340 - pe_text_off + pe_text_addr
 
-code_memreuse01_hook = 0x1027fb
-code_memreuse01_hook.end = 0x102808
-addr_memreuse01_hook = code_memreuse01_hook - pe_text_off + pe_text_addr
-
-code_memreuse01_exit = 0x10290d
-code_memreuse01_exit.end = 0x102915
-addr_memreuse01_exit = code_memreuse01_exit - pe_text_off + pe_text_addr
-
 addr_envp = 0x637320
 
 addr_DAT_0063a798 = 0x637758
