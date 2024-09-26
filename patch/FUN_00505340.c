@@ -1,11 +1,15 @@
-#include <stddef.h>
 #include <stdint.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 
 // This function mallocs some memory without clearing it, and reads from it,
 // which causes the behavior (and compilation output) to depend on it.
 //
 // Unfortunately, the reallocated memory contains pointers, which differ
-// depending on the OS and ASLR. This code tries to rectify it.
+// depending on the OS and ASLR. This code tries to allow control over it.
+
+#define SKREW_HACK01
 
 struct STRUC_0063a828 {
     struct STRUC_0063a828 *next;
@@ -40,13 +44,93 @@ void FUN_00505340(void)
 
     uint32_t *curbits = prog_malloc(wordlen * sizeof(**DAT_0063ccf0));
 
+    // Keep track of which entries have been initialized
+    uint8_t _init[DAT_0063a798]; (void)_init;
+    memset(_init, 0, DAT_0063a798);
+
+    _init[DAT_0063a828->unk_1c] = 1;
     bitarr_set(DAT_0063ccf0[DAT_0063a828->unk_1c], DAT_0063a798, 0);
     DAT_0063ccf0[DAT_0063a828->unk_1c][0] |= 1;
 
     for (struct STRUC_0063a828 *listptr = DAT_0063a828->next;
             listptr; listptr = listptr->next) {
+        _init[listptr->unk_1c] = 1;
         bitarr_set(DAT_0063ccf0[listptr->unk_1c], DAT_0063a798, -1);
     }
+
+#ifdef SKREW_HACK01
+    static char *hack_chk = (char *)-1;
+    if (hack_chk == (char *)-1) hack_chk = getenv("SKREW_HACK_CHK");
+    static char *hack_data = (char *)-1;
+    if (hack_data == (char *)-1) hack_data = getenv("SKREW_HACK01");
+    static char *hack_dbg = (char *)-1;
+    if (hack_dbg == (char *)-1) hack_dbg = getenv("SKREW_HACK01_DBG");
+
+    if (!hack_data && hack_chk) {
+        // Report if any entries haven't been initialized
+        int i = 0;
+        for (; i < DAT_0063a798; i++) if (!_init[i]) break;
+        if (i != DAT_0063a798) {
+            fprintf(stderr, "metroskrew: Non-determinism detected!\n");
+
+            fprintf(stderr, "    data: ");
+            for (int y = 0; y < DAT_0063a798; y++) {
+                if (_init[y]) continue;
+                for (int x = 0; x < wordlen; x++) {
+                    uint32_t a = DAT_0063ccf0[y][x];
+
+                    uint32_t b = 0;
+                    for (int z = 0; z < 32; z++) {
+                        b = (b << 1) | (a & 1);
+                        a >>= 1;
+                    }
+
+                    fprintf(stderr, "%08x", b);
+                }
+            }
+
+            fprintf(stderr, "\n"
+                "    Use SKREW_HACK01 to set the desired data.\n");
+            fflush(stderr);
+        }
+    }
+
+    if (hack_data) {
+        // Restore values passed by the user
+        for (int y = 0; y < DAT_0063a798; y++) {
+            if (_init[y]) continue;
+            for (int x = 0; x < wordlen; x++) {
+                uint32_t a = 0;
+                int i = 0;
+                while (*hack_data && i < 8) {
+                    uint8_t c = *hack_data++;
+                    uint8_t v = 0;
+                    if (c >= '0' && c <= '9') {
+                        v = c - '0';
+                    } else if (c >= 'A' && c <= 'F') {
+                        v = c - 'A' + 10;
+                    } else if (c >= 'a' && c <= 'f') {
+                        v = c - 'a' + 10;
+                    } else {
+                        continue;
+                    }
+                    a = (a << 4) | v;
+                    i++;
+                }
+                if (i == 0) continue;
+                a <<= 32 - i * 4;
+
+                uint32_t b = 0;
+                for (int z = 0; z < 32; z++) {
+                    b = (b << 1) | (a & 1);
+                    a >>= 1;
+                }
+
+                DAT_0063ccf0[y][x] = b;
+            }
+        }
+    }
+#endif
 
     FUN_004f8b60();
 
@@ -68,6 +152,25 @@ void FUN_00505340(void)
         }
         if (!cont) break;
     }
+
+#ifdef SKREW_HACK01
+    if (hack_dbg) {
+        for (int y = 0; y < DAT_0063a798; y++) {
+            fprintf(stderr, "arr[%02d]: ", y);
+            for (int x = 0; x < wordlen; x++) {
+                uint32_t a = DAT_0063ccf0[y][x];
+                uint32_t b = 0;
+                for (int z = 0; z < 32; z++) {
+                    b = (b << 1) | (a & 1);
+                    a >>= 1;
+                }
+                fprintf(stderr, "%08x", b);
+            }
+            fprintf(stderr, "\n");
+            fflush(stderr);
+        }
+    }
+#endif
 }
 
 // 0x00581750
