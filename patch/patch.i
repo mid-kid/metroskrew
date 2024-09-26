@@ -57,8 +57,8 @@ incbin patch.end, (pe_text_off + pe_text_len - patch.end)
     nop
 .endm
 
-.macro patch_memreuse01
-    call jump_patch_memreuse01
+.macro patch_memreuse01_hook
+    call jump_patch_memreuse01_hook
 .endm
 .macro patch_memreuse01_exit
     jmp jump_patch_memreuse01_exit
@@ -73,14 +73,14 @@ pe_text:
     patch code_init_envp, patch_init_envp
     patch code_getenv, patch_getenv
 .ifdef code_memreuse01
-    patch code_memreuse01, patch_memreuse01
+    patch code_memreuse01_hook, patch_memreuse01_hook
     patch code_memreuse01_exit, patch_memreuse01_exit
 .endif
     patch_end
 
 .ifdef code_memreuse01
 jump_patch_memreuse01:
-    wcall patch_memreuse01
+    wcall patch_memreuse01_hook
     lea ecx, [ebx + 0x1f]
     sar ecx, 5
     lea ecx, [ecx * 4]

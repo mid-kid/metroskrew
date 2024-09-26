@@ -14,7 +14,7 @@
 extern unsigned int **memreuse01_arr;
 extern unsigned int memreuse01_len;
 
-void patch_memreuse01(void)
+void patch_memreuse01_hook(void)
 {
     unsigned int elemlen = (memreuse01_len + 0x1f) >> 5;
     (void)elemlen;

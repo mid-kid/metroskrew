@@ -28,8 +28,8 @@ addr_main = 0x2d90
 code_findexe = 0x17060
 code_findexe.end = 0x17220
 
-code_memreuse01 = 0x103d2b
-code_memreuse01.end = 0x103d38
+code_memreuse01_hook = 0x103d2b
+code_memreuse01_hook.end = 0x103d38
 
 code_memreuse01_exit = 0x103e3d
 code_memreuse01_exit.end = 0x103e45

@@ -315,7 +315,7 @@ unsigned find_memreuse01(const struct file *binary, const struct loc **res)
     };
 
     static struct loc loc[] = {
-        {.name = "memreuse01"},
+        {.name = "memreuse01_hook"},
         {.name = "memreuse01_exit"},
         {.name = "memreuse01_len"},
         {.name = "memreuse01_arr"}
