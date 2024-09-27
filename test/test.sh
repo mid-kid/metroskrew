@@ -18,10 +18,12 @@ mwasmarm() {
     wine "$MWASMARM" "$@"
 }
 
+unset variant
 test_cc() {
     name="$1"; shift
-    mwccarm "$@" -c -o "$MWCCARM_VER-$name.o" "$SRC/$name.c"
-    cmp "$MWCCARM_VER-$name.o" "$SRC/res/$MWCCARM_VER-$name.o"
+    oname="${name}${variant:+_}${variant:-}"
+    mwccarm "$@" -c -o "$MWCCARM_VER-$oname.o" "$SRC/$name.c"
+    cmp "$MWCCARM_VER-$oname.o" "$SRC/res/$MWCCARM_VER-$oname.o"
 }
 test_ld() {
     name="$1"; shift
@@ -38,6 +40,10 @@ case "$1" in
     include_dir) test_cc "$1" -gccinc -I"$SRC" ;;
     include_sys) export MWCIncludes="$SRC"; test_cc "$1" -gccinc ;;
     switch_float_bug) test_cc "$1" ;;
+    memreuse01_bug)
+        SKREW_HACK01=00000000 variant=00 test_cc "$1"
+        SKREW_HACK01=ffffffff variant=ff test_cc "$1"
+        ;;
     basic_ld) test_ld "$1" "$SRC/link.lcf" \
         "$SRC/res/mwccarm-4.0-1051-basic_c.o" ;;
     basic_s) test_as "$1" ;;
