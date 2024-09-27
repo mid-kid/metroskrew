@@ -67,11 +67,12 @@ struct args {
     _TCHAR *precompile;
     bool MD;
 
+    enum libarch wrap_libarch;
     bool wrap_dbg;
     _TCHAR *wrap_ver;
     _TCHAR *wrap_sdk;
     _TCHAR *wrap_lib;
-    enum libarch wrap_libarch;
+    _TCHAR *wrap_hack01;
 };
 
 struct file {
@@ -131,6 +132,9 @@ struct args parse_args(int argc, _TCHAR *argv[], int *out_argc, _TCHAR ***out_ar
             skip = 2;
         } else if (_tcscmp(argv[0], _T("-wrap:lib")) == 0 && argc >= 2) {
             args.wrap_lib = argv[1];
+            skip = 2;
+        } else if (_tcscmp(argv[0], _T("-wrap:hack01")) == 0 && argc >= 2) {
+            args.wrap_hack01 = argv[1];
             skip = 2;
         } else {
             copy = 1;
@@ -587,6 +591,16 @@ _TCHAR *win_argv_build(const _TCHAR *const *argv)
     return args;
 }
 
+void setenv_weak(const _TCHAR *name, const _TCHAR *value)
+{
+    if (!value) return;
+#ifndef _WIN32
+    setenv(name, value, false);
+#else
+    if (!_tgetenv(name)) SetEnvironmentVariable(name, value);
+#endif
+}
+
 void fix_depfile(_TCHAR *fname, const char *path_unx, const char *path_win, const char *path_build_unx, const char *path_build_win)
 {
     struct file *file = file_read(fname);
@@ -838,12 +852,13 @@ int _tmain(int argc, _TCHAR *argv[])
         }
     }
 
-#ifndef _WIN32
     // Set up the environment
-    if (MWCIncludes) setenv("MWCIncludes", MWCIncludes, false);
-    if (MWLibraries) setenv("MWLibraries", MWLibraries, false);
-    if (MWLibraryFiles) setenv("MWLibraryFiles", MWLibraryFiles, false);
+    setenv_weak(_T("MWCIncludes"), MWCIncludes);
+    setenv_weak(_T("MWLibraries"), MWLibraries);
+    setenv_weak(_T("MWLibraryFiles"), MWLibraryFiles);
+    setenv_weak(_T("SKREW_HACK01"), args.wrap_hack01);
 
+#ifndef _WIN32
     // Execute the tool
     if (args.wrap_dbg) {
         for (int x = 0; x < new_argc; x++) {
@@ -860,17 +875,6 @@ int _tmain(int argc, _TCHAR *argv[])
     waitpid(pid, &exitcode, 0);
     if (WEXITSTATUS(exitcode)) return WEXITSTATUS(exitcode);
 #else
-    // Set up the environment
-    if (MWCIncludes && !_tgetenv(_T("MWCIncludes"))) {
-        SetEnvironmentVariable(_T("MWCIncludes"), MWCIncludes);
-    }
-    if (MWLibraries && !_tgetenv(_T("MWLibraries"))) {
-        SetEnvironmentVariable(_T("MWLibraries"), MWLibraries);
-    }
-    if (MWLibraryFiles && !_tgetenv(_T("MWLibraryFiles"))) {
-        SetEnvironmentVariable(_T("MWLibraryFiles"), MWLibraryFiles);
-    }
-
     // Execute the tool
     _TCHAR *argv_quoted = win_argv_build((const _TCHAR **)new_argv);
     if (args.wrap_dbg) fprintf(stderr, FMT_TS "\n", argv_quoted);

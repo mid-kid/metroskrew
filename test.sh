@@ -2,12 +2,14 @@
 set -e
 export LANG=C
 
+ver=3.0-137
+
 test -f build/build.ninja || make setup
-ninja -C build/opt.release relink/mwccarm-3.0-137.exe
+ninja -C build/opt.release relink/mwccarm-$ver.exe
 
 GLIBC_TUNABLES=glibc.malloc.mmap_max=0 \
-setarch -R ./build/opt.release/relink/mwccarm-3.0-137.exe -o test_qemu.o -c test.c
-setarch -R ./build/opt.release/relink/mwccarm-3.0-137.exe -o test_host.o -c test.c
+setarch -R ./build/opt.release/relink/mwccarm-$ver.exe -o test_qemu.o -c test.c
+setarch -R ./build/opt.release/relink/mwccarm-$ver.exe -o test_host.o -c test.c
 
 diff test_qemu.o test_host.o || true
 
