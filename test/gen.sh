@@ -2,6 +2,7 @@
 set -eu
 
 BINS="${BINS:-$(echo ../subprojects/mw-executables-*/)}"
+SKREW="${SKREW:-../build/relink/}"
 mkdir -p res
 
 versions="
@@ -41,6 +42,14 @@ mwccarm() {
     done
 }
 
+mwccarm_skrew() {
+    out="$1"; shift
+    for version in $versions; do
+        "$SKREW/${version%%:*}.exe" -o \
+            "res/${version%%:*}-$out" "$@" > /dev/null
+    done
+}
+
 # basic_c
 mwccarm basic_c.o -c basic_c.c
 
@@ -55,3 +64,8 @@ MWCIncludes=. mwccarm include_sys.o -gccinc -c include_sys.c
 
 # switch_float_bug
 mwccarm switch_float_bug.o -c switch_float_bug.c
+
+# memreuse01_bug
+# Can't reliably generate this file with wine, as it depends on UB.
+SKREW_HACK01=00000000 mwccarm_skrew memreuse01_bug_00.o -c memreuse01_bug.c
+SKREW_HACK01=ffffffff mwccarm_skrew memreuse01_bug_ff.o -c memreuse01_bug.c

@@ -3,7 +3,8 @@ tests_cc = [
   'include',
   'include_dir',
   'include_sys',
-  'switch_float_bug'
+  'switch_float_bug',
+  'memreuse01_bug'
 ]
 tests_as = [
   'basic_s'
