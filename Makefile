@@ -56,6 +56,7 @@ test_trace: $(build_trace)/build.ninja
 
 .PHONY: test_windows
 test_windows: $(build_windows)/build.ninja
+	wineserver -p1800 || test $$? = 2
 	$(MESON) test -C $(build_windows)
 
 .PHONY: patchgen
