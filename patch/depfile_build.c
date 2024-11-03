@@ -14,9 +14,14 @@ __stdcall char *path_join(char *src, char *dst, size_t size);  // 0x004110f0
 // 0x00411b90
 __stdcall int string_alloc(unsigned size, mwstring *string)
 {
-    string->data = GlobalAlloc(GMEM_ZEROINIT, size);
+    char *data = GlobalAlloc(GMEM_ZEROINIT, size);
+    if (!data) {
+        string->data = NULL;
+        string->size = size;
+        return my_GetLastError();
+    }
+    string->data = data;
     string->size = size;
-    if (!string->data) return my_GetLastError();
     return 0;
 }
 
