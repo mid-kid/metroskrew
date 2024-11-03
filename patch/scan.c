@@ -356,6 +356,35 @@ unsigned find_memreuse01(const struct file *binary, const struct loc **res)
     return 7;
 }
 
+unsigned find_depfile(const struct file *binary, const struct loc **res)
+{
+    const struct scan code[] = {
+        DEF_SCAN(0,
+            0x53,                                     // push ebx
+            0x56,                                     // push esi
+            0x57,                                     // push edi
+            0x55,                                     // push ebp
+            0x81, 0xec, 0x1c, 0x08, 0x00, 0x00,       // sub esp, 0x81c
+            0x8b, 0x9c, 0x24, 0x34, 0x08, 0x00, 0x00  // mov ebx, dword ptr [esp + u32]
+        ),
+        END_SCAN
+    };
+
+    static struct loc loc[] = {
+        {.name = "depfile_build"},
+    };
+
+    const unsigned char *pos = scan(binary, code, 0);
+    if (!pos) return 0;
+    size_t off = pos - binary->data;
+
+    loc[0].start = off + code[0].off;
+    loc[0].end = off + code[0].off + code[0].size;
+
+    *res = loc;
+    return 1;
+}
+
 typedef unsigned (*funcs_t)(const struct file *, const struct loc **);
 static const funcs_t funcs[] = {
     find_fs,
@@ -363,6 +392,7 @@ static const funcs_t funcs[] = {
     find_getenv,
     find_findexe,
     find_memreuse01,
+    find_depfile,
     NULL
 };
 

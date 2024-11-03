@@ -1,7 +1,8 @@
-#include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+
+#include "include.h"
 
 // This function mallocs some memory without clearing it, and reads from it,
 // which causes the behavior (and compilation output) to depend on it.
@@ -11,22 +12,6 @@
 
 #define SKREW_HACK01
 
-struct STRUC_0063a828 {
-    struct STRUC_0063a828 *next;
-    int _unk1[1];
-    struct STRUC_0063a828 *unk_8;
-    struct STRUC_0063a828 *unk_c;
-    int _unk2[3];
-    int unk_1c;
-};
-
-extern int DAT_0063a798;  // 0x0063a798
-extern struct STRUC_0063a828 *DAT_0063a828;
-extern struct STRUC_0063a828 **DAT_0063ccb0;
-extern uint32_t **DAT_0063ccf0;  // 0x0063ccf0
-
-void *prog_malloc(size_t size);  // 0x00442550
-void FUN_004f8b60(void);
 void bitarr_cpy(uint32_t *dst, uint32_t *src, int len);  // 0x00581750
 int bitarr_cpycmp(uint32_t *dst, uint32_t *src, int len);  // 0x00581790
 void bitarr_set(uint32_t *dst, int len, uint32_t val);  // 0x005817d0

@@ -61,4 +61,11 @@ addr_DAT_0063ccb0 = 0x63ccb0
 
 addr_DAT_0063ccf0 = 0x63ccf0
 
+addr_depfile_build = 0x0043c8d0
+code_depfile_build = addr_depfile_build - pe_text_addr + pe_text_off
+code_depfile_build.end = code_depfile_build + 10
+addr_depfile_get_target = 0x004178f0
+addr_depfile_get_header = 0x0043c010
+addr_path_join = 0x004110f0
+
 .include "patch.i"

@@ -4,7 +4,8 @@ fs = import('fs')
 
 sources_c = [
   'env.c',
-  'FUN_00505340.c'
+  'FUN_00505340.c',
+  'depfile_build.c'
 ]
 
 c_args = [
@@ -15,7 +16,8 @@ c_args = [
 ]
 
 patch_common = static_library('patch_common', sources_c,
-  c_args: c_args)
+  c_args: c_args,
+  dependencies: wine_headers)
 
 # Patch listing
 
