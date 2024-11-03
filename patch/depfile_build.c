@@ -5,14 +5,14 @@
 
 #include "include.h"
 
-__stdcall char *depfile_get_target(char *path, char *dir, char *dest, unsigned dest_size);  // 0x004178f0
+__stdcall char *depfile_get_target(char *path, char *dir, char *dest, size_t dest_size);  // 0x004178f0
 
 // TODO
 __cdecl void depfile_get_header(char *param_1, int param_2, char *param_3);  // 0x0043c010
 __stdcall char *path_join(char *src, char *dst, size_t size);  // 0x004110f0
 
 // 0x00411b90
-__stdcall int string_alloc(unsigned size, mwstring *string)
+__stdcall int string_alloc(size_t size, mwstring *string)
 {
     char *data = GlobalAlloc(GMEM_ZEROINIT, size);
     if (!data) {
@@ -26,7 +26,7 @@ __stdcall int string_alloc(unsigned size, mwstring *string)
 }
 
 // 0x00411bc0
-__stdcall int string_realloc(mwstring *string, unsigned size)
+__stdcall int string_realloc(mwstring *string, size_t size)
 {
     char *data = GlobalReAlloc(string->data, size, GMEM_ZEROINIT | GMEM_MOVEABLE);
     if (!data) {
@@ -49,7 +49,7 @@ __stdcall char *string_data(mwstring *string)
 }
 
 // 0x00411c80
-__stdcall int string_size(mwstring *string, unsigned *out)
+__stdcall int string_size(mwstring *string, size_t *out)
 {
     if (GlobalFlags(string->data) == GMEM_INVALID_HANDLE) {
         *out = 0;
@@ -60,11 +60,11 @@ __stdcall int string_size(mwstring *string, unsigned *out)
 }
 
 // 0x00417ea0
-__stdcall int string_append(mwstring *string, char *data, unsigned size)
+__stdcall int string_append(mwstring *string, char *data, size_t size)
 {
     int rv;
 
-    unsigned cur_size;
+    size_t cur_size;
     rv = string_size(string, &cur_size);
     if (rv) return rv;
 
@@ -97,13 +97,12 @@ __cdecl char *depfile_escape_spaces(int doit, char *dst, char *src)
 // 0x0043c8d0
 __cdecl void depfile_build(char *header_struct, char *depfile_struct, mwstring *string)
 {
-    int cur_header, num_headers;
     char strbuf[PATH_MAX * 2];
     char escape_buf[PATH_MAX * 2 - 4];
 
     if (string_alloc(0, string)) goto outofmem;
 
-    num_headers = *(int *)(depfile_struct + 0x870);
+    int num_headers = *(int *)(depfile_struct + 0x870);
 
     char target[PATH_MAX];
     depfile_get_target(depfile_struct + 0x423, NULL, target, PATH_MAX);
@@ -130,7 +129,7 @@ __cdecl void depfile_build(char *header_struct, char *depfile_struct, mwstring *
         if (string_append(string, strbuf, strlen(strbuf))) goto outofmem;
     }
 
-    for (cur_header = 0; cur_header < *(int *)(depfile_struct + 0x870);
+    for (int cur_header = 0; cur_header < *(int *)(depfile_struct + 0x870);
             cur_header++) {
         num_headers--;
 
