@@ -5,9 +5,6 @@
 
 #include "include.h"
 
-__stdcall char *depfile_get_target(char *path, char *dir, char *dest, size_t dest_size);  // 0x004178f0
-__cdecl void depfile_get_header(char *depfile_struct, int header, mwpath *out);  // 0x0043c010
-
 __cdecl void *malloc_clear(size_t size);  // 0x00425ac0
 
 // 0x004110f0
@@ -142,6 +139,7 @@ __cdecl void depfile_build(char *header_struct, char *depfile_struct, mwstring *
     char target[PATH_MAX];
     depfile_get_target(depfile_struct + 0x423, NULL, target, PATH_MAX);
 
+    // Print makefile target
     if (!*target) {
         char *source = depfile_struct + 0x1c;
         char *source_escaped = depfile_escape_spaces(
@@ -164,6 +162,7 @@ __cdecl void depfile_build(char *header_struct, char *depfile_struct, mwstring *
         if (string_append(string, strbuf, strlen(strbuf))) goto outofmem;
     }
 
+    // Print all header dependencies
     for (int cur_header = 0; cur_header < *(int *)(depfile_struct + 0x870);
             cur_header++) {
         num_headers--;
