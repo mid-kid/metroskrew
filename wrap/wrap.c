@@ -17,9 +17,6 @@ extern char **environ;
 
 #include "config.h"
 
-#define DEFAULT_CFG_FILE ".mwconfig"
-#define VER_CFG 1
-
 #ifdef _UNICODE
 #define FMT_TS "%ls"
 #else
@@ -63,10 +60,6 @@ enum libarch {
 };
 
 struct args {
-    _TCHAR *o;
-    _TCHAR *precompile;
-    bool MD;
-
     enum libarch wrap_libarch;
     bool wrap_dbg;
     _TCHAR *wrap_ver;
@@ -97,16 +90,7 @@ struct args parse_args(int argc, _TCHAR *argv[], int *out_argc, _TCHAR ***out_ar
         int skip = 0;
         int copy = 0;
 
-        if (_tcscmp(argv[0], _T("-o")) == 0 && argc >= 2) {
-            args.o = argv[1];
-            copy = 2;
-        } else if (_tcscmp(argv[0], _T("-precompile")) == 0 && argc >= 2) {
-            args.precompile = argv[1];
-            copy = 2;
-        } else if (_tcscmp(argv[0], _T("-MD")) == 0) {
-            args.MD = true;
-            copy = 1;
-        } else if (_tcscmp(argv[0], _T("-proc")) == 0 && argc >= 2) {
+        if (_tcscmp(argv[0], _T("-proc")) == 0 && argc >= 2) {
             if (_tcscmp(argv[1], _T("arm7tdmi")) == 0 ||
                     _tcscmp(argv[1], _T("arm4T")) == 0) {
                 args.wrap_libarch = LIBARCH_v4;
@@ -213,142 +197,6 @@ _TCHAR *utftotc(const char *str)
 #else
     return strdup(str);
 #endif
-}
-
-struct config {
-    char *path_unx;
-    char *path_win;
-    char *path_build_unx;
-    char *path_build_win;
-};
-
-const _TCHAR *cfg_file(void)
-{
-    const _TCHAR *path = _tgetenv(_T("MWCONFIG"));
-    if (!path) path = _T(DEFAULT_CFG_FILE);
-    return path;
-}
-
-void cfg_save_writestr(FILE *f, const char *str)
-{
-    if (str) fputs(str, f);
-    fputc('\0', f);
-}
-
-void cfg_save(struct config cfg)
-{
-    FILE *f = _tfopen(cfg_file(), _T("wb"));
-    if (!f) {
-        fprintf(stderr, PROGRAM_NAME ": cfg_save: Failed to write config\n");
-        exit(EXIT_FAILURE);
-    }
-
-    const char head[] = {'M', 'W', 'R', VER_CFG};
-    fwrite(head, sizeof(head), 1, f);
-    cfg_save_writestr(f, cfg.path_unx);
-    cfg_save_writestr(f, cfg.path_win);
-    cfg_save_writestr(f, cfg.path_build_unx);
-    cfg_save_writestr(f, cfg.path_build_win);
-    fclose(f);
-}
-
-char *cfg_load_readstr(struct file *file, size_t *pos)
-{
-    // Check if a string is present
-    if (file->size < *pos + 1) return NULL;
-    if (file->data[*pos] == '\0') {
-        // Treat empty string as empty
-        (*pos)++;
-        return NULL;
-    }
-
-    // Look for the null byte
-    size_t readlen = strnlen((char *)file->data + *pos, file->size - *pos);
-    if (file->size - *pos <= readlen) return NULL;
-
-    // If found, we can safely read it
-    char *readstr = strdup((char *)file->data + *pos);
-    *pos += readlen + 1;
-    return readstr;
-}
-
-struct config cfg_load(void)
-{
-    struct config cfg;
-    cfg.path_unx = NULL;
-    cfg.path_win = NULL;
-    cfg.path_build_unx = NULL;
-    cfg.path_build_win = NULL;
-
-    struct file *file = file_read(cfg_file());
-    if (!file) return cfg;
-    size_t file_pos = 0;
-
-    const char head[] = {'M', 'W', 'R', VER_CFG};
-    if (file->size < file_pos + sizeof(head)) return cfg;
-    if (memcmp(file->data + file_pos, head, sizeof(head)) != 0) return cfg;
-    file_pos += sizeof(head);
-
-    cfg.path_unx = cfg_load_readstr(file, &file_pos);
-    cfg.path_win = cfg_load_readstr(file, &file_pos);
-    cfg.path_build_unx = cfg_load_readstr(file, &file_pos);
-    cfg.path_build_win = cfg_load_readstr(file, &file_pos);
-
-    free(file);
-    return cfg;
-}
-
-void cfg_free(struct config cfg)
-{
-    free(cfg.path_win);
-    free(cfg.path_unx);
-    free(cfg.path_build_win);
-    free(cfg.path_build_unx);
-}
-
-void configure(int argc, _TCHAR *argv[])
-{
-    _TCHAR *path_unx = NULL;
-    _TCHAR *path_win = NULL;
-    _TCHAR *path_build_unx = NULL;
-    _TCHAR *path_build_win = NULL;
-
-    while (argc >= 1) {
-        if (_tcscmp(argv[0], _T("-path_unx")) == 0) {
-            path_unx = argv[1];
-            argv += 2; argc -= 2;
-        } else if (_tcscmp(argv[0], _T("-path_win")) == 0) {
-            path_win = argv[1];
-            argv += 2; argc -= 2;
-        } else if (_tcscmp(argv[0], _T("-path_build_unx")) == 0) {
-            path_build_unx = argv[1];
-            argv += 2; argc -= 2;
-        } else if (_tcscmp(argv[0], _T("-path_build_win")) == 0) {
-            path_build_win = argv[1];
-            argv += 2; argc -= 2;
-        } else {
-            fprintf(stderr,
-                PROGRAM_NAME ": configure: Invalid argument: " FMT_TS "\n",
-                *argv);
-            exit(EXIT_FAILURE);
-        }
-    }
-
-    struct config cfg;
-    cfg.path_unx = tctoutf(path_unx);
-    cfg.path_win = tctoutf(path_win);
-    cfg.path_build_unx = tctoutf(path_build_unx);
-    cfg.path_build_win = tctoutf(path_build_win);
-    if (
-            (path_unx && !cfg.path_unx) ||
-            (path_win && !cfg.path_win) ||
-            (path_build_unx && !cfg.path_build_unx) ||
-            (path_build_win && !cfg.path_build_win)) {
-        fprintf(stderr, PROGRAM_NAME ": configure: Conversion failed\n");
-        exit(EXIT_FAILURE);
-    }
-    cfg_save(cfg);
-    cfg_free(cfg);
 }
 
 _TCHAR *strmake(const _TCHAR *format, ...)
@@ -601,58 +449,6 @@ void setenv_weak(const _TCHAR *name, const _TCHAR *value)
 #endif
 }
 
-void fix_depfile(_TCHAR *fname, const char *path_unx, const char *path_win, const char *path_build_unx, const char *path_build_win)
-{
-    struct file *file = file_read(fname);
-    if (!file) return;
-
-    FILE *f = _tfopen(fname, _T("wb"));
-    if (!f) {
-        free(file);
-        return;
-    }
-
-    size_t size_win = 0;
-    if (path_win && path_unx) {
-        size_win = strlen(path_win);
-    }
-    size_t size_build_win = 0;
-    if (path_build_win && path_build_unx) {
-        size_build_win = strlen(path_build_win);
-    }
-
-    bool blankline = false;
-
-    // Replace any instances of path_win at the beginning of a line with
-    // path_unx, and backslashes with forward slashes.
-    for (size_t x = 0; x < file->size;) {
-        if (size_win && blankline &&
-                file->size - x > size_win &&
-                memcmp(file->data + x, path_win, size_win) == 0) {
-            fputs(path_unx, f);
-            x += size_win;
-        } else if (size_build_win && blankline &&
-                file->size - x > size_build_win &&
-                memcmp(file->data + x, path_build_win, size_build_win) == 0) {
-            fputs(path_build_unx, f);
-            x += size_build_win;
-        } else if (file->size - x > 2 && file->data[x] == '\\' &&
-                file->data[x + 1] != '\r' && file->data[x + 1] != '\n') {
-            fputc('/', f);
-            x++;
-        } else {
-            if (blankline && file->data[x] != ' ' && file->data[x] != '\t') {
-                blankline = false;
-            }
-            if (file->data[x] == '\n') blankline = true;
-            fputc(file->data[x++], f);
-        }
-    }
-
-    fclose(f);
-    free(file);
-}
-
 int _tmain(int argc, _TCHAR *argv[])
 {
 #ifndef WRAP_PROG
@@ -666,19 +462,10 @@ int _tmain(int argc, _TCHAR *argv[])
         return EXIT_FAILURE;
     }
 
-#ifndef WRAP_PROG
-    if (_tcscmp(argv[1], _T("-conf")) == 0) {
-        configure(argc - 2, argv + 2);
-        return EXIT_SUCCESS;
-    }
-#endif
-
     // Filter the arguments to pass to the application
     int new_argc;
     _TCHAR **new_argv;
     args = parse_args(argc - MIN_ARGS, argv + MIN_ARGS, &new_argc, &new_argv);
-
-    struct config cfg = cfg_load();
 
     // Figure out program location
     _TCHAR *tool_dir = find_self(argv[0]);
@@ -901,47 +688,5 @@ int _tmain(int argc, _TCHAR *argv[])
 
     free(tool);
     free(new_argv);
-
-    // Fix dependency file if generated
-    _TCHAR *depfile = NULL;
-    if (args.MD) {
-        // Generating a depfile as a side-effect of compilation
-        _TCHAR *out = NULL;
-        if (args.o) out = args.o;
-        if (args.precompile) out = args.precompile;
-
-        // Replace filename extension with .d
-        if (out) {
-            out = _tcsdup(out);
-            _TCHAR *dot = _tcsrchr(out, '.');
-            if (!dot) dot = _tcsrchr(out, '\0');
-            *dot = '\0';
-
-            size_t len = dot - out + 3;
-            out = realloc(out, sizeof(*out) * len);
-            _tcscat(out, _T(".d"));
-        }
-        depfile = out;
-    }
-
-    if (depfile) {
-        if (args.wrap_dbg) {
-            fprintf(stderr, "dep: " FMT_TS "\n", depfile);
-            if (cfg.path_unx && cfg.path_win) {
-                fprintf(stderr, "path_unx: %s\n", cfg.path_unx);
-                fprintf(stderr, "path_win: %s\n", cfg.path_win);
-            }
-            if (cfg.path_build_unx && cfg.path_build_win) {
-                fprintf(stderr, "path_build_unx: %s\n", cfg.path_build_unx);
-                fprintf(stderr, "path_build_win: %s\n", cfg.path_build_win);
-            }
-        }
-        fix_depfile(depfile,
-            cfg.path_unx, cfg.path_win,
-            cfg.path_build_unx, cfg.path_build_win);
-        free(depfile);
-    }
-
-    cfg_free(cfg);
     return EXIT_SUCCESS;
 }

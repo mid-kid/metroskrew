@@ -9,7 +9,3 @@ This file is for the "big" TODOs that can't be described in a comment.
       this search aren't entirely suitable to our port, and it's one small step
       towards reimplementing important parts of the tool.
     - It would also allow us to use the program without a ".exe" suffix.
-- [ ] Move dependency file fixing from the wrapper to the program, via patching.
-    - This will also allow making relative instead of full paths, which is
-      required for ninja and make to function correctly, when using generated
-      headers.
