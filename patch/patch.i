@@ -81,8 +81,7 @@ var prog_malloc addr_prog_malloc
 var FUN_004f8b60 addr_FUN_004f8b60
 .ifdef code_depfile_build
 var depfile_get_target addr_depfile_get_target
-var depfile_get_header addr_depfile_get_header
-var path_join addr_path_join
+var depfile_get_header 0x0043c010
 .endif
 
 var DAT_0063a798 addr_DAT_0063a798

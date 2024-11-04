@@ -6,10 +6,39 @@
 #include "include.h"
 
 __stdcall char *depfile_get_target(char *path, char *dir, char *dest, size_t dest_size);  // 0x004178f0
+__cdecl void depfile_get_header(char *depfile_struct, int header, mwpath *out);  // 0x0043c010
 
-// TODO
-__cdecl void depfile_get_header(char *param_1, int param_2, char *param_3);  // 0x0043c010
-__stdcall char *path_join(char *src, char *dst, size_t size);  // 0x004110f0
+__cdecl void *malloc_clear(size_t size);  // 0x00425ac0
+
+// 0x004110f0
+__stdcall char *path_join(mwpath *src, char *dst, int dst_size)
+{
+    // Allocate memory
+    if (dst_size == 0) dst_size = PATH_MAX;
+    if (dst == NULL) {
+        dst = malloc_clear(dst_size);
+        if (dst == NULL) return NULL;
+    }
+
+    // Truncate as necessary
+    int len_dir = strlen(src->dir);
+    int len_file = strlen(src->file);
+    if (len_file + len_dir >= dst_size) {
+        // Truncate file first, before truncating dir
+        if (dst_size > len_dir) {
+            len_file = dst_size - len_dir - 1;
+        } else {
+            len_file = 0;
+            len_dir = dst_size - 1;
+        }
+    }
+
+    // Concatenate both strings
+    memcpy(dst, src, len_dir);
+    memcpy(dst + len_dir, src->file, len_file);
+    dst[len_dir + len_file] = '\0';
+    return dst;
+}
 
 // 0x00411b90
 __stdcall int string_alloc(size_t size, mwstring *string)
@@ -78,6 +107,12 @@ __stdcall int string_append(mwstring *string, char *data, size_t size)
     return 0;
 }
 
+// 0x00425ac0
+__cdecl void *malloc_clear(size_t size)
+{
+    return GlobalAlloc(GMEM_ZEROINIT, size);
+}
+
 // 0x0043c880
 __cdecl char *depfile_escape_spaces(int doit, char *dst, char *src)
 {
@@ -133,12 +168,12 @@ __cdecl void depfile_build(char *header_struct, char *depfile_struct, mwstring *
             cur_header++) {
         num_headers--;
 
-        char header[PATH_MAX * 2 - 4];
+        mwpath header;
         char header_full[PATH_MAX];
 
         depfile_get_header(header_struct,
-            (*(int **)(depfile_struct + 0x878))[cur_header], header);
-        path_join(header, header_full, PATH_MAX);
+            (*(int **)(depfile_struct + 0x878))[cur_header], &header);
+        path_join(&header, header_full, PATH_MAX);
 
         char *header_escaped = depfile_escape_spaces(
             strchr(header_full, ' ') != NULL, escape_buf, header_full);

@@ -23,6 +23,11 @@ typedef struct {
     unsigned size;
 } mwstring;
 
+typedef struct {
+    char dir[PATH_MAX];
+    char file[PATH_MAX - 4];
+} mwpath;
+
 extern int DAT_0063a798;  // 0x0063a798
 extern struct STRUC_0063a828 *DAT_0063a828;  // 0x0063a828
 extern struct STRUC_0063a828 **DAT_0063ccb0;  // 0x0063ccb0
