@@ -79,10 +79,8 @@ pe_text:
 
 var prog_malloc addr_prog_malloc
 var FUN_004f8b60 addr_FUN_004f8b60
-.ifdef code_depfile_build
 var depfile_get_target addr_depfile_get_target
-var depfile_get_header 0x0043c010
-.endif
+var depfile_get_header addr_depfile_get_header
 
 var DAT_0063a798 addr_DAT_0063a798
 var DAT_0063a828 addr_DAT_0063a828

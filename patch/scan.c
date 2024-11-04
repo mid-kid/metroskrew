@@ -367,11 +367,37 @@ unsigned find_depfile(const struct file *binary, const struct loc **res)
             0x81, 0xec, 0x1c, 0x08, 0x00, 0x00,       // sub esp, 0x81c
             0x8b, 0x9c, 0x24, 0x34, 0x08, 0x00, 0x00  // mov ebx, dword ptr [esp + u32]
         ),
+        // TODO: Find real end
+        END_SCAN
+    };
+
+    const struct scan code_get_target[] = {
+        DEF_SCAN(0,
+            0x53,                                // push ebx
+            0x56,                                // push esi
+            0x57,                                // push edi
+            0x55,                                // push ebp
+            0x81, 0xec, 0x0c, 0x03, 0x00, 0x00,  // sub esp, 0x30c
+            0x8d, 0x9c, 0x24                     // lea ebx, [esp + u32]
+        ),
+        // TODO: Find real end
+        END_SCAN
+    };
+
+    const struct scan code_get_header[] = {
+        DEF_SCAN(0,
+            0x8b, 0x4c, 0x24, 0x04,                   // mov ecx, dword ptr [esp + 4]
+            0x8b, 0x44, 0x24, 0x08,                   // mov eax, dword ptr [esp + 8]
+            0x8d, 0x04, 0x80,                         // lea eax, [eax + eax * 4]
+            0x8d, 0x04, 0x85, 0x00, 0x00, 0x00, 0x00  // lea eax, [eax * 4]
+        ),
         END_SCAN
     };
 
     static struct loc loc[] = {
         {.name = "depfile_build"},
+        {.name = "depfile_get_target"},
+        {.name = "depfile_get_header"}
     };
 
     const unsigned char *pos = scan(binary, code, 0);
@@ -379,10 +405,24 @@ unsigned find_depfile(const struct file *binary, const struct loc **res)
     size_t off = pos - binary->data;
 
     loc[0].start = off + code[0].off;
-    loc[0].end = off + code[0].off + code[0].size;
+    loc[0].end = loc[0].start + code[0].size;
+
+    pos = scan(binary, code_get_target, 0);
+    if (!pos) return 0;
+    off = pos - binary->data;
+
+    loc[1].start = off + code_get_target[0].off;
+    loc[1].end = loc[1].start + code_get_target[0].size;
+
+    pos = scan(binary, code_get_header, 0);
+    if (!pos) return 0;
+    off = pos - binary->data;
+
+    loc[2].start = off + code_get_header[0].off;
+    loc[2].end = loc[2].start + code_get_header[0].size;
 
     *res = loc;
-    return 1;
+    return 3;
 }
 
 typedef unsigned (*funcs_t)(const struct file *, const struct loc **);

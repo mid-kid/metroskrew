@@ -33,9 +33,21 @@ addr_getenv = code_getenv - pe_text_off + pe_text_addr
 code_main = 0x2d90
 addr_main = code_main - pe_text_off + pe_text_addr
 
+code_depfile_get_target = 0x16d90
+code_depfile_get_target.end = 0x16d9d
+addr_depfile_get_target = code_depfile_get_target - pe_text_off + pe_text_addr
+
 code_findexe = 0x17250
 code_findexe.end = 0x17410
 addr_findexe = code_findexe - pe_text_off + pe_text_addr
+
+code_depfile_get_header = 0x3c1a0
+code_depfile_get_header.end = 0x3c1b2
+addr_depfile_get_header = code_depfile_get_header - pe_text_off + pe_text_addr
+
+code_depfile_build = 0x3cad0
+code_depfile_build.end = 0x3cae1
+addr_depfile_build = code_depfile_build - pe_text_off + pe_text_addr
 
 code_prog_malloc = 0x42840
 addr_prog_malloc = code_prog_malloc - pe_text_off + pe_text_addr
