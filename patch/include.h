@@ -7,6 +7,9 @@
 #include "winbase.h"
 DWORD WINAPI my_GetLastError(void);
 
+// Utils
+#include "../dlls/_utils.h"
+
 #define PATH_MAX 0x104
 
 struct STRUC_0063a828 {

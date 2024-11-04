@@ -5,6 +5,23 @@
 
 #include "include.h"
 
+// This set of functions is responsible for emitting makefile-style dependency
+// information, when using the -M/-MM/-MD/-MMD family of options.
+
+// By default, metrowerks outputs a full path to each included header. This
+// causes several problems. The full path isn't recognized to be equivalent to
+// a relative rule generating a header, thus "make" will need to be called
+// twice to fully rebuild everything. A full path also needs to be translated
+// when crossing environment boundaries (e.g. Running windows metroskrew from
+// WSL1, or some cygwin/msys environment). Additionally, backslashes are used
+// as a path separator on linux, where they shouldn't be.
+
+#define SKREW_FIX_DEPFILES
+
+#ifdef SKREW_FIX_DEPFILES
+#include <unistd.h>
+#endif
+
 __cdecl void *malloc_clear(size_t size);  // 0x00425ac0
 
 // 0x004110f0
@@ -126,6 +143,42 @@ __cdecl char *depfile_escape_spaces(int doit, char *dst, char *src)
     return dst;
 }
 
+#ifdef SKREW_FIX_DEPFILES
+char *relpath(const char *cwd, const char *dst)
+{
+    const char *dst_p = dst;
+    const char *cwd_p = cwd;
+
+    // Strip any leading path components
+    for (;;) {
+        if (*dst_p != '/') break;
+        char *c = strchr(dst_p + 1, '/');
+        if (!c) break;
+        int l = c - dst_p;
+        if (strncmp(dst_p, cwd_p, l) != 0) break;
+        dst_p += l; cwd_p += l;
+    }
+
+    // Figure out how many ../ to add
+    int l = 0;
+    if (strcmp(dst_p, cwd_p) == 0) {
+        dst_p = ".";
+    } else if (*dst_p == '/') {
+        dst_p++;
+        while (*cwd_p) if (*cwd_p++ == '/') l++;
+    }
+
+    // Allocate and build final string
+    int dst_p_len = strlen(dst_p) + 1;
+    char *dst_m = malloc(3 * l + dst_p_len);
+    if (!dst_m) return NULL;
+    for (int i = 0; i < l; i++) memcpy(dst_m + 3 * i, "../", 3);
+    memcpy(dst_m + 3 * l, dst_p, dst_p_len);
+
+    return dst_m;
+}
+#endif
+
 // 0x0043c8d0
 __cdecl void depfile_build(char *header_struct, char *depfile_struct, mwstring *string)
 {
@@ -142,12 +195,29 @@ __cdecl void depfile_build(char *header_struct, char *depfile_struct, mwstring *
     // Print makefile target
     if (!*target) {
         char *source = depfile_struct + 0x1c;
+#ifdef SKREW_FIX_DEPFILES
+        // Convert to unix path and truncate
+        char *source_unx = path_dup_unx(source);
+        if (!memccpy(target, source_unx, '\0', sizeof(target))) {
+            target[sizeof(target) - 1] = '\0';
+        }
+        source = target;
+        free(source_unx);
+#endif
         char *source_escaped = depfile_escape_spaces(
             strchr(source, ' ') != NULL, escape_buf, source);
 
         sprintf(strbuf, "%s: %s\n", source_escaped, num_headers ? "\\" : "");
         if (string_append(string, strbuf, strlen(strbuf))) goto outofmem;
     } else {
+#ifdef SKREW_FIX_DEPFILES
+        // Convert to unix path and truncate
+        char *target_unx = path_dup_unx(target);
+        if (!memccpy(target, target_unx, '\0', sizeof(target))) {
+            target[sizeof(target) - 1] = '\0';
+        }
+        free(target_unx);
+#endif
         char *target_escaped = depfile_escape_spaces(
             strchr(target, ' ') != NULL, escape_buf, target);
 
@@ -155,6 +225,15 @@ __cdecl void depfile_build(char *header_struct, char *depfile_struct, mwstring *
         if (string_append(string, strbuf, strlen(strbuf))) goto outofmem;
 
         char *source = depfile_struct + 0x1c;
+#ifdef SKREW_FIX_DEPFILES
+        // Convert to unix path and truncate
+        char *source_unx = path_dup_unx(source);
+        if (!memccpy(target, source_unx, '\0', sizeof(target))) {
+            target[sizeof(target) - 1] = '\0';
+        }
+        source = target;
+        free(source_unx);
+#endif
         char *source_escaped = depfile_escape_spaces(
             strchr(source, ' ') != NULL, escape_buf, source);
 
@@ -173,6 +252,24 @@ __cdecl void depfile_build(char *header_struct, char *depfile_struct, mwstring *
         depfile_get_header(header_struct,
             (*(int **)(depfile_struct + 0x878))[cur_header], &header);
         path_join(&header, header_full, PATH_MAX);
+
+#ifdef SKREW_FIX_DEPFILES
+        // Convert to unix
+        char *hdr = path_dup_unx(header_full);
+
+        // Make relative
+        char *cwd = getcwd(NULL, 0);
+        if (!cwd) goto outofmem;
+        char *rel = relpath(cwd, hdr);
+
+        // Truncate
+        if (!memccpy(header_full, rel, '\0', sizeof(header_full))) {
+            header_full[sizeof(header_full) - 1] = '\0';
+        }
+        free(rel);
+        free(cwd);
+        free(hdr);
+#endif
 
         char *header_escaped = depfile_escape_spaces(
             strchr(header_full, ' ') != NULL, escape_buf, header_full);
