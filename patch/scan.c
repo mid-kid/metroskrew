@@ -391,6 +391,7 @@ unsigned find_depfile(const struct file *binary, const struct loc **res)
             0x8d, 0x04, 0x80,                         // lea eax, [eax + eax * 4]
             0x8d, 0x04, 0x85, 0x00, 0x00, 0x00, 0x00  // lea eax, [eax * 4]
         ),
+        // TODO: Find real end
         END_SCAN
     };
 
