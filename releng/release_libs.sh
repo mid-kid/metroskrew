@@ -19,12 +19,7 @@ export PATH="$PWD/install_native/bin:$PATH"
 
 rm -rf build_libs
 proj_libs="$PROJ/subprojects/mw-libraries"
-libvers="
-    dsi/1.6sp1 dsi/1.3 dsi/1.2 dsi/1.1p1 dsi/1.1
-    ds/2.0/sp2p3 ds/2.0/sp2 ds/2.0/sp1p2 ds/2.0/sp1
-    ds/2.0/p4 ds/2.0/p2 ds/2.0/base
-    ds/1.2/sp4 ds/1.2/sp3 ds/1.2/sp2 ds/1.2/base_b73 ds/1.2/base
-"
+libvers="$(sed 's/#.*$//;/^\s*$/d' "$proj_libs/libvers.txt")"
 for libver in $libvers; do
     build="build_libs/$(printf %s $libver | tr / _)"
     "$MESON" setup "$proj_libs" "$build" \
