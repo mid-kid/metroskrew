@@ -525,32 +525,30 @@ int _tmain(int argc, _TCHAR *argv[])
     if (args.wrap_sdk) tool_sdk = args.wrap_sdk;
     if (args.wrap_lib) tool_lib = args.wrap_lib;
 
-    // If no version was specified, pick a default for generic binary names
-    if (!tool_ver && !tool_sdk) {
-        if (_tcscmp(tool_bin, _T("mwccarm")) == 0) {
-            tool_ver = _T(DEFAULT_MWCCARM);
-        }
-        if (_tcscmp(tool_bin, _T("mwldarm")) == 0) {
-            tool_ver = _T(DEFAULT_MWLDARM);
-        }
-        if (_tcscmp(tool_bin, _T("mwasmarm")) == 0) {
-            tool_ver = _T(DEFAULT_MWASMARM);
-        }
-    }
-
     // Figure out the tool filename
     _TCHAR *tool_file = NULL;
-    if (tool_sdk) {
+    if (tool_ver) {
+        tool_file = strmake(_T(FMT_TS "-" FMT_TS ".exe"), tool_bin, tool_ver);
+    } else if (tool_sdk) {
         tool_file = sdk_version(datadir, tool_sdk, tool_bin, _T(".exe"));
         if (!tool_file) {
             fprintf(stderr, PROGRAM_NAME ": did not find SDK version "
                 FMT_TS "\n", tool_sdk);
             exit(EXIT_FAILURE);
         }
-    } else if (tool_ver) {
-        tool_file = strmake(_T(FMT_TS "-" FMT_TS ".exe"), tool_bin, tool_ver);
     } else {
-        tool_file = strmake(_T(FMT_TS ".exe"), tool_bin);
+        // If no version was specified, pick a default for generic binary names
+        _TCHAR *ver = _T("");
+        if (_tcscmp(tool_bin, _T("mwccarm")) == 0) {
+            ver = _T("-" DEFAULT_MWCCARM);
+        }
+        if (_tcscmp(tool_bin, _T("mwldarm")) == 0) {
+            ver = _T("-" DEFAULT_MWLDARM);
+        }
+        if (_tcscmp(tool_bin, _T("mwasmarm")) == 0) {
+            ver = _T("-" DEFAULT_MWASMARM);
+        }
+        tool_file = strmake(_T(FMT_TS FMT_TS ".exe"), tool_bin, ver);
     }
 
     // Make a path of the chosen tool
