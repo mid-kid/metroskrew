@@ -52,6 +52,9 @@ typedef char _TCHAR;
 #define PATH_DELIM "/\\"
 #endif
 
+// TODO: Temporary hacks for pokeplatinum, remove whenever possible
+#define PLAT_TEMP
+
 enum libarch {
     LIBARCH_v4,
     LIBARCH_v4t,
@@ -66,6 +69,9 @@ struct args {
     _TCHAR *wrap_sdk;
     _TCHAR *wrap_lib;
     _TCHAR *wrap_hack01;
+#ifdef PLAT_TEMP
+    bool wrap_noipa;
+#endif
 };
 
 struct file {
@@ -120,6 +126,11 @@ struct args parse_args(int argc, _TCHAR *argv[], int *out_argc, _TCHAR ***out_ar
         } else if (_tcscmp(argv[0], _T("-wrap:hack01")) == 0 && argc >= 2) {
             args.wrap_hack01 = argv[1];
             skip = 2;
+#ifdef PLAT_TEMP
+        } else if (_tcscmp(argv[0], _T("-wrap:noipa")) == 0) {
+            args.wrap_noipa = true;
+            skip = 1;
+#endif
         } else {
             copy = 1;
         }
@@ -449,6 +460,27 @@ void setenv_weak(const _TCHAR *name, const _TCHAR *value)
 #endif
 }
 
+#ifdef PLAT_TEMP
+void remove_ipa_arguments(int *argc, _TCHAR **argv)
+{
+    int new_argc = 0;
+    for (int i = 0; i < *argc; i++) {
+        if (argv[i] && _tcscmp(argv[i], _T("-ipa")) == 0 && (i + 1) < *argc) {
+            // Skip the current "-ipa" argument and the following argument.
+            i++; // Increment to skip the next argument.
+        } else {
+            // Keep this argument, by moving it down if necessary.
+            argv[new_argc] = argv[i];
+            new_argc++;
+        }
+    }
+
+    // Update the original argc to the new count of arguments.
+    *argc = new_argc;
+    argv[*argc] = NULL;
+}
+#endif
+
 int _tmain(int argc, _TCHAR *argv[])
 {
 #ifndef WRAP_PROG
@@ -466,6 +498,12 @@ int _tmain(int argc, _TCHAR *argv[])
     int new_argc;
     _TCHAR **new_argv;
     args = parse_args(argc - MIN_ARGS, argv + MIN_ARGS, &new_argc, &new_argv);
+
+#ifdef PLAT_TEMP
+    if (args.wrap_noipa) {
+        remove_ipa_arguments(&new_argc, new_argv);
+    }
+#endif
 
     // Figure out program location
     _TCHAR *tool_dir = find_self(argv[0]);
