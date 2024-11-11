@@ -9,3 +9,6 @@ This file is for the "big" TODOs that can't be described in a comment.
       this search aren't entirely suitable to our port, and it's one small step
       towards reimplementing important parts of the tool.
     - It would also allow us to use the program without a ".exe" suffix.
+- [ ] Make the following work: "echo 'int a(){}' > test.c;./build/relink/mwccarm-4.0-1051.exe -enc SJIS -c test.c"
+    - This allows parsing SHIFT-JIS encoded text, for example where yen
+      characters are involved. Support ought to be verified.
