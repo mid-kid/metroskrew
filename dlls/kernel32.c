@@ -298,7 +298,7 @@ BOOL WINAPI TlsSetValue(DWORD dwTlsIndex, LPVOID lpTlsValue)
 }
 #endif
 
-HMODULE WINAPI GetModuleHandleA(LPCSTR lpModuleName)
+HMODULE WINAPI my_GetModuleHandleA(LPCSTR lpModuleName)
 {
     (void)lpModuleName;
     STUB("GetModuleHandleA: lpModuleName='%s'", lpModuleName);
@@ -314,7 +314,7 @@ DWORD WINAPI GetModuleFileNameA(HMODULE hModule, LPSTR lpFileName, DWORD nSize)
     return 0;
 }
 
-HMODULE WINAPI LoadLibraryA(LPCSTR lpLibFileName)
+HMODULE WINAPI my_LoadLibraryA(LPCSTR lpLibFileName)
 {
     (void)lpLibFileName;
     STUB("HACK: LoadLibraryA");
@@ -323,7 +323,7 @@ HMODULE WINAPI LoadLibraryA(LPCSTR lpLibFileName)
     return res;
 }
 
-BOOL WINAPI FreeLibrary(HMODULE hLibModule)
+BOOL WINAPI my_FreeLibrary(HMODULE hLibModule)
 {
     (void)hLibModule;
     STUB("HACK: FreeLibrary");

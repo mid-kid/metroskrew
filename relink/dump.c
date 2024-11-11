@@ -600,10 +600,19 @@ unsigned dump_do_import(FILE *out, struct dump_import *dump, const char *incbin,
 
         // These are used in the startfiles...
         char *my = "";
-        if (strcmp(dump->name, "GetLastError") == 0) {
-            my = "my_";
-        } else if (strcmp(dump->name, "GetFileAttributesA") == 0) {
-            my = "my_";
+        char *funcs[] = {
+            "GetLastError",
+            "GetFileAttributesA",
+            "GetModuleHandleA",
+            "LoadLibraryA",
+            "FreeLibrary",
+            NULL
+        };
+        for (char **func = funcs; *func; func++) {
+            if (strcmp(dump->name, *func) == 0) {
+                my = "my_";
+                break;
+            }
         }
 
         fprintf(out, ".long %s%s%s # %s\n", opt.win ? "_" : "", my,
