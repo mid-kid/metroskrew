@@ -95,7 +95,7 @@ $(build)/build.ninja:
 $(build_release)/build.ninja:
 	@mkdir -p $(build)
 	$(MESON) setup --cross-file meson/$(CROSS).ini $(build_release) \
-		--prefix / --buildtype release
+		--prefix / --buildtype release -Db_sanitize=address,undefined
 
 $(build_trace)/build.ninja:
 	@mkdir -p $(build)
