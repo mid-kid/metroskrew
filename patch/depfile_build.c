@@ -179,6 +179,11 @@ char *relpath(const char *cwd, const char *dst)
 }
 #endif
 
+extern const int depfile_struct__source;
+extern const int depfile_struct__targets;
+extern const int depfile_struct__num_headers;
+extern const int depfile_struct__headers;
+
 // 0x0043c8d0
 __cdecl void depfile_build(char *header_struct, char *depfile_struct, mwstring *string)
 {
@@ -187,14 +192,16 @@ __cdecl void depfile_build(char *header_struct, char *depfile_struct, mwstring *
 
     if (string_alloc(0, string)) goto outofmem;
 
-    int num_headers = *(int *)(depfile_struct + 0x870);
+    int num_headers =
+        *(int *)(depfile_struct + depfile_struct__num_headers);
 
     char target[PATH_MAX];
-    depfile_get_target(depfile_struct + 0x423, NULL, target, PATH_MAX);
+    depfile_get_target(depfile_struct + depfile_struct__targets,
+        NULL, target, PATH_MAX);
 
     // Print makefile target
     if (!*target) {
-        char *source = depfile_struct + 0x1c;
+        char *source = depfile_struct + depfile_struct__source;
 #ifdef SKREW_FIX_DEPFILES
         // Convert to unix path and truncate
         char *source_unx = path_dup_unx(source);
@@ -224,7 +231,7 @@ __cdecl void depfile_build(char *header_struct, char *depfile_struct, mwstring *
         sprintf(strbuf, "%s: ", target_escaped);
         if (string_append(string, strbuf, strlen(strbuf))) goto outofmem;
 
-        char *source = depfile_struct + 0x1c;
+        char *source = depfile_struct + depfile_struct__source;
 #ifdef SKREW_FIX_DEPFILES
         // Convert to unix path and truncate
         char *source_unx = path_dup_unx(source);
@@ -242,15 +249,14 @@ __cdecl void depfile_build(char *header_struct, char *depfile_struct, mwstring *
     }
 
     // Print all header dependencies
-    for (int cur_header = 0; cur_header < *(int *)(depfile_struct + 0x870);
-            cur_header++) {
+    for (int cur_header = 0; cur_header < num_headers; cur_header++) {
         num_headers--;
 
         mwpath header;
         char header_full[PATH_MAX];
 
-        depfile_get_header(header_struct,
-            (*(int **)(depfile_struct + 0x878))[cur_header], &header);
+        depfile_get_header(header_struct, (*(int **)(depfile_struct +
+            depfile_struct__headers))[cur_header], &header);
         path_join(&header, header_full, PATH_MAX);
 
 #ifdef SKREW_FIX_DEPFILES

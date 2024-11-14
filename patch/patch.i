@@ -86,3 +86,11 @@ var DAT_0063a798 addr_DAT_0063a798
 var DAT_0063a828 addr_DAT_0063a828
 var DAT_0063ccb0 addr_DAT_0063ccb0
 var DAT_0063ccf0 addr_DAT_0063ccf0
+
+.section .text
+.ifdef code_depfile_build
+    func depfile_struct__source;.int off_depfile_struct__source
+    func depfile_struct__targets;.int off_depfile_struct__targets
+    func depfile_struct__num_headers;.int off_depfile_struct__num_headers
+    func depfile_struct__headers;.int off_depfile_struct__headers
+.endif
