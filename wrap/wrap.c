@@ -697,7 +697,8 @@ int _tmain(int argc, _TCHAR *argv[])
     }
     int exitcode;
     waitpid(pid, &exitcode, 0);
-    if (WEXITSTATUS(exitcode)) return WEXITSTATUS(exitcode);
+    if (WIFSIGNALED(exitcode)) return 128 + WTERMSIG(exitcode);
+    if (WIFEXITED(exitcode)) return WEXITSTATUS(exitcode);
 #else
     // Execute the tool
     _TCHAR *argv_quoted = win_argv_build((const _TCHAR **)new_argv);
