@@ -14,6 +14,7 @@ struct loc {
     char *name;
     size_t start;
     size_t end;
+    bool raw;
 };
 
 struct file {
@@ -34,12 +35,13 @@ struct scan {
 
 uint16_t read_u16(const unsigned char *mem)
 {
-    return mem[0] << 0 | mem[1] << 8;
+    return (uint16_t)mem[0] << 0 | (uint16_t)mem[1] << 8;
 }
 
 uint32_t read_u32(const unsigned char *mem)
 {
-    return mem[0] << 0 | mem[1] << 8 | mem[2] << 16 | mem[3] << 24;
+    return (uint32_t)mem[0] << 0 | (uint32_t)mem[1] << 8 |
+        (uint32_t)mem[2] << 16 | (uint32_t)mem[3] << 24;
 }
 
 const unsigned char *scan(const struct file *binary, const struct scan *scan, size_t off)
@@ -398,7 +400,11 @@ unsigned find_depfile(const struct file *binary, const struct loc **res)
     static struct loc loc[] = {
         {.name = "depfile_build"},
         {.name = "depfile_get_target"},
-        {.name = "depfile_get_header"}
+        {.name = "depfile_get_header"},
+        {.name = "off_depfile_struct__source", .raw = true},
+        {.name = "off_depfile_struct__targets", .raw = true},
+        {.name = "off_depfile_struct__num_headers", .raw = true},
+        {.name = "off_depfile_struct__headers", .raw = true}
     };
 
     const unsigned char *pos = scan(binary, code, 0);
@@ -422,8 +428,36 @@ unsigned find_depfile(const struct file *binary, const struct loc **res)
     loc[2].start = off + code_get_header[0].off;
     loc[2].end = loc[2].start + code_get_header[0].size;
 
+    // Figure out what version of the struct it's using
+    const unsigned char *push;
+    static const unsigned char push_code[] = {
+        0x68, 0x04, 0x01, 0x00, 0x00  // push 0x104
+    };
+    if (loc[0].start < 4) return 0;
+    if (binary->size - loc[0].start < 0x80) return 0;
+    push = memmem(binary->data + loc[0].start, 0x80, push_code, sizeof(push_code));
+    if (!push) return 0;
+    uint32_t struct_off = read_u32(push - 4);
+
+    // Hardcode the values for known versions
+    switch (struct_off) {
+    case 0x870:
+        loc[3].start = 0x1c;  // source
+        loc[4].start = 0x423;  // targets
+        loc[5].start = 0x870;  // num_headers
+        loc[6].start = 0x878;  // headers
+        break;
+    case 0x86c:
+        loc[3].start = 0x1c;  // source
+        loc[4].start = 0x422;  // targets
+        loc[5].start = 0x86c;  // num_headers
+        loc[6].start = 0x874;  // headers
+        break;
+    default: return 0;
+    }
+
     *res = loc;
-    return 3;
+    return 7;
 }
 
 typedef unsigned (*funcs_t)(const struct file *, const struct loc **);
@@ -440,6 +474,7 @@ static const funcs_t funcs[] = {
 int sort_loc(const void *_p1, const void *_p2)
 {
     const struct loc *p1 = _p1, *p2 = _p2;
+    if (p2->raw != p1->raw) return p2->raw - p1->raw;
     return p1->start - p2->start;
 }
 
@@ -510,8 +545,10 @@ int scan_bin(FILE *out, const struct file *binary, const char *incbin)
                 fprintf(out, "addr_%s = code_%s - pe_text_off + pe_text_addr\n",
                     loc->name, loc->name);
             }
-        } else {
+        } else if (!loc->raw) {
             fprintf(out, "addr_%s = 0x%lx\n", loc->name, loc->start);
+        } else {
+            fprintf(out, "%s = 0x%lx\n", loc->name, loc->start);
         }
     }
 

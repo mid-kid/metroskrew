@@ -6,6 +6,14 @@ pe_text_off = 0x400
 pe_text_len = 0x15a2aa
 pe_text_addr = 0x401000
 
+off_depfile_struct__source = 0x1c
+
+off_depfile_struct__targets = 0x422
+
+off_depfile_struct__num_headers = 0x86c
+
+off_depfile_struct__headers = 0x874
+
 code_fs_1 = 0x40f
 code_fs_1.end = 0x41d
 addr_fs_1 = code_fs_1 - pe_text_off + pe_text_addr
