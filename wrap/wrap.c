@@ -186,7 +186,7 @@ char *tctoutf(const _TCHAR *str)
 #ifdef _UNICODE
     size_t size = WideCharToMultiByte(CP_UTF8, 0, str, -1, NULL, 0, NULL, NULL);
     if (!size) return NULL;
-    char *res = malloc(size);
+    char *res = malloc(size * sizeof(char));
     if (!res) return NULL;
     WideCharToMultiByte(CP_UTF8, 0, str, -1, res, size, NULL, NULL);
     return res;
@@ -201,7 +201,7 @@ _TCHAR *utftotc(const char *str)
 #ifdef _UNICODE
     size_t size = MultiByteToWideChar(CP_UTF8, 0, str, -1, NULL, 0);
     if (!size) return NULL;
-    _TCHAR *res = malloc(size);
+    _TCHAR *res = malloc(size * sizeof(_TCHAR));
     if (!res) return NULL;
     MultiByteToWideChar(CP_UTF8, 0, str, -1, res, size);
     return res;
