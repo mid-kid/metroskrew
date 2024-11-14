@@ -56,12 +56,13 @@ struct pe_rsrc_string {
 
 uint16_t read_u16(const unsigned char *mem)
 {
-    return mem[0] << 0 | mem[1] << 8;
+    return (uint16_t)mem[0] << 0 | (uint16_t)mem[1] << 8;
 }
 
 uint32_t read_u32(const unsigned char *mem)
 {
-    return mem[0] << 0 | mem[1] << 8 | mem[2] << 16 | mem[3] << 24;
+    return (uint32_t)mem[0] << 0 | (uint32_t)mem[1] << 8 |
+        (uint32_t)mem[2] << 16 | (uint32_t)mem[3] << 24;
 }
 
 bool pe_open_read_header(struct pe_file *file)
@@ -263,11 +264,13 @@ bool pe_read_export_table(struct pe_file *file, struct pe_export *out)
     if (fread(name_tab, 4 * name_num, 1, file->f) != 1) goto error;
     free(func_tab);
     free(name_tab);
+    free(ords_tab);
     return true;
 
 error:
     free(func_tab);
     free(name_tab);
+    free(ords_tab);
     return false;
 }
 
