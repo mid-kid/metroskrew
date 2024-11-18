@@ -7,6 +7,8 @@ build_release := $(build)/opt.release
 build_trace := $(build)/opt.trace
 build_windows := $(build)/opt.windows
 
+export MSYS2_ARG_CONV_EXCL := *
+
 .PHONY: all
 all: $(build)/build.ninja
 	$(MESON) compile -C $(build)
