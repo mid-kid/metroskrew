@@ -36,6 +36,7 @@ wrap_progs = ['skrewrap', 'mwccarm', 'mwldarm', 'mwasmarm']
 wrap = []
 foreach wrap_prog : wrap_progs
   wrap += executable(wrap_prog, 'wrap.c', cfg_file,
+    name_suffix: is_windows ? 'exe' : [],
     c_args: c_args + [
       wrap_prog != 'skrewrap' ? '-DWRAP_PROG="' + wrap_prog + '"' : []
     ],
