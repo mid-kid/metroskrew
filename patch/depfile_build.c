@@ -279,9 +279,6 @@ __cdecl void depfile_build(char *header_struct, char *depfile_struct, mwstring *
         char *cwd = getcwd(NULL, 0);
         if (!cwd) goto outofmem;
 
-        fprintf(stderr, "cwd: %s\n", cwd);
-        fprintf(stderr, "header_full: %s\n", header_full);
-
         // Make relative path, truncate it, and always use forward slashes
         char *rel = relpath(cwd, header_full);
         if (!memccpy(header_full, rel, '\0', sizeof(header_full))) {
