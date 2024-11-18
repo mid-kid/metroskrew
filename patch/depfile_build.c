@@ -149,10 +149,25 @@ char *relpath(const char *cwd, const char *dst)
     const char *dst_p = dst;
     const char *cwd_p = cwd;
 
+#ifndef _WIN32
+    static const char sep = '/';
+    static const char *sep_parent = "../";
+#else
+    static const char sep = '\\';
+    static const char *sep_parent = "..\\";
+    // Strip drive letter if it matches
+#define X(x) (x[0] >= 'A' && x[0] <= 'Z' && x[1] == ':' && x[2] == sep)
+    if (X(dst_p) && X(cwd_p) && strncmp(dst_p, cwd_p, 3) == 0) {
+        dst_p += 2;
+        cwd_p += 2;
+    }
+#undef X
+#endif
+
     // Strip any leading path components
     for (;;) {
-        if (*dst_p != '/') break;
-        char *c = strchr(dst_p + 1, '/');
+        if (*dst_p != sep) break;
+        char *c = strchr(dst_p + 1, sep);
         if (!c) break;
         int l = c - dst_p;
         if (strncmp(dst_p, cwd_p, l) != 0) break;
@@ -163,16 +178,16 @@ char *relpath(const char *cwd, const char *dst)
     int l = 0;
     if (strcmp(dst_p, cwd_p) == 0) {
         dst_p = ".";
-    } else if (*dst_p == '/') {
-        dst_p++; l++;
-        while ((cwd_p = strchr(cwd_p + 1, '/'))) l++;
+    } else if (*dst_p == sep) {
+        dst_p++;
+        for (; (cwd_p = strchr(cwd_p, sep)); cwd_p++) l++;
     }
 
     // Allocate and build final string
     int dst_p_len = strlen(dst_p) + 1;
     char *dst_m = malloc(3 * l + dst_p_len);
     if (!dst_m) return NULL;
-    for (int i = 0; i < l; i++) memcpy(dst_m + 3 * i, "../", 3);
+    for (int i = 0; i < l; i++) memcpy(dst_m + 3 * i, sep_parent, 3);
     memcpy(dst_m + 3 * l, dst_p, dst_p_len);
 
     return dst_m;
@@ -264,21 +279,15 @@ __cdecl void depfile_build(char *header_struct, char *depfile_struct, mwstring *
         char *cwd = getcwd(NULL, 0);
         if (!cwd) goto outofmem;
 
-        char *cwd_p = cwd;
-        char *hdr_p = header_full;
-#ifdef _WIN32
-        // Strip drive letter and convert to unix
-        if (path_has_drv(cwd_p)) cwd_p += 2;
-        if (path_has_drv(hdr_p)) hdr_p += 2;
-        for (char *c = cwd_p; (c = strchr(c, '\\')); c++) *c = '/';
-        for (char *c = hdr_p; (c = strchr(c, '\\')); c++) *c = '/';
-#endif
+        fprintf(stderr, "cwd: %s\n", cwd);
+        fprintf(stderr, "header_full: %s\n", header_full);
 
-        // Make relative path and truncate it
-        char *rel = relpath(cwd_p, hdr_p);
+        // Make relative path, truncate it, and always use forward slashes
+        char *rel = relpath(cwd, header_full);
         if (!memccpy(header_full, rel, '\0', sizeof(header_full))) {
             header_full[sizeof(header_full) - 1] = '\0';
         }
+        for (char *c = header_full; (c = strchr(c, '\\')); c++) *c = '/';
         free(rel);
         free(cwd);
 #endif
