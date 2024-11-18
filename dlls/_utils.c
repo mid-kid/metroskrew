@@ -16,6 +16,6 @@ char *path_dup_unx(const char *path)
 #endif
 
     char *n = strcpy(malloc(strlen(o) + 1), o);
-    for (char *c = n; *c; c++) if (*c == '\\') *c = '/';
+    for (char *c = n; (c = strchr(c, '\\')); c++) *c = '/';
     return n;
 }

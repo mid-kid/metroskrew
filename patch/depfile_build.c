@@ -164,8 +164,8 @@ char *relpath(const char *cwd, const char *dst)
     if (strcmp(dst_p, cwd_p) == 0) {
         dst_p = ".";
     } else if (*dst_p == '/') {
-        dst_p++;
-        while (*cwd_p) if (*cwd_p++ == '/') l++;
+        dst_p++; l++;
+        while ((cwd_p = strchr(cwd_p + 1, '/'))) l++;
     }
 
     // Allocate and build final string
@@ -260,21 +260,27 @@ __cdecl void depfile_build(char *header_struct, char *depfile_struct, mwstring *
         path_join(&header, header_full, PATH_MAX);
 
 #ifdef SKREW_FIX_DEPFILES
-        // Convert to unix
-        char *hdr = path_dup_unx(header_full);
-
-        // Make relative
+        // Get both paths
         char *cwd = getcwd(NULL, 0);
         if (!cwd) goto outofmem;
-        char *rel = relpath(cwd, hdr);
 
-        // Truncate
+        char *cwd_p = cwd;
+        char *hdr_p = header_full;
+#ifdef _WIN32
+        // Strip drive letter and convert to unix
+        if (path_has_drv(cwd_p)) cwd_p += 2;
+        if (path_has_drv(hdr_p)) hdr_p += 2;
+        for (char *c = cwd_p; (c = strchr(c, '\\')); c++) *c = '/';
+        for (char *c = hdr_p; (c = strchr(c, '\\')); c++) *c = '/';
+#endif
+
+        // Make relative path and truncate it
+        char *rel = relpath(cwd_p, hdr_p);
         if (!memccpy(header_full, rel, '\0', sizeof(header_full))) {
             header_full[sizeof(header_full) - 1] = '\0';
         }
         free(rel);
         free(cwd);
-        free(hdr);
 #endif
 
         char *header_escaped = depfile_escape_spaces(
