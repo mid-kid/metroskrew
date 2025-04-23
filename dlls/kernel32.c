@@ -528,7 +528,7 @@ DWORD WINAPI GetFileSize(HANDLE hFile, LPDWORD lpFileSizeHigh)
 
     struct stat buf;
     if (fstat(uFile - 1, &buf) != 0) return INVALID_FILE_SIZE;
-    DWORD res = buf.st_size;
+    DWORD res = buf.st_size;  // Windows seems to expect truncation
     TRACE("GetFileSize: res=%ld hFile=%d", res, uFile);
     return res;
 }

@@ -31,7 +31,6 @@ arch = '-march=i586'
 c_args_base = [
   arch,
   '-fno-PIC',
-  '-U_FILE_OFFSET_BITS',
   '-U_FORTIFY_SOURCE'
 ]
 
