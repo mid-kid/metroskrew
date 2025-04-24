@@ -1,7 +1,7 @@
 [wrap-file]
-directory = wine-9.0
-patch_directory = wine-9.0
+directory = wine-10.0
+patch_directory = wine-10.0
 
-source_filename = wine-9.0.tar.xz
-source_url = https://dl.winehq.org/wine/source/9.0/wine-9.0.tar.xz
-source_hash = 7cfd090a5395f5b76d95bb5defac8a312c8de4c070c1163b8b58da38330ca6ee
+source_filename = wine-10.0.tar.xz
+source_url = https://dl.winehq.org/wine/source/10.0/wine-10.0.tar.xz
+source_hash = c5e0b3f5f7efafb30e9cd4d9c624b85c583171d33549d933cd3402f341ac3601

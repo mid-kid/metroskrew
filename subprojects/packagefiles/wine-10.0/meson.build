@@ -1,5 +1,5 @@
 project('wine', 'c',
-  version: '9.0',
+  version: '10.0',
   default_options: ['warning_level=1'])
 
 bison = find_program('bison', native: true,
@@ -14,3 +14,10 @@ if has_widl
 endif
 
 subdir('include')
+
+if has_widl
+  static_library('wine_test',
+    'test.c',
+    dependencies: headers_dep,
+    build_by_default: false)
+endif

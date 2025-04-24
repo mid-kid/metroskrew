@@ -1,1 +1,2 @@
 option('with_widl', type: 'feature')
+option('test', type: 'boolean')

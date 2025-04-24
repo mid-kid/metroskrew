@@ -11,9 +11,7 @@ config = configure_file(
     '__WINE_CONFIG_H': true,
     'PACKAGE_VERSION': '"' + meson.project_version() + '"',
     'INCLUDEDIR': '"/usr/include"',
-    'DLLDIR': '"/usr/lib/wine"',
-    'BIN_TO_INCLUDEDIR': '"../include"',
-    'BIN_TO_DLLDIR': '"../lib/wine"'
+    'LIBDIR': '"/usr/lib"'
   })
 
 widl = executable('widl', 
@@ -31,6 +29,7 @@ widl = executable('widl',
   'utils.c',
   'widl.c',
   'write_msft.c',
+  'write_sltg.c',
   '../wrc/wpp.c',
   bison_gen.process('parser.y', '../wrc/ppy.y'),
   flex_gen.process('parser.l', '../wrc/ppl.l'),
