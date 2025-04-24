@@ -1,4 +1,5 @@
 project('metroskrew', 'c',
+  version: '0.1.2',
   default_options: ['warning_level=2'],
   meson_version: '>=0.60.0')
 
