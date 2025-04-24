@@ -1,1 +1,4 @@
-option('trace', type: 'boolean', value: false)
+option('trace', type: 'boolean', value: false,
+  description: 'Enables tracing messages')
+option('wine_wrap', type: 'boolean', value: false,
+  description: 'Installs shell scripts to call wine')

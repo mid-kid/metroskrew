@@ -32,6 +32,9 @@ if is_windows
   link_args += '-municode'
 endif
 
+assert(get_option('wine_wrap') ? is_windows : true,
+  'The wine_wrap option is only relevant for windows builds')
+
 wrap_progs = ['skrewrap', 'mwccarm', 'mwldarm', 'mwasmarm']
 wrap = []
 foreach wrap_prog : wrap_progs
@@ -42,6 +45,15 @@ foreach wrap_prog : wrap_progs
     ],
     link_args: link_args,
     install: true)
+  if get_option('wine_wrap')
+    configure_file(
+      input: 'wine_wrap.in',
+      output: wrap_prog,
+      configuration: {'WRAP': wrap_prog + '.exe'},
+      install: true,
+      install_dir: get_option('bindir'),
+      install_mode: 'rwxr-xr-x')
+  endif
 endforeach
 
 # test() requires a cross-compiled target in its argument list

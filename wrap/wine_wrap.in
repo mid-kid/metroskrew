@@ -1,0 +1,2 @@
+#!/bin/sh
+WINEDEBUG=-all exec "${WINE:-wine}" "$(dirname "$(realpath "$0")")/@WRAP@" "$@"

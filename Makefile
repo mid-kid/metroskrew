@@ -107,4 +107,4 @@ $(build_trace)/build.ninja:
 $(build_windows)/build.ninja:
 	@mkdir -p $(build)
 	$(MESON) setup --cross-file meson/i686-w64-mingw32.ini $(build_windows) \
-		--prefix / -Dtrace=true
+		--prefix / -Dtrace=true -Dwine_wrap=true
