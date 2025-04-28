@@ -16,6 +16,7 @@
 // WSL1, or some cygwin/msys environment). Additionally, backslashes are used
 // as a path separator on linux, where they shouldn't be.
 
+// Enables the depfile fix
 #define SKREW_FIX_DEPFILES
 
 #ifdef SKREW_FIX_DEPFILES
@@ -194,6 +195,9 @@ char *relpath(const char *cwd, const char *dst)
 }
 #endif
 
+// Struct offsets for a specific version of metrowerks
+// Can't make it a real struct since it differs between versions
+// Generated using scan.c
 extern const int depfile_struct__source;
 extern const int depfile_struct__targets;
 extern const int depfile_struct__num_headers;

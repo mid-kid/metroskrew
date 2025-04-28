@@ -53,12 +53,16 @@ incbin patch.end, (pe_text_off + pe_text_len - patch.end)
     wjmp patch_getenv
 .endm
 
-.macro patch_FUN_00505340
-    wjmp FUN_00505340
-.endm
-
+# Patch the depfile (-M/-MM/-MD/-MMD) output
+# See depfile_build.c
 .macro patch_depfile_build
     wjmp depfile_build
+.endm
+
+# Allow controlling undefined behavior affecting compiler output
+# See FUN_00505340.c
+.macro patch_FUN_00505340
+    wjmp FUN_00505340
 .endm
 
 # The actual code

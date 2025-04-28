@@ -9,7 +9,12 @@
 //
 // Unfortunately, the reallocated memory contains pointers, which differ
 // depending on the OS and ASLR. This code tries to allow control over it.
+//
+// The saving grace to this, is that this UB seems to only affect builds
+// without optimizations enabled (-O0). Unfortunately, some of the standard
+// libraries (mw-libraries) are built like this.
 
+// Enable the code that allows controlling the behavior
 #define SKREW_HACK01
 
 void bitarr_cpy(uint32_t *dst, uint32_t *src, int len);  // 0x00581750
@@ -29,17 +34,20 @@ void FUN_00505340(void)
 
     uint32_t *curbits = prog_malloc(wordlen * sizeof(**DAT_0063ccf0));
 
+#ifdef SKREW_HACK01
     // Keep track of which entries have been initialized
     uint8_t _init[DAT_0063a798]; (void)_init;
     memset(_init, 0, DAT_0063a798);
-
     _init[DAT_0063a828->unk_1c] = 1;
+#endif
     bitarr_set(DAT_0063ccf0[DAT_0063a828->unk_1c], DAT_0063a798, 0);
     DAT_0063ccf0[DAT_0063a828->unk_1c][0] |= 1;
 
     for (struct STRUC_0063a828 *listptr = DAT_0063a828->next;
             listptr; listptr = listptr->next) {
+#ifdef SKREW_HACK01
         _init[listptr->unk_1c] = 1;
+#endif
         bitarr_set(DAT_0063ccf0[listptr->unk_1c], DAT_0063a798, -1);
     }
 
