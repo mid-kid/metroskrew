@@ -64,8 +64,11 @@ endif
 
 if is_windows
   as_args_base += ['--defsym', '_WIN32=1']
-  c_args_base += ['-mcrtdll=msvcrt-os', '-D_WIN32_WINNT=0x500']
-  link_args_base += '-mcrtdll=msvcrt-os'
+  c_args_base += '-D_WIN32_WINNT=0x500'
+  if c.has_argument('-mcrtdll=msvcrt-os')
+    c_args_base += '-mcrtdll=msvcrt-os'
+    link_args_base += '-mcrtdll=msvcrt-os'
+  endif
 endif
 
 proj_libdir = get_option('libdir') / meson.project_name()
