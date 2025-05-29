@@ -34,6 +34,16 @@ test_as() {
     mwasmarm "$@" -c -o "$MWASMARM_VER-$name.o" "$SRC/$name.s"
 }
 
+test_deps() {
+    rm -rf "$MWCCARM_VER-deps"
+    mkdir "$MWCCARM_VER-deps" && cd "$MWCCARM_VER-deps"
+    mkdir inc
+    for x in $(seq 32); do touch inc/$(printf deps%02d.h $x); done
+    cp "$SRC/deps.c" deps.c
+    mwccarm -MD -Iinc -c deps.c
+    cmp deps.d "$SRC/deps.d"
+}
+
 case "$1" in
     basic_c) test_cc "$1" ;;
     include) test_cc "$1" -gccinc ;;
@@ -44,6 +54,7 @@ case "$1" in
         SKREW_HACK01=00000000 variant=00 test_cc "$1"
         SKREW_HACK01=ffffffff variant=ff test_cc "$1"
         ;;
+    deps) test_deps ;;
     basic_ld) test_ld "$1" "$SRC/link.lcf" \
         "$SRC/res/mwccarm-4.0-1051-basic_c.o" ;;
     basic_s) test_as "$1" ;;
