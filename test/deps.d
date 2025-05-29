@@ -15,3 +15,19 @@ deps.o: deps.c \
 	inc/deps14.h \
 	inc/deps15.h \
 	inc/deps16.h \
+	inc/deps17.h \
+	inc/deps18.h \
+	inc/deps19.h \
+	inc/deps20.h \
+	inc/deps21.h \
+	inc/deps22.h \
+	inc/deps23.h \
+	inc/deps24.h \
+	inc/deps25.h \
+	inc/deps26.h \
+	inc/deps27.h \
+	inc/deps28.h \
+	inc/deps29.h \
+	inc/deps30.h \
+	inc/deps31.h \
+	inc/deps32.h 

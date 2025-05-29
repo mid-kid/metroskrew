@@ -305,8 +305,6 @@ __cdecl void depfile_build(char *header_struct, char *depfile_struct, mwstring *
 
     // Print all header dependencies
     for (int cur_header = 0; cur_header < num_headers; cur_header++) {
-        num_headers--;
-
         mwpath header;
         char header_full[PATH_MAX];
 
@@ -341,7 +339,8 @@ __cdecl void depfile_build(char *header_struct, char *depfile_struct, mwstring *
         char *header_escaped = depfile_escape_spaces(
             strchr(header_full, ' ') != NULL, escape_buf, header_full);
 
-        sprintf(strbuf, "\t%s %s\n", header_escaped, num_headers ? "\\" : "");
+        sprintf(strbuf, "\t%s %s\n", header_escaped,
+            (cur_header < num_headers - 1) ? "\\" : "");
         if (string_append(string, strbuf, strlen(strbuf))) goto outofmem;
     }
     return;
