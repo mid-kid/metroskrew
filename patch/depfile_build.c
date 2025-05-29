@@ -156,13 +156,36 @@ char *relpath(const char *cwd, const char *dst)
 #else
     static const char sep = '\\';
     static const char *sep_parent = "..\\";
-    // Strip drive letter if it matches
+    size_t win_match = 0;
+    // If it's a drive letter, make sure it matches
 #define X(x) (x[0] >= 'A' && x[0] <= 'Z' && x[1] == ':' && x[2] == sep)
-    if (X(dst_p) && X(cwd_p) && strncmp(dst_p, cwd_p, 3) == 0) {
-        dst_p += 2;
-        cwd_p += 2;
+    if (X(dst_p) || X(cwd_p)) {
+        win_match = 3;
     }
 #undef X
+    // If it's a network share, make sure it matches
+#define X(x) (x[0] == sep && x[1] == sep)
+    if (X(dst_p) || X(cwd_p)) {
+        char *dst_net = strchr(dst_p + 2, sep);
+        size_t dst_net_l = dst_net ? (size_t)(dst_net - dst_p) : strlen(dst_p);
+        char *cwd_net = strchr(cwd_p + 2, sep);
+        size_t cwd_net_l = cwd_net ? (size_t)(cwd_net - cwd_p) : strlen(cwd_p);
+        win_match = dst_net_l > cwd_net_l ? dst_net_l : cwd_net_l;
+    }
+#undef X
+    // If any of the above are detected, make sure it matches
+    // Otherwise, return a copy of the string unmodified
+    if (win_match) {
+        if (strncmp(dst_p, cwd_p, win_match) == 0) {
+            dst_p += win_match - 1;
+            cwd_p += win_match - 1;
+        } else {
+            // Duplicate string and return
+            size_t dst_p_len = strlen(dst_p) + 1;
+            char *dst_m = malloc(dst_p_len);
+            return dst_m ? memcpy(dst_m, dst_p, dst_p_len) : dst_m;
+        }
+    }
 #endif
 
     // Strip any leading path components
@@ -170,26 +193,39 @@ char *relpath(const char *cwd, const char *dst)
         if (*dst_p != sep) break;
         char *c = strchr(dst_p + 1, sep);
         if (!c) break;
-        int l = c - dst_p;
+        size_t l = c - dst_p;
         if (strncmp(dst_p, cwd_p, l) != 0) break;
         dst_p += l; cwd_p += l;
     }
 
-    // Figure out how many ../ to add
-    int l = 0;
-    if (strcmp(dst_p, cwd_p) == 0) {
-        dst_p = ".";
-    } else if (*dst_p == sep) {
-        dst_p++;
-        for (; (cwd_p = strchr(cwd_p, sep)); cwd_p++) l++;
+    if (!*dst_p) dst_p = ".";
+
+    // Strip the final path component if it's an exact match
+    if (*cwd_p == sep) {
+        char *c = strchr(cwd_p + 1, sep);
+        if (!c) c = strchr(cwd_p + 1, '\0');
+        size_t l = c - cwd_p;
+        if (strncmp(dst_p, cwd_p, l) == 0 && dst_p[l] == '\0') {
+            dst_p += l; cwd_p += l;
+        }
     }
 
+    // Figure out how many ../ to add
+    int p = 0;
+    if (!*dst_p || *dst_p == sep) {
+        if (*dst_p == sep) dst_p++;
+        for (; (cwd_p = strchr(cwd_p, sep)); cwd_p++) p++;
+    }
+    if (!*dst_p && !p) dst_p = ".";
+
     // Allocate and build final string
-    int dst_p_len = strlen(dst_p) + 1;
-    char *dst_m = malloc(3 * l + dst_p_len);
+    size_t dst_p_len = strlen(dst_p);
+    if (dst_p_len) dst_p_len++;
+    char *dst_m = malloc(3 * p + dst_p_len);
     if (!dst_m) return NULL;
-    for (int i = 0; i < l; i++) memcpy(dst_m + 3 * i, sep_parent, 3);
-    memcpy(dst_m + 3 * l, dst_p, dst_p_len);
+    for (int i = 0; i < p; i++) memcpy(dst_m + 3 * i, sep_parent, 3);
+    if (!dst_p_len) dst_m[3 * p - 1] = '\0';
+    memcpy(dst_m + 3 * p, dst_p, dst_p_len);
 
     return dst_m;
 }
@@ -283,14 +319,23 @@ __cdecl void depfile_build(char *header_struct, char *depfile_struct, mwstring *
         char *cwd = getcwd(NULL, 0);
         if (!cwd) goto outofmem;
 
-        // Make relative path, truncate it, and always use forward slashes
+#ifndef _WIN32
+        // On unix, make sure that both paths use the same separator beforehand
+        for (char *c = header_full; (c = strchr(c, '\\')); c++) *c = '/';
+#endif
+
+        // Make relative path, truncate it
         char *rel = relpath(cwd, header_full);
         if (!memccpy(header_full, rel, '\0', sizeof(header_full))) {
             header_full[sizeof(header_full) - 1] = '\0';
         }
-        for (char *c = header_full; (c = strchr(c, '\\')); c++) *c = '/';
         free(rel);
         free(cwd);
+
+#ifdef _WIN32
+        // On windows, we normalize the slashes after the fact
+        for (char *c = header_full; (c = strchr(c, '\\')); c++) *c = '/';
+#endif
 #endif
 
         char *header_escaped = depfile_escape_spaces(
